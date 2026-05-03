@@ -1,2 +1,7 @@
 <Solution>
+  <Project Path="GymFlow.Api/GymFlow.Api.csproj" />
+  <Project Path="GymFlow.Dal/GymFlow.Dal.csproj" />
+  <Project Path="GymFlow.Models/GymFlow.Models.csproj" />
+  <Project Path="GymFlow.Services/GymFlow.Services.csproj" />
+  <Project Path="GymFlow.Web/GymFlow.Web.csproj" />
 </Solution>
