@@ -1,0 +1,118 @@
+# .NET / ASP.NET Core
+bin/
+obj/
+out/
+publish/
+*.user
+*.suo
+*.cache
+*.pidb
+*.psess
+*.sln.docstates
+*.vs/
+.vs/
+
+# Visual Studio
+.vs/
+*.swp
+*.tmp
+*.tmp_proj
+*.log
+*.tlb
+*.tlh
+*.tmp
+*.tmp_proj
+*.sln.ide/
+.vscode/
+*.csproj.user
+*.vbproj.user
+*.fsproj.user
+
+# JetBrains Rider / dotUltimate
+.idea/
+*.sln.iml
+*.DotSettings.user
+*.DotSettings
+*/**/bin
+*/**/obj
+*/**/out
+*/**/packages
+*/**/TestResults
+*/**/coverage.json
+*/**/appsettings.json.user
+*/**/appsettings.*.json.user
+
+# VS Code
+.vscode/
+*.code-workspace
+*.code-search
+.history/
+*.log
+
+# EF Core migrations (optional: sometimes you want to keep migrations, but ignore the snapshot? - I recommend committing migrations)
+# If you want to ignore migrations folder completely, uncomment:
+# **/Migrations/
+
+# Database files (local DBs)
+*.db
+*.sqlite
+*.sqlite3
+*.mdf
+*.ldf
+*.db-shm
+*.db-wal
+
+# User secrets
+secrets.json
+appsettings.Development.json
+appsettings.Production.json
+
+# Logs
+logs/
+*.log
+log.txt
+nlog*.txt
+
+# Test results
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+
+# Build outputs
+*.dll
+*.exe
+*.pdb
+*.xml
+*.json (if not needed)
+
+# OS junk files
+.DS_Store
+Thumbs.db
+desktop.ini
+__pycache__/
+*.pyc
+
+# NuGet packages
+packages/
+*.nupkg
+*.snupkg
+
+# Rider specific
+_ReSharper.Caches/
+*.DotSettings.user
+*.csproj.DotSettings
+*.vbproj.DotSettings
+*.fsproj.DotSettings
+
+# Publish profiles
+**/Properties/PublishProfiles/*.pubxml.user
+
+# Azure Functions
+local.settings.json
+
+# Node.js / npm (if you use any frontend tools)
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
