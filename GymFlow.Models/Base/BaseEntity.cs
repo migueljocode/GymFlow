@@ -13,4 +13,14 @@ public abstract class BaseEntity
 
     /// <summary>UTC last update timestamp (null if never updated).</summary>
     public DateTime? UpdatedAt { get; set; }
+
+    /// <summary>
+    /// Soft delete flag. When true, entity is considered deleted but remains in database.
+    /// </summary>
+    public bool IsDeleted { get; set; } = false;
+    
+    /// <summary>
+    /// Timestamp when entity was soft-deleted (null if not deleted).
+    /// </summary>
+    public DateTime? DeletedAt { get; set; }
 }

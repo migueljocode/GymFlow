@@ -9,4 +9,6 @@ public class Exercise : BaseEntity
     public string Name { get; set; } = string.Empty;
     public MuscleGroup PrimaryMuscleGroup { get; set; } // flags enum
     public string? Description { get; set; }
+
+    public ICollection<WorkoutDayExercise> WorkoutDayExercises = new List<WorkoutDayExercise>();
 }
