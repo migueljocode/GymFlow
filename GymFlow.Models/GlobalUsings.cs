@@ -1,3 +1,5 @@
+global using System.ComponentModel.DataAnnotations;
+
 global using GymFlow.Models;
 global using GymFlow.Models.Base;
 global using GymFlow.Models.Entities;
