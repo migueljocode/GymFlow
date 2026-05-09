@@ -1,3 +1,5 @@
+using GymFlow.Services.Extensions;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Register Controllers
@@ -5,6 +7,8 @@ builder.Services.AddControllers();
 
 // Register GymFlow DAL (DbContext + Repositories + Seed Configuration)
 builder.Services.AddGymFlowDal(builder.Configuration, builder.Environment);
+
+builder.Services.AddGymFlowServices(); 
 
 // Register OpenAPI
 builder.Services.AddOpenApi();
