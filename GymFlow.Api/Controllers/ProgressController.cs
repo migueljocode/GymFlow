@@ -232,4 +232,27 @@ public class ProgressController : ApiControllerBase
         await _progressLogRepository.SoftDeleteAsync(id);
         return Success<string?>(null, "Progress log deleted successfully");
     }
+
+    /// <summary>
+/// Get weight history for chart
+/// </summary>
+[HttpGet("user/{userId:int}/weight-history")]
+public async Task<IActionResult> GetWeightHistoryAsync(int userId)
+{
+    var user = await _userRepository.GetByIdAsync(userId);
+    if (user is null)
+        return NotFoundResponse("User", userId);
+    
+    var logs = await _progressLogRepository.GetUserProgressHistoryAsync(userId);
+    var logList = logs.ToList();
+    
+    var history = logList.Select(l => new
+    {
+        Date = l.LogDate,
+        Weight = l.Weight,
+        BodyFatPercentage = l.BodyFatPercentage
+    }).OrderBy(h => h.Date).ToList();
+    
+    return Success(history);
+}
 }

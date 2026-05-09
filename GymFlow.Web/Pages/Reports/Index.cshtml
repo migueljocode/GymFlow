@@ -1,0 +1,100 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "گزارش‌ها";
+}
+
+<div class="container">
+    <h2 class="mb-4">📑 دانلود گزارش‌ها</h2>
+    
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">📋 برنامه تمرینی</h5>
+                </div>
+                <div class="card-body">
+                    <p>دانلود برنامه تمرینی فعال به صورت PDF</p>
+                    @if (Model.ActivePlanId > 0)
+                    {
+                        <form method="post" asp-page-handler="DownloadWorkoutPlan" asp-route-planId="@Model.ActivePlanId">
+                            <button type="submit" class="btn btn-primary">
+                                📄 دانلود برنامه تمرینی
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <button class="btn btn-secondary" disabled>برنامه فعالی وجود ندارد</button>
+                    }
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">📊 گزارش پیشرفت</h5>
+                </div>
+                <div class="card-body">
+                    <p>دانلود گزارش کامل پیشرفت وزنی</p>
+                    <form method="post" asp-page-handler="DownloadProgress" asp-route-userId="@Model.CurrentUserId">
+                        <button type="submit" class="btn btn-success">
+                            📄 دانلود گزارش پیشرفت
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="mb-0">📅 خلاصه هفتگی</h5>
+                </div>
+                <div class="card-body">
+                    <p>دانلود خلاصه تمرینات این هفته</p>
+                    <div class="input-group mb-3">
+                        <input type="date" id="weekStart" class="form-control" />
+                        <button type="button" class="btn btn-warning" onclick="downloadWeeklySummary()">
+                            📄 دانلود خلاصه هفتگی
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">🏆 گواهی دستاوردها</h5>
+                </div>
+                <div class="card-body">
+                    <p>دانلود گواهی افتخار دستاوردهای شما</p>
+                    <form method="post" asp-page-handler="DownloadCertificate" asp-route-userId="@Model.CurrentUserId">
+                        <button type="submit" class="btn btn-danger">
+                            🏆 دانلود گواهی
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function downloadWeeklySummary() {
+            const weekStart = document.getElementById('weekStart').value;
+            if (weekStart) {
+                const form = document.createElement('form');
+                form.method = 'post';
+                form.action = `/Reports?handler=DownloadWeeklySummary&userId=@Model.CurrentUserId&weekStart=${weekStart}`;
+                document.body.appendChild(form);
+                form.submit();
+            } else {
+                alert('لطفاً تاریخ شروع هفته را انتخاب کنید');
+            }
+        }
+    </script>
+}

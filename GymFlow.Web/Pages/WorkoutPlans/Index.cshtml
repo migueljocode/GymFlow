@@ -1,0 +1,54 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "برنامه‌های تمرینی";
+}
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>📋 برنامه‌های تمرینی من</h2>
+        <a href="/WorkoutPlans/Create" class="btn btn-primary">+ برنامه جدید</a>
+    </div>
+
+    @if (!Model.WorkoutPlans.Any())
+    {
+        <div class="alert alert-info text-center">
+            <p>هنوز برنامه تمرینی نداری!</p>
+            <a href="/WorkoutPlans/Create" class="btn btn-primary">ایجاد اولین برنامه</a>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var plan in Model.WorkoutPlans)
+            {
+                <div class="col-md-6 mb-4">
+                    <div class="card @(plan.IsActive ? "border-success" : "") shadow-sm h-100">
+                        <div class="card-header @(plan.IsActive ? "bg-success text-white" : "bg-secondary text-white")">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">فاز @plan.Phase</h5>
+                                @if (plan.IsActive)
+                                {
+                                    <span class="badge bg-light text-success">فعال 🔥</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-light text-secondary">غیرفعال</span>
+                                }
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>تعداد جلسات در هفته:</strong> @plan.SessionsPerWeek جلسه</p>
+                            <p><strong>شروع:</strong> @plan.StartDate.ToString("yyyy/MM/dd")</p>
+                            @if (plan.EndDate.HasValue)
+                            {
+                                <p><strong>پایان:</strong> @plan.EndDate.Value.ToString("yyyy/MM/dd")</p>
+                            }
+                            <a href="/WorkoutPlans/Details?id=@plan.Id" class="btn btn-outline-primary mt-2">مشاهده جزئیات</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

@@ -1,10 +1,139 @@
 ﻿@page
 @model IndexModel
 @{
-    ViewData["Title"] = "Home page";
+    ViewData["Title"] = "داشبورد";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">📊 خلاصه وضعیت</h4>
+            </div>
+            <div class="card-body">
+                @if (Model.Stats != null)
+                {
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <div class="card bg-success text-white mb-3">
+                                <div class="card-body">
+                                    <h3>@Model.Stats.TotalWorkouts</h3>
+                                    <p>تمرین کل</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-info text-white mb-3">
+                                <div class="card-body">
+                                    <h3>@Model.Stats.CurrentStreak</h3>
+                                    <p>روز متوالی</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-warning text-white mb-3">
+                                <div class="card-body">
+                                    <h3>@Model.Stats.ConsistencyScore%</h3>
+                                    <p>تعهد به تمرین</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-danger text-white mb-3">
+                                <div class="card-body">
+                                    <h3>@Model.Stats.CurrentWeight kg</h3>
+                                    <p>وزن فعلی</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-info">در حال بارگذاری اطلاعات...</div>
+                }
+            </div>
+        </div>
+        
+        <div class="card shadow-sm mt-4">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">📈 روند وزنی</h4>
+            </div>
+            <div class="card-body">
+                <canvas id="weightChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">🎯 برنامه امروز</h4>
+            </div>
+            <div class="card-body">
+                @if (Model.TodayWorkout != null)
+                {
+                    <h5>@Model.TodayWorkout.DayOfWeek</h5>
+                    <p>@Model.TodayWorkout.TargetMuscles</p>
+                    <p>مدت زمان: @Model.TodayWorkout.DurationMinutes دقیقه</p>
+                    <a href="/Workout/Log" class="btn btn-success">ثبت تمرین امروز</a>
+                }
+                else
+                {
+                    <p>برنامه تمرینی برای امروز ثبت نشده یا استراحت داری!</p>
+                }
+            </div>
+        </div>
+        
+        <div class="card shadow-sm mt-4">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">⚡ دستاوردها</h4>
+            </div>
+            <div class="card-body">
+                @if (Model.Achievements != null && Model.Achievements.Any())
+                {
+                    <ul class="list-unstyled">
+                        @foreach (var ach in Model.Achievements)
+                        {
+                            <li class="mb-2">🏆 @ach.Name - @ach.Description</li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p>هنوز دستاوردی ندارید. ادامه بده!</p>
+                }
+            </div>
+        </div>
+    </div>
 </div>
+
+@section Scripts {
+    <script>
+        @if (Model.WeightHistory != null && Model.WeightHistory.Any())
+        {
+            <text>
+                const ctx = document.getElementById('weightChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: [@Html.Raw(string.Join(",", Model.WeightHistory.Select(w => $"'{w.Date}'")))],
+                        datasets: [{
+                            label: 'وزن (کیلوگرم)',
+                            data: [@string.Join(",", Model.WeightHistory.Select(w => w.Weight))],
+                            borderColor: 'rgb(75, 192, 192)',
+                            tension: 0.1,
+                            fill: false
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { position: 'top' }
+                        }
+                    }
+                });
+            </text>
+        }
+    </script>
+}

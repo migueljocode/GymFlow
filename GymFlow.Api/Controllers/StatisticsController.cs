@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using GymFlow.Dal.Repositories.Interfaces;
 using GymFlow.Models.DTOs.Responses;
 using GymFlow.Api.Controllers.Base;
+using GymFlow.Models.Entities;
 
 namespace GymFlow.Api.Controllers;
 
@@ -163,4 +164,84 @@ public class StatisticsController : ApiControllerBase
         
         return Success<object>(dashboard);
     }
+
+    /// <summary>
+/// Get quick stats for user dashboard
+/// </summary>
+[HttpGet("user/{userId:int}/quick-stats")]
+public async Task<IActionResult> GetQuickStatsAsync(int userId)
+{
+    var user = await _userRepository.GetByIdAsync(userId);
+    if (user is null)
+        return NotFoundResponse("User", userId);
+    
+    var sessions = await _workoutSessionRepository.GetSessionsByUserAsync(userId);
+    var sessionsList = sessions.ToList();
+    var logs = await _progressLogRepository.GetUserProgressHistoryAsync(userId);
+    var logsList = logs.ToList();
+    
+    var today = DateOnly.FromDateTime(DateTime.UtcNow);
+    var startOfWeek = today.AddDays(-(int)today.DayOfWeek);
+    
+    var stats = new
+    {
+        TotalWorkouts = sessionsList.Count,
+        WorkoutsThisWeek = sessionsList.Count(s => s.ActualDate >= startOfWeek),
+        CurrentStreak = await GetCurrentStreakAsync(sessionsList),
+        ConsistencyScore = sessionsList.Count > 0 ? 75 : 0, // محاسبه ساده
+        CurrentWeight = logsList.FirstOrDefault()?.Weight ?? user.Weight ?? 0,
+        TotalWeightChange = (logsList.FirstOrDefault()?.Weight ?? 0) - (logsList.LastOrDefault()?.Weight ?? 0),
+        TotalWorkoutMinutes = sessionsList.Sum(s => s.ActualDurationMinutes),
+        AchievementsCount = 0
+    };
+    
+    return Success(stats);
+}
+
+private async Task<int> GetCurrentStreakAsync(List<WorkoutSession> sessions)
+{
+    var sortedSessions = sessions.OrderByDescending(s => s.ActualDate).ToList();
+    var today = DateOnly.FromDateTime(DateTime.UtcNow);
+    var currentDate = today;
+    var streak = 0;
+    
+    while (sortedSessions.Any(s => s.ActualDate == currentDate))
+    {
+        streak++;
+        currentDate = currentDate.AddDays(-1);
+    }
+    
+    return streak;
+}
+
+/// <summary>
+/// Get user achievements
+/// </summary>
+[HttpGet("user/{userId:int}/achievements")]
+public async Task<IActionResult> GetAchievementsAsync(int userId)
+{
+    var user = await _userRepository.GetByIdAsync(userId);
+    if (user is null)
+        return NotFoundResponse("User", userId);
+    
+    IEnumerable<WorkoutSession>? sessions = await _workoutSessionRepository.GetSessionsByUserAsync(userId);
+    var totalWorkouts = sessions.Count();
+    var streak = await GetCurrentStreakAsync(sessions.ToList());
+    
+    var achievements = new List<object>();
+    
+    if (totalWorkouts >= 10)
+        achievements.Add(new { Name = "Getting Started", Description = "Completed 10 workouts", Icon = "🎯" });
+    if (totalWorkouts >= 50)
+        achievements.Add(new { Name = "Dedicated Athlete", Description = "Completed 50 workouts", Icon = "🔥" });
+    if (streak >= 7)
+        achievements.Add(new { Name = "Consistency King", Description = "7-day workout streak", Icon = "👑" });
+    if (streak >= 30)
+        achievements.Add(new { Name = "Unstoppable", Description = "30-day workout streak", Icon = "⚡" });
+    
+    if (!achievements.Any())
+        achievements.Add(new { Name = "First Step", Description = "Complete your first workout", Icon = "🌟" });
+    
+    return Success(achievements);
+}
 }

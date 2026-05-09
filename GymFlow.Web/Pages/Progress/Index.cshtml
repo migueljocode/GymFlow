@@ -1,0 +1,111 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "تاریخچه وزن";
+}
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>📊 تاریخچه وزن</h2>
+        <a href="/Progress/Add" class="btn btn-primary">+ ثبت وزن جدید</a>
+    </div>
+
+    @if (!Model.WeightHistory.Any())
+    {
+        <div class="alert alert-info text-center">
+            <p>هنوز وزنی ثبت نشده!</p>
+            <a href="/Progress/Add" class="btn btn-primary">ثبت اولین وزن</a>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">نمودار روند وزنی</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="weightChart" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">خلاصه</h5>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>وزن فعلی:</strong> @Model.CurrentWeight kg</p>
+                        <p><strong>اولین وزن:</strong> @Model.FirstWeight kg</p>
+                        <p><strong>تغییر کل:</strong> 
+                            <span class="@(Model.TotalChange < 0 ? "text-success" : "text-danger")">
+                                @(Model.TotalChange > 0 ? "+" : "")@Model.TotalChange kg
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card shadow-sm mt-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">جدول ثبت وزن‌ها</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>تاریخ</th>
+                                <th>وزن (kg)</th>
+                                <th>درصد چربی</th>
+                                <th>توضیحات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var log in Model.WeightHistory)
+                            {
+                                <tr>
+                                    <td>@log.LogDate.ToString("yyyy/MM/dd")</td>
+                                    <td><strong>@log.Weight</strong></td>
+                                    <td>@(log.BodyFatPercentage?.ToString("F1") ?? "-")</td>
+                                    <td>@log.Notes</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const ctx = document.getElementById('weightChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [@Html.Raw(string.Join(",", Model.WeightHistory.Select(w => $"'{w.LogDate.ToString("yyyy/MM/dd")}'")))],
+                datasets: [{
+                    label: 'وزن (kg)',
+                    data: [@string.Join(",", Model.WeightHistory.Select(w => w.Weight))],
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    tension: 0.1,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: { callbacks: { label: (ctx) => `${ctx.raw} kg` } }
+                }
+            }
+        });
+    </script>
+}
