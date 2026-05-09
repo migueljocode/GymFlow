@@ -12,5 +12,6 @@ public enum MuscleGroup
     Legs = 4,
     Shoulders = 8,
     Arms = 16,
-    Core = 32
+    Core = 32,
+    FullBody = 64
 }
