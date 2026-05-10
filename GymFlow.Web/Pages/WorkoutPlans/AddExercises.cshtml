@@ -1,0 +1,191 @@
+@page
+@model AddExercisesModel
+@{
+    ViewData["Title"] = "تنظیمات برنامه تمرینی";
+}
+
+@functions {
+    string GetPersianDayName(string day)
+    {
+        return day switch
+        {
+            "Saturday" => "شنبه",
+            "Sunday" => "یکشنبه",
+            "Monday" => "دوشنبه",
+            "Tuesday" => "سه‌شنبه",
+            "Wednesday" => "چهارشنبه",
+            "Thursday" => "پنجشنبه",
+            "Friday" => "جمعه",
+            _ => day
+        };
+    }
+}
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>تنظیمات روز @GetPersianDayName(Model.DayOfWeek)</h2>
+        <a href="/WorkoutPlans/Details?id=@Model.WorkoutPlanId" class="btn btn-success btn-lg">اتمام و بازگشت</a>
+    </div>
+
+    <!-- فرم تنظیمات پایه -->
+    <form method="post" class="mb-4">
+        <input type="hidden" asp-for="WorkoutDayId" />
+        <input type="hidden" asp-for="WorkoutPlanId" />
+        <input type="hidden" asp-for="DayOfWeek" />
+
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5>عضلات هدف این روز</h5>
+                    </div>
+                    <div class="card-body">
+                        <select asp-for="TargetMuscles" class="form-select">
+                            <option value="0">Full Body</option>
+                            <option value="1">Chest</option>
+                            <option value="2">Back</option>
+                            <option value="4">Legs</option>
+                            <option value="8">Shoulders</option>
+                            <option value="16">Arms</option>
+                            <option value="32">Core</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-warning text-white">
+                        <h5>شدت و مدت تمرین</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label>شدت تمرین</label>
+                                <select asp-for="Intensity" class="form-select">
+                                    <option value="0">کم</option>
+                                    <option value="1">متوسط</option>
+                                    <option value="2">زیاد</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label>مدت زمان (دقیقه)</label>
+                                <input type="number" asp-for="DurationMinutes" class="form-control" required />
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <label>یادداشت</label>
+                            <textarea asp-for="Notes" class="form-control" rows="2"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center">
+            <button type="submit" name="action" value="save" class="btn btn-primary btn-lg">ذخیره تنظیمات پایه</button>
+        </div>
+    </form>
+
+    <!-- لیست حرکات موجود -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5>حرکات تمرینی این روز</h5>
+        </div>
+        <div class="card-body">
+            @if (Model.ExistingExercises.Any())
+            {
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>نام حرکت</th>
+                            <th>ست</th>
+                            <th>تکرار</th>
+                            <th>استراحت</th>
+                            <th>عملیات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var ex in Model.ExistingExercises)
+                        {
+                            <tr>
+                                <form method="post" style="margin:0; display:inline-block;">
+                                    <input type="hidden" name="exerciseId" value="@ex.Id" />
+                                    <input type="hidden" name="workoutDayId" value="@Model.WorkoutDayId" />
+                                    <input type="hidden" name="workoutPlanId" value="@Model.WorkoutPlanId" />
+                                    <input type="hidden" name="dayOfWeek" value="@Model.DayOfWeek" />
+                                    
+                                    <td>@ex.ExerciseName</td>
+                                    <td><input type="number" name="Sets" value="@ex.Sets" style="width:80px" min="1" max="10" /></td>
+                                    <td><input type="text" name="Reps" value="@ex.Reps" style="width:100px" /></td>
+                                    <td><input type="number" name="RestSeconds" value="@ex.RestSeconds" style="width:100px" min="30" max="180" /></td>
+                                    <td>
+                                        <button type="submit" name="action" value="update_@ex.Id" class="btn btn-sm btn-warning">ویرایش</button>
+                                        <button type="submit" name="action" value="delete_@ex.Id" class="btn btn-sm btn-danger" onclick="return confirm('حذف شود؟')">حذف</button>
+                                    </td>
+                                </form>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div class="alert alert-info">هنوز حرکتی اضافه نشده است.</div>
+            }
+        </div>
+    </div>
+
+    <!-- فرم افزودن حرکت جدید -->
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white">
+            <h5>افزودن حرکت جدید</h5>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                <input type="hidden" name="workoutDayId" value="@Model.WorkoutDayId" />
+                <input type="hidden" name="workoutPlanId" value="@Model.WorkoutPlanId" />
+                <input type="hidden" name="dayOfWeek" value="@Model.DayOfWeek" />
+
+                <div class="row">
+                    <div class="col-md-5">
+                        <label>حرکت جدید</label>
+                        <select name="NewExerciseId" class="form-select" asp-items="Model.ExerciseList">
+                            <option value="">-- انتخاب کنید --</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label>ست</label>
+                        <input type="number" name="NewSets" class="form-control" value="3" />
+                    </div>
+                    <div class="col-md-2">
+                        <label>تکرار</label>
+                        <input type="text" name="NewReps" class="form-control" value="10,10,8" />
+                    </div>
+                    <div class="col-md-2">
+                        <label>استراحت</label>
+                        <input type="number" name="NewRestSeconds" class="form-control" value="60" />
+                    </div>
+                    <div class="col-md-1">
+                        <label>&nbsp;</label>
+                        <button type="submit" name="action" value="add" class="btn btn-primary w-100">+ افزودن</button>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-12">
+                        <label>توضیحات حرکت جدید</label>
+                        <textarea name="NewNotes" class="form-control" rows="1"></textarea>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-success">@TempData["Message"]</div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+}

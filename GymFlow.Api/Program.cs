@@ -28,4 +28,5 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
 
+Console.WriteLine("Api Server is Listening...");
 app.Run();

@@ -24,39 +24,63 @@ public class LogModel : PageModel
     public string? Feeling { get; set; }
     
     public string? Message { get; set; }
+    public string? ErrorMessage { get; set; }
     
     public async Task<IActionResult> OnPostAsync()
     {
-        // گرفتن اولین کاربر
         var users = await _apiClient.GetAsync<List<UserDto>>("api/users");
         var userId = users?.FirstOrDefault()?.Id ?? 1;
         
-        var todayWorkout = await _apiClient.GetAsync<dynamic>($"api/workoutplans/user/{userId}/today");
-        var workoutDayId = todayWorkout?.workoutDay?.id ?? 0;
+        var dayOfWeek = ActualDate.DayOfWeek;
+        var activePlan = await _apiClient.GetAsync<ActivePlanDto>($"api/workoutplans/user/{userId}/active");
         
-        if (workoutDayId == 0)
+        if (activePlan == null || activePlan.Id == 0)
         {
-            Message = "امروز برنامه تمرینی ندارید!";
+            ErrorMessage = "❌ برنامه تمرینی فعالی ندارید! لطفاً ابتدا یک برنامه تمرینی ایجاد کنید.";
+            return Page();
+        }
+        
+        var workoutDays = await _apiClient.GetAsync<List<WorkoutDayDto>>($"api/workoutdays/plan/{activePlan.Id}");
+        var targetDay = workoutDays?.FirstOrDefault(wd => wd.DayOfWeek == dayOfWeek);
+        
+        if (targetDay == null)
+        {
+            ErrorMessage = $"❌ برای روز {dayOfWeek} برنامه تمرینی ندارید!";
             return Page();
         }
         
         var request = new LogWorkoutRequest
         {
-            WorkoutDayId = workoutDayId,
+            WorkoutDayId = targetDay.Id,
             ActualDate = ActualDate,
             ActualDurationMinutes = DurationMinutes,
             Feeling = Feeling
         };
         
-        var result = await _apiClient.PostAsync<object>("api/workoutsessions/log", request);
-        
-        if (result != null)
+        try
         {
-            Message = "تمرین با موفقیت ثبت شد! 🔥";
-            return Page();
+            var result = await _apiClient.PostAsync<object>("api/workoutsessions/log", request);
+            
+            if (result != null)
+            {
+                Message = $"✅ تمرین برای تاریخ {ActualDate} با موفقیت ثبت شد! 🔥";
+                return Page();
+            }
+            
+            ErrorMessage = "❌ خطا در ثبت تمرین. دوباره تلاش کن.";
+        }
+        catch (Exception ex)
+        {
+            if (ex.Message.Contains("409") || ex.Message.Contains("Conflict"))
+            {
+                ErrorMessage = $"⚠️ تمرین برای تاریخ {ActualDate} قبلاً ثبت شده است! نمی‌توانید دوباره ثبت کنید.";
+            }
+            else
+            {
+                ErrorMessage = $"❌ خطا در ثبت تمرین: {ex.Message}";
+            }
         }
         
-        Message = "خطا در ثبت تمرین. دوباره تلاش کن.";
         return Page();
     }
 }
@@ -64,4 +88,17 @@ public class LogModel : PageModel
 public class UserDto
 {
     public int Id { get; set; }
+}
+
+public class ActivePlanDto
+{
+    public int Id { get; set; }
+    public int Phase { get; set; }
+    public bool IsActive { get; set; }
+}
+
+public class WorkoutDayDto
+{
+    public int Id { get; set; }
+    public DayOfWeek DayOfWeek { get; set; }
 }

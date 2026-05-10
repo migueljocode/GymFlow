@@ -96,4 +96,12 @@ public interface IWorkoutDayRepository : IRepository<WorkoutDay>
     /// Useful for validation (e.g., ensuring a workout day has at least one exercise before activation).
     /// </remarks>
     Task<int> GetTotalExercisesCountAsync(int workoutDayId);
+
+    Task<bool> AddExerciseToDayAsync(WorkoutDayExercise workoutDayExercise);
+
+    Task<List<WorkoutDayExercise>> GetExercisesByDayIdAsync(int workoutDayId);
+    Task<WorkoutDayExercise?> GetExerciseByIdAsync(int exerciseId);
+    Task<WorkoutDayExercise> UpdateExerciseAsync(WorkoutDayExercise exercise);
+    Task<bool> DeleteExerciseAsync(WorkoutDayExercise exercise);
+
 }

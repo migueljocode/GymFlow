@@ -66,4 +66,44 @@ public class WorkoutDayRepository : Repository<WorkoutDay>, IWorkoutDayRepositor
             .Where(wde => wde.WorkoutDayId == workoutDayId)
             .CountAsync();
     }
+
+    public async Task<bool> AddExerciseToDayAsync(WorkoutDayExercise workoutDayExercise)
+    {
+        await using var context = await CreateContextAsync();
+        await context.WorkoutDayExercises.AddAsync(workoutDayExercise);
+        return await context.SaveChangesAsync() > 0;
+    }
+
+    public async Task<WorkoutDayExercise?> GetExerciseByIdAsync(int exerciseId)
+    {
+        await using var context = await CreateContextAsync();
+        return await context.WorkoutDayExercises
+            .Include(wde => wde.Exercise)
+            .FirstOrDefaultAsync(wde => wde.Id == exerciseId);
+    }
+
+    public async Task<WorkoutDayExercise> UpdateExerciseAsync(WorkoutDayExercise exercise)
+    {
+        await using var context = await CreateContextAsync();
+        exercise.UpdatedAt = DateTime.UtcNow;
+        context.WorkoutDayExercises.Update(exercise);
+        await context.SaveChangesAsync();
+        return exercise;
+    }
+
+    public async Task<bool> DeleteExerciseAsync(WorkoutDayExercise exercise)
+    {
+        await using var context = await CreateContextAsync();
+        context.WorkoutDayExercises.Remove(exercise);
+        return await context.SaveChangesAsync() > 0;
+    }
+
+    public async Task<List<WorkoutDayExercise>> GetExercisesByDayIdAsync(int workoutDayId)
+    {
+        await using var context = await CreateContextAsync();
+        return await context.WorkoutDayExercises
+            .Where(wde => wde.WorkoutDayId == workoutDayId)
+            .Include(wde => wde.Exercise)
+            .ToListAsync();
+    }
 }

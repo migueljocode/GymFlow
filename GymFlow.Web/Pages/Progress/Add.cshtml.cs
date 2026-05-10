@@ -31,9 +31,15 @@ public class AddModel : PageModel
     
     public async Task<IActionResult> OnPostAsync()
     {
-        if (Weight <= 0)
+        if (Weight < 20 || Weight > 300)
         {
-            ErrorMessage = "وزن باید بزرگتر از صفر باشد";
+            ErrorMessage = "وزن باید بین ۲۰ تا ۳۰۰ کیلوگرم باشد";
+            return Page();
+        }
+        
+        if (BodyFatPercentage.HasValue && (BodyFatPercentage < 3 || BodyFatPercentage > 50))
+        {
+            ErrorMessage = "درصد چربی باید بین ۳ تا ۵۰ باشد";
             return Page();
         }
         
@@ -43,7 +49,6 @@ public class AddModel : PageModel
             return Page();
         }
         
-        // گرفتن اولین کاربر
         var users = await _apiClient.GetAsync<List<UserDto>>("api/users");
         var userId = users?.FirstOrDefault()?.Id ?? 1;
         
@@ -60,7 +65,6 @@ public class AddModel : PageModel
         if (result != null)
         {
             Message = $"وزن {Weight} کیلوگرم با موفقیت ثبت شد! 📊";
-            // پاک کردن فرم
             Weight = 0;
             BodyFatPercentage = null;
             Notes = null;

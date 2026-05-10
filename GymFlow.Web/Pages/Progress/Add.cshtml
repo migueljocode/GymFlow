@@ -14,15 +14,17 @@
                 <form method="post">
                     <div class="mb-3">
                         <label class="form-label">تاریخ</label>
-                        <input type="date" class="form-control" asp-for="LogDate" />
+                        <input type="date" class="form-control" asp-for="LogDate" required />
                     </div>
                     <div class="mb-3">
                         <label class="form-label">وزن (کیلوگرم)</label>
-                        <input type="number" step="0.1" class="form-control" asp-for="Weight" required />
+                        <input type="number" step="0.1" class="form-control" asp-for="Weight" min="20" max="300" required />
+                        <small class="text-muted">حداقل ۲۰، حداکثر ۳۰۰ کیلوگرم</small>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">درصد چربی بدن (اختیاری)</label>
-                        <input type="number" step="0.1" class="form-control" asp-for="BodyFatPercentage" />
+                        <input type="number" step="0.1" class="form-control" asp-for="BodyFatPercentage" min="3" max="50" />
+                        <small class="text-muted">حداقل ۳٪، حداکثر ۵۰٪</small>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">توضیحات</label>
@@ -36,7 +38,6 @@
                 {
                     <div class="alert alert-success mt-3">@Model.Message</div>
                 }
-                
                 @if (!string.IsNullOrEmpty(Model.ErrorMessage))
                 {
                     <div class="alert alert-danger mt-3">@Model.ErrorMessage</div>

@@ -32,4 +32,5 @@ app.UseAuthorization();
 
 app.MapRazorPages();
 
+Console.WriteLine("WebApp is Listening...");
 app.Run();
