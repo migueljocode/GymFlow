@@ -1,6 +1,7 @@
 using GymFlow.Dal.Repositories.Interfaces;
 using GymFlow.Models.DTOs.Responses;
-using GymFlow.Models.Enums;  // ← این را اضافه کن
+using GymFlow.Models.Entities;
+using GymFlow.Models.Enums;
 using GymFlow.Services.Interfaces;
 
 namespace GymFlow.Services.Implementations;
@@ -20,65 +21,28 @@ public class WeightPredictionService : IWeightPredictionService
 
     public async Task<float?> PredictWeightAsync(int userId, int daysAhead = 7)
     {
-        var logs = await _progressLogRepository.GetWeightTrendAsync(userId, 10);
-        var logList = logs.ToList();
-        
-        if (logList.Count < 3)
-            return null;
+        var logs = await GetWeightLogsAsync(userId, 10);
+        if (logs.Count < 3) return null;
         
         var weeklyChange = await GetAverageWeeklyChangeAsync(userId, 4);
-        if (!weeklyChange.HasValue)
-            return null;
+        if (!weeklyChange.HasValue) return null;
         
-        var currentWeight = logList.First().Weight;
         var weeksAhead = daysAhead / 7f;
-        
-        return currentWeight + (weeklyChange.Value * weeksAhead);
+        return logs.First().Weight + (weeklyChange.Value * weeksAhead);
     }
 
     public async Task<PredictionResponse> GetPredictionAsync(int userId)
     {
-        var user = await _userRepository.GetByIdAsync(userId);
-        var logs = await _progressLogRepository.GetWeightTrendAsync(userId, 15);
-        var logList = logs.ToList();
+        var user = await _userRepository.GetUserWithPersonAsync(userId);
+        var logs = await GetWeightLogsAsync(userId, 15);
         
-        var currentWeight = logList.FirstOrDefault()?.Weight ?? user?.Weight ?? 0;
-        var dataPointsUsed = logList.Count;
+        var currentWeight = logs.FirstOrDefault()?.Weight ?? user?.Person?.Weight ?? 0;
+        var response = CreateBasePredictionResponse(currentWeight, logs.Count);
         
-        var response = new PredictionResponse
+        if (logs.Count >= 3)
         {
-            CurrentWeight = currentWeight,
-            DataPointsUsed = dataPointsUsed,
-            Confidence = dataPointsUsed >= 10 ? "High" : dataPointsUsed >= 5 ? "Medium" : "Low"
-        };
-        
-        if (dataPointsUsed >= 3)
-        {
-            var weeklyChanges = new List<float>();
-            
-            for (int i = 0; i < logList.Count - 1; i++)
-            {
-                var daysDiff = logList[i].LogDate.DayNumber - logList[i + 1].LogDate.DayNumber;
-                if (daysDiff > 0)
-                {
-                    var weeklyChange = (logList[i].Weight - logList[i + 1].Weight) / (daysDiff / 7f);
-                    weeklyChanges.Add(weeklyChange);
-                }
-            }
-            
-            var avgWeeklyChange = weeklyChanges.Count > 0 ? weeklyChanges.Average() : 0;
-            response.AverageWeeklyChange = (float)avgWeeklyChange;
-            response.Trend = avgWeeklyChange < -0.1f ? "Losing" : avgWeeklyChange > 0.1f ? "Gaining" : "Maintaining";
-            
-            response.PredictedWeight7Days = currentWeight + (float)avgWeeklyChange;
-            response.PredictedWeight30Days = currentWeight + (float)avgWeeklyChange * 4;
-            response.PredictedWeight90Days = currentWeight + (float)avgWeeklyChange * 12;
-            
-            response.Message = GetRecommendationMessage(avgWeeklyChange, user?.Goal);
-        }
-        else
-        {
-            response.Message = $"Need at least 3 weight logs for prediction. Currently have {dataPointsUsed} log(s).";
+            var avgWeeklyChange = CalculateAverageWeeklyChange(logs);
+            response = PopulatePredictionResponse(response, currentWeight, avgWeeklyChange, user?.Person?.User?.Goal);
         }
         
         return response;
@@ -91,24 +55,19 @@ public class WeightPredictionService : IWeightPredictionService
 
     public async Task<WeightTrendAnalysis> GetWeightTrendAnalysisAsync(int userId)
     {
-        var user = await _userRepository.GetByIdAsync(userId);
-        var logs = await _progressLogRepository.GetUserProgressHistoryAsync(userId);
-        var logList = logs.ToList();
+        var user = await _userRepository.GetUserWithPersonAsync(userId);
+        var logs = await GetWeightLogsAsync(userId, 20);
         
-        var analysis = new WeightTrendAnalysis
-        {
-            DataPointsCount = logList.Count,
-            WeightHistory = new List<WeightPointResponse>()
-        };
+        var analysis = new WeightTrendAnalysis { WeightHistory = new List<WeightPointResponse>() };
         
-        if (!logList.Any())
+        if (!logs.Any())
         {
             analysis.Recommendation = "Start logging your weight to see trends and predictions!";
             return analysis;
         }
         
-        var firstLog = logList.Last();
-        var lastLog = logList.First();
+        var (firstLog, lastLog) = (logs.Last(), logs.First());
+        var weeklyChange = await GetAverageWeeklyChangeAsync(userId, 8);
         
         analysis.CurrentWeight = lastLog.Weight;
         analysis.StartingWeight = firstLog.Weight;
@@ -117,44 +76,91 @@ public class WeightPredictionService : IWeightPredictionService
         analysis.FirstLogDate = firstLog.LogDate;
         analysis.LastLogDate = lastLog.LogDate;
         
-        var weeklyChange = await GetAverageWeeklyChangeAsync(userId, 8);
         if (weeklyChange.HasValue)
         {
             analysis.AverageWeeklyChange = weeklyChange.Value;
-            analysis.TrendDirection = weeklyChange.Value < -0.1f ? "Losing" : weeklyChange.Value > 0.1f ? "Gaining" : "Maintaining";
+            analysis.TrendDirection = GetTrendDirection(weeklyChange.Value);
             analysis.PredictedWeightNextMonth = lastLog.Weight + (weeklyChange.Value * 4);
             analysis.PredictedWeightNextQuarter = lastLog.Weight + (weeklyChange.Value * 12);
         }
         
-        analysis.Recommendation = GenerateRecommendation(analysis, user?.Goal);
-        
-        foreach (var log in logList.Take(20))
+        analysis.Recommendation = GenerateRecommendation(analysis, user?.Person?.User?.Goal);
+        analysis.WeightHistory = logs.Select(l => new WeightPointResponse
         {
-            analysis.WeightHistory.Add(new WeightPointResponse
-            {
-                Date = log.LogDate,
-                Weight = log.Weight,
-                BodyFatPercentage = log.BodyFatPercentage
-            });
-        }
+            Date = l.LogDate,
+            Weight = l.Weight,
+            BodyFatPercentage = l.BodyFatPercentage
+        }).ToList();
         
         return analysis;
     }
 
-    private string GetRecommendationMessage(double avgWeeklyChange, Goal? goal)
+    // ========== Private Helper Methods ==========
+    
+    private async Task<List<ProgressLog>> GetWeightLogsAsync(int userId, int count)
+    {
+        var logs = await _progressLogRepository.GetWeightTrendAsync(userId, count);
+        return logs.ToList();
+    }
+    
+    private PredictionResponse CreateBasePredictionResponse(float currentWeight, int dataPoints)
+    {
+        return new PredictionResponse
+        {
+            CurrentWeight = currentWeight,
+            DataPointsUsed = dataPoints,
+            Confidence = dataPoints >= 10 ? "High" : dataPoints >= 5 ? "Medium" : "Low"
+        };
+    }
+    
+    private float CalculateAverageWeeklyChange(List<ProgressLog> logs)
+    {
+        var weeklyChanges = new List<float>();
+        
+        for (int i = 0; i < logs.Count - 1; i++)
+        {
+            var daysDiff = logs[i].LogDate.DayNumber - logs[i + 1].LogDate.DayNumber;
+            if (daysDiff > 0)
+            {
+                var weeklyChange = (logs[i].Weight - logs[i + 1].Weight) / (daysDiff / 7f);
+                weeklyChanges.Add(weeklyChange);
+            }
+        }
+        
+        return weeklyChanges.Count > 0 ? weeklyChanges.Average() : 0;
+    }
+    
+    private PredictionResponse PopulatePredictionResponse(PredictionResponse response, float currentWeight, float avgWeeklyChange, Goal? goal)
+    {
+        response.AverageWeeklyChange = avgWeeklyChange;
+        response.Trend = GetTrendDirection(avgWeeklyChange);
+        response.PredictedWeight7Days = currentWeight + avgWeeklyChange;
+        response.PredictedWeight30Days = currentWeight + (avgWeeklyChange * 4);
+        response.PredictedWeight90Days = currentWeight + (avgWeeklyChange * 12);
+        response.Message = GetRecommendationMessage(avgWeeklyChange, goal);
+        
+        return response;
+    }
+    
+    private string GetTrendDirection(float change)
+    {
+        return change < -0.1f ? "Losing" : change > 0.1f ? "Gaining" : "Maintaining";
+    }
+    
+    private string GetRecommendationMessage(float avgWeeklyChange, Goal? goal)
     {
         if (avgWeeklyChange < -0.3f)
             return "Great progress! You're losing weight at a healthy rate. Keep up the consistency! 💪";
-        else if (avgWeeklyChange < -0.1f)
+        if (avgWeeklyChange < -0.1f)
             return "You're on the right track! Progress is steady and sustainable. 🎯";
-        else if (avgWeeklyChange > 0.3f && goal == Goal.FatLoss)
+        if (avgWeeklyChange > 0.3f && goal == Goal.FatLoss)
             return "Your weight is trending upward. Consider reviewing your nutrition and workout intensity. 📈";
-        else if (avgWeeklyChange > 0.1f && goal == Goal.MuscleGain)
+        if (avgWeeklyChange > 0.1f && goal == Goal.MuscleGain)
             return "Good progress! Gaining weight steadily. Make sure it's muscle, not fat. 💪";
-        else
-            return "You're maintaining well! To see more progress, try increasing workout intensity or adjusting calories. 🔥";
+        
+        return "You're maintaining well! To see more progress, try increasing workout intensity or adjusting calories. 🔥";
     }
-
+    
     private string GenerateRecommendation(WeightTrendAnalysis analysis, Goal? goal)
     {
         if (analysis.DataPointsCount < 5)
