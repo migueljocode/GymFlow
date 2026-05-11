@@ -34,4 +34,7 @@ public interface IUserRepository : IRepository<User>
     /// Gets all users with their Person data
     /// </summary>
     Task<IEnumerable<User>> GetAllUsersWithPersonAsync();
+
+    Task<User?> GetUserWithCompleteHistoryAsync(int userId);
+    Task<User?> GetUserByEmailAsync(string email);
 }

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using GymFlow.Dal.Repositories.Interfaces;
 using GymFlow.Api.Controllers.Base;
+using GymFlow.Api.Helpers;
 
 namespace GymFlow.Api.Controllers;
 
@@ -77,15 +78,17 @@ public class TestController : ApiControllerBase
             return NotFoundResponse("Demo user");
         
         return Success<object>(new
-        {
-            demoUser.Id,
-            demoUser.FirstName,
-            demoUser.LastName,
-            demoUser.Email,
-            demoUser.Goal,
-            demoUser.Weight,
-            message = "Demo user available. Use this account for testing."
-        });
+    {
+        demoUser.Id,
+        firstName = UserHelper.GetFirstName(demoUser),
+        lastName = UserHelper.GetLastName(demoUser),
+        fullName = UserHelper.GetFullName(demoUser),
+        email = UserHelper.GetEmail(demoUser),
+        weight = UserHelper.GetWeight(demoUser),
+        goal = demoUser.Goal,
+        message = "Demo user available. Use this account for testing."
+    });
+
     }
 
     /// <summary>
@@ -107,8 +110,8 @@ public class TestController : ApiControllerBase
                 total = userList.Count,
                 byGoal = userList.GroupBy(u => u.Goal.ToString())
                     .ToDictionary(g => g.Key, g => g.Count()),
-                averageAge = userList.Average(u => u.Age),
-                averageWeight = userList.Average(u => u.Weight ?? 0)
+                averageAge = (float)userList.Average(u => UserHelper.GetAge(u) ?? 0),
+                averageWeight = (float)userList.Average(u => UserHelper.GetWeight(u) ?? 0),
             },
             workoutPlans = new
             {

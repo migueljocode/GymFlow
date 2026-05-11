@@ -2,12 +2,10 @@ using Microsoft.AspNetCore.Mvc;
 using GymFlow.Dal.Repositories.Interfaces;
 using GymFlow.Models.DTOs.Responses;
 using GymFlow.Api.Controllers.Base;
+using GymFlow.Api.Helpers;
 
 namespace GymFlow.Api.Controllers;
 
-/// <summary>
-/// Controller for weight predictions and trends
-/// </summary>
 [Tags("Predictions")]
 public class PredictionsController : ApiControllerBase
 {
@@ -22,20 +20,17 @@ public class PredictionsController : ApiControllerBase
         _userRepository = userRepository;
     }
 
-    /// <summary>
-    /// Get weight prediction for a user
-    /// </summary>
     [HttpGet("user/{userId:int}")]
     public async Task<IActionResult> GetPredictionAsync(int userId)
     {
-        var user = await _userRepository.GetByIdAsync(userId);
+        var user = await _userRepository.GetUserWithPersonAsync(userId);
         if (user is null)
             return NotFoundResponse("User", userId);
         
         var logs = await _progressLogRepository.GetWeightTrendAsync(userId, 10);
         var logList = logs.ToList();
         
-        var currentWeight = logList.FirstOrDefault()?.Weight ?? user.Weight ?? 0;
+        var currentWeight = logList.FirstOrDefault()?.Weight ?? UserHelper.GetWeight(user) ?? 0;
         var dataPointsUsed = logList.Count;
         
         var response = new PredictionResponse
@@ -47,7 +42,6 @@ public class PredictionsController : ApiControllerBase
         
         if (dataPointsUsed >= 3)
         {
-            // Calculate average weekly change using linear regression
             var weeklyChanges = new List<float>();
             
             for (int i = 0; i < logList.Count - 1; i++)
@@ -81,7 +75,7 @@ public class PredictionsController : ApiControllerBase
         
         return Success<PredictionResponse>(response);
     }
-
+    
     /// <summary>
     /// Get weight trend analysis
     /// </summary>

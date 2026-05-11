@@ -4,6 +4,7 @@ using GymFlow.Models.DTOs.Requests;
 using GymFlow.Models.DTOs.Responses;
 using GymFlow.Models.Entities;
 using GymFlow.Api.Controllers.Base;
+using GymFlow.Api.Helpers;
 
 namespace GymFlow.Api.Controllers;
 
@@ -202,7 +203,7 @@ public class WorkoutPlansController : ApiControllerBase
         {
             Id = plan.Id,
             UserId = plan.UserId,
-            UserName = user != null ? $"{user.FirstName} {user.LastName}" : string.Empty,
+            UserName = user != null ? UserHelper.GetFullName(user) : string.Empty,
             Phase = plan.Phase,
             SessionsPerWeek = plan.SessionsPerWeek,
             StartDate = plan.StartDate,

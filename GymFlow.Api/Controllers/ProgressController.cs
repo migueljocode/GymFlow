@@ -4,6 +4,7 @@ using GymFlow.Models.DTOs.Requests;
 using GymFlow.Models.DTOs.Responses;
 using GymFlow.Models.Entities;
 using GymFlow.Api.Controllers.Base;
+using GymFlow.Api.Helpers;
 
 namespace GymFlow.Api.Controllers;
 
@@ -71,7 +72,7 @@ public class ProgressController : ApiControllerBase
         var thisWeekStart = today.AddDays(-(int)today.DayOfWeek);
         
         var logsList = logs.ToList();
-        var currentWeight = logsList.FirstOrDefault()?.Weight ?? user.Weight ?? 0;
+        var currentWeight = logsList.FirstOrDefault()?.Weight ?? UserHelper.GetWeight(user) ?? 0;        
         var lastWeekLog = logsList.FirstOrDefault(l => l.LogDate >= thisWeekStart.AddDays(-7) && l.LogDate < thisWeekStart);
         var lastMonthLog = logsList.FirstOrDefault(l => l.LogDate >= today.AddDays(-30));
         var firstLog = logsList.LastOrDefault();
@@ -154,9 +155,11 @@ public class ProgressController : ApiControllerBase
         
         var created = await _progressLogRepository.AddAsync(log);
         
-        // Update user's current weight
-        user.Weight = request.Weight;
-        await _userRepository.UpdateAsync(user);
+        if (user.Person != null)
+        {
+            user.Person.Weight = request.Weight;
+            await _userRepository.UpdateAsync(user);
+        }
         
         var response = new ProgressLogResponse
         {
@@ -199,8 +202,11 @@ public class ProgressController : ApiControllerBase
             var user = await _userRepository.GetByIdAsync(log.UserId);
             if (user is not null)
             {
-                user.Weight = updated.Weight;
-                await _userRepository.UpdateAsync(user);
+                if (user.Person != null)
+                {
+                    user.Person.Weight = updated.Weight;
+                    await _userRepository.UpdateAsync(user);
+                }
             }
         }
         
@@ -234,10 +240,10 @@ public class ProgressController : ApiControllerBase
     }
 
     /// <summary>
-/// Get weight history for chart
-/// </summary>
-[HttpGet("user/{userId:int}/weight-history")]
-public async Task<IActionResult> GetWeightHistoryAsync(int userId)
+    /// Get weight history for chart
+    /// </summary>
+    [HttpGet("user/{userId:int}/weight-history")]
+    public async Task<IActionResult> GetWeightHistoryAsync(int userId)
 {
     var user = await _userRepository.GetByIdAsync(userId);
     if (user is null)

@@ -2,13 +2,11 @@ using Microsoft.AspNetCore.Mvc;
 using GymFlow.Dal.Repositories.Interfaces;
 using GymFlow.Models.DTOs.Responses;
 using GymFlow.Api.Controllers.Base;
+using GymFlow.Api.Helpers;
 using GymFlow.Models.Entities;
 
 namespace GymFlow.Api.Controllers;
 
-/// <summary>
-/// Controller for application-wide statistics and analytics
-/// </summary>
 [Tags("Statistics")]
 public class StatisticsController : ApiControllerBase
 {
@@ -32,30 +30,21 @@ public class StatisticsController : ApiControllerBase
         _progressLogRepository = progressLogRepository;
     }
 
-    /// <summary>
-    /// Get dashboard statistics
-    /// </summary>
     [HttpGet("dashboard")]
     public async Task<IActionResult> GetDashboardStatsAsync()
     {
-        var users = await _userRepository.GetAllAsync();
+        var users = await _userRepository.GetAllUsersWithPersonAsync();
         var userList = users.ToList();
         
         var activePlans = await _workoutPlanRepository.FindAsync(p => p.IsActive);
         var popularExercises = await _exerciseRepository.GetMostUsedExercisesAsync(5);
-        
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
-        var startOfWeek = today.AddDays(-(int)today.DayOfWeek);
-        
-        var sessionsThisWeek = await _workoutSessionRepository.GetSessionsByDateRangeAsync(
-            0, startOfWeek, today); // Note: This needs user-specific implementation
         
         var stats = new DashboardStatsResponse
         {
             TotalUsers = userList.Count,
             ActiveUsers = userList.Count(u => u.WorkoutPlans?.Any(p => p.IsActive) == true),
             ActiveWorkoutPlans = activePlans.Count(),
-            TotalWorkoutsThisWeek = sessionsThisWeek.Count(),
+            TotalWorkoutsThisWeek = 0,
             MostUsedExercises = popularExercises.Select(e => new PopularExerciseResponse
             {
                 Id = e.Id,
@@ -65,23 +54,20 @@ public class StatisticsController : ApiControllerBase
             }).ToList(),
             UsersByGoal = userList.GroupBy(u => u.Goal.ToString())
                 .ToDictionary(g => g.Key, g => g.Count()),
-            UsersByGender = userList.GroupBy(u => u.Gender.ToString())
+            UsersByGender = userList.GroupBy(u => UserHelper.GetGender(u)?.ToString() ?? "Unknown")
                 .ToDictionary(g => g.Key, g => g.Count()),
-            AverageAge = (float)userList.Average(u => u.Age),
-            AverageWeight = userList.Average(u => u.Weight ?? 0),
+            AverageAge = (float)userList.Average(u => UserHelper.GetAge(u) ?? 0),
+            AverageWeight = (float)userList.Average(u => UserHelper.GetWeight(u) ?? 0),
             NewUsersThisMonth = userList.Count(u => u.CreatedAt >= DateTime.UtcNow.AddMonths(-1)),
-            TotalWorkoutsThisMonth = 0, // Will calculate properly
-            AverageWeightLoss = 0, // Will calculate properly
-            AverageConsistencyRate = 0, // Will calculate properly
+            TotalWorkoutsThisMonth = 0,
+            AverageWeightLoss = 0,
+            AverageConsistencyRate = 0,
             GeneratedAt = DateTime.UtcNow
         };
         
         return Success<DashboardStatsResponse>(stats);
     }
 
-    /// <summary>
-    /// Get user-specific dashboard data
-    /// </summary>
     [HttpGet("user/{userId:int}/dashboard")]
     public async Task<IActionResult> GetUserDashboardAsync(int userId)
     {
@@ -96,15 +82,15 @@ public class StatisticsController : ApiControllerBase
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         var startOfWeek = today.AddDays(-(int)today.DayOfWeek);
         
-        var sessionsThisWeek = sessions.Count(s => s.ActualDate >= startOfWeek);
-        var sessionsLastWeek = sessions.Count(s => s.ActualDate >= startOfWeek.AddDays(-7) && s.ActualDate < startOfWeek);
+        var sessionsList = sessions.ToList();
+        var sessionsThisWeek = sessionsList.Count(s => s.ActualDate >= startOfWeek);
+        var sessionsLastWeek = sessionsList.Count(s => s.ActualDate >= startOfWeek.AddDays(-7) && s.ActualDate < startOfWeek);
         
         var consistencyRate = activePlan?.SessionsPerWeek > 0 
             ? (double)sessionsThisWeek / activePlan.SessionsPerWeek * 100 
             : 0;
         
-        // Calculate streak
-        var sortedSessions = sessions.OrderByDescending(s => s.ActualDate).ToList();
+        var sortedSessions = sessionsList.OrderByDescending(s => s.ActualDate).ToList();
         var currentStreak = 0;
         var currentDate = today;
         
@@ -119,10 +105,10 @@ public class StatisticsController : ApiControllerBase
             user = new
             {
                 user.Id,
-                user.FullName,
                 user.Goal,
-                user.Weight,
-                user.BodyType,
+                fullName = UserHelper.GetFullName(user),
+                currentWeight = UserHelper.GetWeight(user),
+                bodyType = UserHelper.GetBodyType(user)?.ToString(),
                 memberSince = user.CreatedAt
             },
             activePlan = activePlan != null ? new
@@ -135,7 +121,7 @@ public class StatisticsController : ApiControllerBase
             } : null,
             stats = new
             {
-                totalWorkouts = sessions.Count(),
+                totalWorkouts = sessionsList.Count,
                 workoutsThisWeek = sessionsThisWeek,
                 workoutsLastWeek = sessionsLastWeek,
                 consistencyRate = Math.Min(consistencyRate, 100),
@@ -147,7 +133,7 @@ public class StatisticsController : ApiControllerBase
                     ? logs.First().Weight - logs.Last().Weight
                     : (float?)null
             },
-            recentWorkouts = sessions.Take(5).Select(s => new
+            recentWorkouts = sessionsList.Take(5).Select(s => new
             {
                 s.ActualDate,
                 s.WorkoutDay!.DayOfWeek,
@@ -165,83 +151,78 @@ public class StatisticsController : ApiControllerBase
         return Success<object>(dashboard);
     }
 
-    /// <summary>
-/// Get quick stats for user dashboard
-/// </summary>
-[HttpGet("user/{userId:int}/quick-stats")]
-public async Task<IActionResult> GetQuickStatsAsync(int userId)
-{
-    var user = await _userRepository.GetByIdAsync(userId);
-    if (user is null)
-        return NotFoundResponse("User", userId);
-    
-    var sessions = await _workoutSessionRepository.GetSessionsByUserAsync(userId);
-    var sessionsList = sessions.ToList();
-    var logs = await _progressLogRepository.GetUserProgressHistoryAsync(userId);
-    var logsList = logs.ToList();
-    
-    var today = DateOnly.FromDateTime(DateTime.UtcNow);
-    var startOfWeek = today.AddDays(-(int)today.DayOfWeek);
-    
-    var stats = new
+    [HttpGet("user/{userId:int}/quick-stats")]
+    public async Task<IActionResult> GetQuickStatsAsync(int userId)
     {
-        TotalWorkouts = sessionsList.Count,
-        WorkoutsThisWeek = sessionsList.Count(s => s.ActualDate >= startOfWeek),
-        CurrentStreak = await GetCurrentStreakAsync(sessionsList),
-        ConsistencyScore = sessionsList.Count > 0 ? 75 : 0, // محاسبه ساده
-        CurrentWeight = logsList.FirstOrDefault()?.Weight ?? user.Weight ?? 0,
-        TotalWeightChange = (logsList.FirstOrDefault()?.Weight ?? 0) - (logsList.LastOrDefault()?.Weight ?? 0),
-        TotalWorkoutMinutes = sessionsList.Sum(s => s.ActualDurationMinutes),
-        AchievementsCount = 0
-    };
-    
-    return Success(stats);
-}
-
-private async Task<int> GetCurrentStreakAsync(List<WorkoutSession> sessions)
-{
-    var sortedSessions = sessions.OrderByDescending(s => s.ActualDate).ToList();
-    var today = DateOnly.FromDateTime(DateTime.UtcNow);
-    var currentDate = today;
-    var streak = 0;
-    
-    while (sortedSessions.Any(s => s.ActualDate == currentDate))
-    {
-        streak++;
-        currentDate = currentDate.AddDays(-1);
+        var user = await _userRepository.GetUserWithPersonAsync(userId);
+        if (user is null)
+            return NotFoundResponse("User", userId);
+        
+        var sessions = await _workoutSessionRepository.GetSessionsByUserAsync(userId);
+        var sessionsList = sessions.ToList();
+        var logs = await _progressLogRepository.GetUserProgressHistoryAsync(userId);
+        var logsList = logs.ToList();
+        
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var startOfWeek = today.AddDays(-(int)today.DayOfWeek);
+        
+        var stats = new
+        {
+            TotalWorkouts = sessionsList.Count,
+            WorkoutsThisWeek = sessionsList.Count(s => s.ActualDate >= startOfWeek),
+            CurrentStreak = await GetCurrentStreakAsync(sessionsList),
+            ConsistencyScore = sessionsList.Count > 0 ? 75 : 0,
+            CurrentWeight = logsList.FirstOrDefault()?.Weight ?? UserHelper.GetWeight(user) ?? 0,
+            TotalWeightChange = (logsList.FirstOrDefault()?.Weight ?? 0) - (logsList.LastOrDefault()?.Weight ?? 0),
+            TotalWorkoutMinutes = sessionsList.Sum(s => s.ActualDurationMinutes),
+            AchievementsCount = 0
+        };
+        
+        return Success(stats);
     }
-    
-    return streak;
-}
 
-/// <summary>
-/// Get user achievements
-/// </summary>
-[HttpGet("user/{userId:int}/achievements")]
-public async Task<IActionResult> GetAchievementsAsync(int userId)
-{
-    var user = await _userRepository.GetByIdAsync(userId);
-    if (user is null)
-        return NotFoundResponse("User", userId);
-    
-    IEnumerable<WorkoutSession>? sessions = await _workoutSessionRepository.GetSessionsByUserAsync(userId);
-    var totalWorkouts = sessions.Count();
-    var streak = await GetCurrentStreakAsync(sessions.ToList());
-    
-    var achievements = new List<object>();
-    
-    if (totalWorkouts >= 10)
-        achievements.Add(new { Name = "Getting Started", Description = "Completed 10 workouts", Icon = "🎯" });
-    if (totalWorkouts >= 50)
-        achievements.Add(new { Name = "Dedicated Athlete", Description = "Completed 50 workouts", Icon = "🔥" });
-    if (streak >= 7)
-        achievements.Add(new { Name = "Consistency King", Description = "7-day workout streak", Icon = "👑" });
-    if (streak >= 30)
-        achievements.Add(new { Name = "Unstoppable", Description = "30-day workout streak", Icon = "⚡" });
-    
-    if (!achievements.Any())
-        achievements.Add(new { Name = "First Step", Description = "Complete your first workout", Icon = "🌟" });
-    
-    return Success(achievements);
-}
+    [HttpGet("user/{userId:int}/achievements")]
+    public async Task<IActionResult> GetAchievementsAsync(int userId)
+    {
+        var user = await _userRepository.GetUserWithPersonAsync(userId);
+        if (user is null)
+            return NotFoundResponse("User", userId);
+        
+        var sessions = await _workoutSessionRepository.GetSessionsByUserAsync(userId);
+        var sessionsList = sessions.ToList();
+        var totalWorkouts = sessionsList.Count;
+        var streak = await GetCurrentStreakAsync(sessionsList);
+        
+        var achievements = new List<object>();
+        
+        if (totalWorkouts >= 10)
+            achievements.Add(new { Name = "Getting Started", Description = "Completed 10 workouts", Icon = "🎯" });
+        if (totalWorkouts >= 50)
+            achievements.Add(new { Name = "Dedicated Athlete", Description = "Completed 50 workouts", Icon = "🔥" });
+        if (streak >= 7)
+            achievements.Add(new { Name = "Consistency King", Description = "7-day workout streak", Icon = "👑" });
+        if (streak >= 30)
+            achievements.Add(new { Name = "Unstoppable", Description = "30-day workout streak", Icon = "⚡" });
+        
+        if (!achievements.Any())
+            achievements.Add(new { Name = "First Step", Description = "Complete your first workout", Icon = "🌟" });
+        
+        return Success(achievements);
+    }
+
+    private async Task<int> GetCurrentStreakAsync(List<WorkoutSession> sessions)
+    {
+        var sortedSessions = sessions.OrderByDescending(s => s.ActualDate).ToList();
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var currentDate = today;
+        var streak = 0;
+        
+        while (sortedSessions.Any(s => s.ActualDate == currentDate))
+        {
+            streak++;
+            currentDate = currentDate.AddDays(-1);
+        }
+        
+        return streak;
+    }
 }
