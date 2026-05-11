@@ -1,20 +1,27 @@
+using GymFlow.Models.Interfaces;
+
 namespace GymFlow.Models.Entities;
 
-/// <summary>
-/// Abstract base for any physical person (User, Coach, Admin).
-/// Contains common personal information.
-/// </summary>
-public abstract class Person : BaseEntity
+public class Person : BaseEntity, IAuthenticable
 {
+    // اطلاعات شخصی
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
-    public string? Phone { get; set; }
     public string? Email { get; set; }
+    public string? Phone { get; set; }
     public Gender Gender { get; set; }
     public int Age { get; set; }
-    public float? Weight { get; set; }   // in kg
-    public float? Height { get; set; }   // in cm
+    public float? Weight { get; set; }
+    public float? Height { get; set; }
     public BodyType? BodyType { get; set; }
-
+    
+    // اطلاعات ورود (Authentication) - پیاده‌سازی از IAuthenticable
+    public string Username { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
+    
+    // روابط
+    public virtual User? User { get; set; }
+    public virtual Coach? Coach { get; set; }
+    
     public string FullName => $"{FirstName} {LastName}";
 }

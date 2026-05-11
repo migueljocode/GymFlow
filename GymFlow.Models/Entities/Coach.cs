@@ -1,13 +1,15 @@
 namespace GymFlow.Models.Entities;
 
-/// <summary>
-/// Coach who may supervise multiple users.
-/// Relationship: one-to-many with User (Clients).
-/// </summary>
-public class Coach : Person
+public class Coach : BaseEntity
 {
+    public int PersonId { get; set; }
+    public virtual Person Person { get; set; } = null!;
+    
+    // اطلاعات مخصوص مربی
     public string Specialization { get; set; } = string.Empty;
     public int YearsOfExperience { get; set; }
-
-    public virtual ICollection<User>? Clients { get; set; } = new List<User>();
+    public string? CertificateUrl { get; set; }
+    
+    // مربی می‌تواند چندین کاربر را هدایت کند (اختیاری برای آینده)
+    public virtual ICollection<User>? Clients { get; set; }
 }
