@@ -1,0 +1,39 @@
+namespace GymFlow.Dal.Repositories.Implementations;
+
+public class CoachRepository : Repository<Coach>, ICoachRepository
+{
+    public CoachRepository(IDbContextFactory<AppDbContext> dbContextFactory) 
+        : base(dbContextFactory) { }
+
+    public async Task<Coach?> GetCoachWithPersonAsync(int coachId)
+    {
+        await using var context = await CreateContextAsync();
+        return await context.Coaches
+            .Include(c => c.Person)
+            .FirstOrDefaultAsync(c => c.Id == coachId);
+    }
+
+    public async Task<Coach?> GetByPersonIdAsync(int personId)
+    {
+        await using var context = await CreateContextAsync();
+        return await context.Coaches
+            .Include(c => c.Person)
+            .FirstOrDefaultAsync(c => c.PersonId == personId);
+    }
+
+    public async Task<Coach?> GetByUsernameAsync(string username)
+    {
+        await using var context = await CreateContextAsync();
+        return await context.Coaches
+            .Include(c => c.Person)
+            .FirstOrDefaultAsync(c => c.Person != null && c.Person.Username == username);
+    }
+
+    public async Task<IEnumerable<Coach>> GetAllCoachesWithPersonAsync()
+    {
+        await using var context = await CreateContextAsync();
+        return await context.Coaches
+            .Include(c => c.Person)
+            .ToListAsync();
+    }
+}

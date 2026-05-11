@@ -26,8 +26,11 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddGymFlowRepositories(this IServiceCollection services)
     {
+        // Register Repositories
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+        services.AddScoped<IPersonRepository, PersonRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<ICoachRepository, CoachRepository>();
         services.AddScoped<IWorkoutPlanRepository, WorkoutPlanRepository>();
         services.AddScoped<IWorkoutDayRepository, WorkoutDayRepository>();
         services.AddScoped<IWorkoutSessionRepository, WorkoutSessionRepository>();
