@@ -1,10 +1,15 @@
+using Person = GymFlow.Models.Entities.Person;
+
 namespace GymFlow.Dal.Context;
 
 public class AppDbContext : DbContext
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
+    // DbSet‌ها
+    public DbSet<Person> Persons => Set<Person>();
     public DbSet<User> Users => Set<User>();
+    public DbSet<Coach> Coaches => Set<Coach>();
     public DbSet<WorkoutPlan> WorkoutPlans => Set<WorkoutPlan>();
     public DbSet<WorkoutDay> WorkoutDays => Set<WorkoutDay>();
     public DbSet<WorkoutSession> WorkoutSessions => Set<WorkoutSession>();
@@ -16,7 +21,7 @@ public class AppDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
         
-        // Automatically discover and apply all IEntityTypeConfiguration<T> classes
+        // اعمال تمام کانفیگ‌ها
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
     }
 }

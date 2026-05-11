@@ -7,54 +7,39 @@ public class UserConfiguration : BaseConfiguration<User>
         base.Configure(builder);
         
         builder.ToTable("Users");
-
-        builder.Property(u => u.FirstName)
-            .IsRequired()
-            .HasMaxLength(50);
-
-        builder.Property(u => u.LastName)
-            .IsRequired()
-            .HasMaxLength(50);
-
-        builder.Property(u => u.Phone)
-            .HasMaxLength(15);
-
-        builder.Property(u => u.Email)
-            .HasMaxLength(100);
-
-        builder.Property(u => u.Gender)
-            .HasConversion<string>()
-            .HasMaxLength(10);
-
-        builder.Property(u => u.BodyType)
-            .HasConversion<string>()
-            .HasMaxLength(20);
-
+        
         builder.Property(u => u.Goal)
             .HasConversion<string>()
             .HasMaxLength(20);
-
-        builder.Property(u => u.Weight)
-            .HasPrecision(5, 2);
-
-        builder.Property(u => u.Height)
-            .HasPrecision(5, 2);
-
+        
+        builder.Property(u => u.EstimatedCaloriesIntake)
+            .IsRequired(false);
+        
+        builder.Property(u => u.IsCompetitive)
+            .IsRequired()
+            .HasDefaultValue(false);
+        
+        // رابطه با Person (یک به یک)
+        builder.HasOne(u => u.Person)
+            .WithOne(p => p.User)
+            .HasForeignKey<User>(u => u.PersonId)
+            .OnDelete(DeleteBehavior.Cascade);
+        
+        // رابطه با WorkoutPlan (یک به چند)
         builder.HasMany(u => u.WorkoutPlans)
             .WithOne(w => w.User)
             .HasForeignKey(w => w.UserId)
             .OnDelete(DeleteBehavior.Restrict);
-
+        
+        // رابطه با ProgressLog (یک به چند)
         builder.HasMany(u => u.ProgressLogs)
             .WithOne(p => p.User)
             .HasForeignKey(p => p.UserId)
             .OnDelete(DeleteBehavior.Restrict);
-
-        builder.HasIndex(u => u.Email)
+        
+        // ایندکس‌ها
+        builder.HasIndex(u => u.PersonId)
             .IsUnique()
-            .HasDatabaseName("IX_Users_Email");
-
-        builder.HasIndex(u => new { u.FirstName, u.LastName })
-            .HasDatabaseName("IX_Users_FullName");
+            .HasDatabaseName("IX_Users_PersonId");
     }
 }
