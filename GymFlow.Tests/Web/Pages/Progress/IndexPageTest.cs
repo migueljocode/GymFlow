@@ -5,6 +5,7 @@ using GymFlow.Web.Pages.Progress;
 using GymFlow.Web.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -28,18 +29,17 @@ public class IndexPageTest : PageModelTestFixture
         _pageModel = CreatePageModel<IndexModel>(_mockApiClient.Object);
     }
 
-    #region OnGetAsync
-
     [Fact]
     public async Task OnGetAsync_WhenUserNotLoggedIn_RedirectsToLogin()
     {
-        // بدون تنظیم Session (UserId وجود ندارد)
+        // بدون تنظیم Session
 
-        await _pageModel.OnGetAsync();
+        var result = await _pageModel.OnGetAsync();
 
-        // بررسی ریدایرکت
-        Assert.Equal(302, _pageModel.Response.StatusCode);
-        Assert.Equal("/Login", _pageModel.Response.Headers["Location"].ToString());
+        var redirectResult = Assert.IsType<RedirectToPageResult>(result);
+        Assert.Equal("/Login", redirectResult.PageName);
+        
+        _mockApiClient.Verify(c => c.GetAsync<List<WeightLogDto>>(It.IsAny<string>()), Times.Never);
     }
 
     [Fact]
@@ -49,8 +49,9 @@ public class IndexPageTest : PageModelTestFixture
         _mockApiClient.Setup(c => c.GetAsync<List<WeightLogDto>>("api/progress/user/1"))
             .ReturnsAsync((List<WeightLogDto>)null);
 
-        await _pageModel.OnGetAsync();
+        var result = await _pageModel.OnGetAsync();
 
+        Assert.IsType<PageResult>(result);
         Assert.NotNull(_pageModel.WeightHistory);
         Assert.Empty(_pageModel.WeightHistory);
         Assert.Equal(0, _pageModel.CurrentWeight);
@@ -72,11 +73,10 @@ public class IndexPageTest : PageModelTestFixture
         _mockApiClient.Setup(c => c.GetAsync<List<WeightLogDto>>("api/progress/user/1"))
             .ReturnsAsync(logs);
 
-        await _pageModel.OnGetAsync();
+        var result = await _pageModel.OnGetAsync();
 
+        Assert.IsType<PageResult>(result);
         Assert.Equal(3, _pageModel.WeightHistory.Count);
-        // ترتیب اصلی بر اساس تاریخ نزولی نیست – مدل خودش OrderByDescending می‌کند
-        // بنابراین بررسی می‌کنیم که CurrentWeight جدیدترین وزن باشد (78)
         Assert.Equal(78f, _pageModel.CurrentWeight);
         Assert.Equal(82f, _pageModel.FirstWeight);
         Assert.Equal(-4f, _pageModel.TotalChange);
@@ -94,13 +94,12 @@ public class IndexPageTest : PageModelTestFixture
         _mockApiClient.Setup(c => c.GetAsync<List<WeightLogDto>>("api/progress/user/1"))
             .ReturnsAsync(logs);
 
-        await _pageModel.OnGetAsync();
+        var result = await _pageModel.OnGetAsync();
 
+        Assert.IsType<PageResult>(result);
         Assert.Single(_pageModel.WeightHistory);
         Assert.Equal(75f, _pageModel.CurrentWeight);
         Assert.Equal(75f, _pageModel.FirstWeight);
         Assert.Equal(0, _pageModel.TotalChange);
     }
-
-    #endregion
 }

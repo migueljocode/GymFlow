@@ -5,12 +5,18 @@ namespace GymFlow.Web.Pages;
 
 public abstract class BasePageModel : PageModel
 {
-    protected IActionResult? RedirectIfNotLoggedIn()
+    public bool IsMember => HttpContext.Session.GetString("UserRole") == "Member";
+    public bool IsCoach => HttpContext.Session.GetString("UserRole") == "Coach";
+
+    protected IActionResult? RedirectIfNotMember()
     {
-        if (string.IsNullOrEmpty(HttpContext.Session.GetString("UserId")))
-        {
-            return RedirectToPage("/Login");
-        }
+        if (!IsMember) return RedirectToPage("/Login");
+        return null;
+    }
+
+    protected IActionResult? RedirectIfNotCoach()
+    {
+        if (!IsCoach) return RedirectToPage("/Login");
         return null;
     }
 }

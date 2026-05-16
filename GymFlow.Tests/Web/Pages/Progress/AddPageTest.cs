@@ -83,7 +83,8 @@ public class AddPageTest : PageModelTestFixture
     {
         SetAuthenticatedUser(_pageModel, userId: 1, username: "testuser");
         _pageModel.Weight = 80;
-        _pageModel.LogDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1));
+        // استفاده از تاریخ آینده با اختلاف ۲ روز
+        _pageModel.LogDate = DateOnly.FromDateTime(DateTime.Now.AddDays(2));
 
         var result = await _pageModel.OnPostAsync();
 

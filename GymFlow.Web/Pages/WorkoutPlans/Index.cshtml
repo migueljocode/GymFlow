@@ -1,5 +1,5 @@
 @page
-@model IndexModel
+@model GymFlow.Web.Pages.WorkoutPlans.IndexModel
 @{
     ViewData["Title"] = "برنامه‌های تمرینی";
 }
@@ -7,14 +7,20 @@
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>📋 برنامه‌های تمرینی من</h2>
-        <a href="/WorkoutPlans/Create" class="btn btn-primary">+ برنامه جدید</a>
+        @if (User.IsInRole("Coach"))
+        {
+            <a href="/WorkoutPlans/Create" class="btn btn-primary">+ برنامه جدید</a>
+        }
     </div>
 
     @if (!Model.WorkoutPlans.Any())
     {
         <div class="alert alert-info text-center">
             <p>هنوز برنامه تمرینی نداری!</p>
-            <a href="/WorkoutPlans/Create" class="btn btn-primary">ایجاد اولین برنامه</a>
+            @if (User.IsInRole("Coach"))
+            {
+                <a href="/WorkoutPlans/Create" class="btn btn-primary">ایجاد اولین برنامه</a>
+            }
         </div>
     }
     else

@@ -1,9 +1,9 @@
-using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc;
 using GymFlow.Web.Services;
 
 namespace GymFlow.Web.Pages.WorkoutPlans;
 
-public class IndexModel : PageModel
+public class IndexModel : BasePageModel
 {
     private readonly ApiClient _apiClient;
     
@@ -14,15 +14,16 @@ public class IndexModel : PageModel
     
     public List<WorkoutPlanListDto> WorkoutPlans { get; set; } = new();
     
-    public async Task OnGetAsync()
+    public async Task<IActionResult> OnGetAsync()
     {
+        var redirect = RedirectIfNotMember();
+        if (redirect != null) return redirect;
+
         if (!int.TryParse(HttpContext.Session.GetString("UserId"), out var userId))
-        {
-            Response.Redirect("/Login");
-            return;
-        }
+            return RedirectToPage("/Login");
         
         WorkoutPlans = await _apiClient.GetAsync<List<WorkoutPlanListDto>>($"api/workoutplans/user/{userId}") ?? new();
+        return Page();
     }
 }
 

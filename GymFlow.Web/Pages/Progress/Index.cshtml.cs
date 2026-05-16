@@ -1,9 +1,9 @@
-using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc;
 using GymFlow.Web.Services;
 
 namespace GymFlow.Web.Pages.Progress;
 
-public class IndexModel : PageModel
+public class IndexModel : BasePageModel
 {
     private readonly ApiClient _apiClient;
     
@@ -17,12 +17,14 @@ public class IndexModel : PageModel
     public float FirstWeight { get; set; }
     public float TotalChange { get; set; }
     
-    public async Task OnGetAsync()
+    public async Task<IActionResult> OnGetAsync()
     {
+        var redirect = RedirectIfNotMember();
+        if (redirect != null) return redirect;
+
         if (!int.TryParse(HttpContext.Session.GetString("UserId"), out var userId))
         {
-            Response.Redirect("/Login");
-            return;
+            return RedirectToPage("/Login");
         }
         
         WeightHistory = await _apiClient.GetAsync<List<WeightLogDto>>($"api/progress/user/{userId}") ?? new();
@@ -34,6 +36,7 @@ public class IndexModel : PageModel
             FirstWeight = ordered.Last().Weight;
             TotalChange = CurrentWeight - FirstWeight;
         }
+        return Page();
     }
 }
 

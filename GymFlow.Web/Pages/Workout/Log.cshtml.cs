@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using GymFlow.Web.Services;
 using GymFlow.Models.DTOs.Requests;
+using GymFlow.Web.Pages.WorkoutPlans;
 
 namespace GymFlow.Web.Pages.Workout;
 
-public class LogModel : PageModel
+public class LogModel : BasePageModel   // تغییر ارث‌بری
 {
     private readonly ApiClient _apiClient;
     
@@ -28,6 +28,10 @@ public class LogModel : PageModel
     
     public async Task<IActionResult> OnPostAsync()
     {
+        // اعمال محدودیت دسترسی
+        var redirect = RedirectIfNotMember();
+        if (redirect != null) return redirect;
+
         // گرفتن userId از Session
         if (!int.TryParse(HttpContext.Session.GetString("UserId"), out var userId))
         {
@@ -87,22 +91,4 @@ public class LogModel : PageModel
         
         return Page();
     }
-}
-
-public class UserDto
-{
-    public int Id { get; set; }
-}
-
-public class ActivePlanDto
-{
-    public int Id { get; set; }
-    public int Phase { get; set; }
-    public bool IsActive { get; set; }
-}
-
-public class WorkoutDayDto
-{
-    public int Id { get; set; }
-    public DayOfWeek DayOfWeek { get; set; }
 }

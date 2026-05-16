@@ -1,5 +1,5 @@
 @page
-@model DetailsModel
+@model GymFlow.Web.Pages.WorkoutPlans.DetailsModel
 @{
     ViewData["Title"] = $"برنامه فاز {Model.Plan?.Phase}";
 }
@@ -200,12 +200,15 @@ else
                         </div>
                     }
                     
-                    <div class="text-center mt-3">
-                        <a href="/WorkoutPlans/AddExercises?workoutDayId=@day.Id&workoutPlanId=@Model.Plan.Id&dayOfWeek=@day.DayOfWeek" 
-                           class="btn btn-sm btn-outline-primary">
-                            🏋️ اضافه کردن/ویرایش حرکات
-                        </a>
-                    </div>
+                    @if (User.IsInRole("Coach"))
+                    {
+                        <div class="text-center mt-3">
+                            <a href="/WorkoutPlans/AddExercises?workoutDayId=@day.Id&workoutPlanId=@Model.Plan.Id&dayOfWeek=@day.DayOfWeek" 
+                               class="btn btn-sm btn-outline-primary">
+                                🏋️ اضافه کردن/ویرایش حرکات
+                            </a>
+                        </div>
+                    }
                 </div>
             </div>
         }

@@ -1,77 +1,61 @@
-using GymFlow.Web.Pages;
 using GymFlow.Tests.Web.Pages.TestBase;
+using GymFlow.Web.Pages;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using Xunit;
 
 namespace GymFlow.Tests.Web.Pages;
 
 public class BasePageModelPageTest : PageModelTestFixture
 {
-    // یک کلاس مشتق شده برای تست متدهای protected
     private class TestPageModel : BasePageModel
     {
-        // متد عمومی برای فراخوانی متد protected
-        public IActionResult? TestRedirectIfNotLoggedIn() => RedirectIfNotLoggedIn();
+        public IActionResult? TestRedirectIfNotMember() => RedirectIfNotMember();
+        public IActionResult? TestRedirectIfNotCoach() => RedirectIfNotCoach();
     }
 
     [Fact]
-    public void RedirectIfNotLoggedIn_WhenUserIsLoggedIn_ReturnsNull()
+    public void RedirectIfNotMember_WhenUserIsMember_ReturnsNull()
     {
-        // Arrange
         var pageModel = CreatePageModel<TestPageModel>();
-        SetAuthenticatedUser(pageModel, userId: 1, username: "testuser", role: "Member");
+        SetAuthenticatedUser(pageModel, userId: 1, username: "member", role: "Member");
 
-        // Act
-        var result = pageModel.TestRedirectIfNotLoggedIn();
+        var result = pageModel.TestRedirectIfNotMember();
 
-        // Assert
         Assert.Null(result);
     }
 
     [Fact]
-    public void RedirectIfNotLoggedIn_WhenUserIsNotLoggedIn_ReturnsRedirectToLogin()
+    public void RedirectIfNotMember_WhenUserIsCoach_ReturnsRedirectToLogin()
     {
-        // Arrange
         var pageModel = CreatePageModel<TestPageModel>();
-        // Session را خالی بگذارید (بدون تنظیم UserId)
+        SetAuthenticatedUser(pageModel, userId: 2, username: "coach", role: "Coach");
 
-        // Act
-        var result = pageModel.TestRedirectIfNotLoggedIn();
+        var result = pageModel.TestRedirectIfNotMember();
 
-        // Assert
-        var redirectResult = AssertRedirectToPage(result, "/Login");
-        Assert.NotNull(redirectResult);
+        var redirectResult = Assert.IsType<RedirectToPageResult>(result);
+        Assert.Equal("/Login", redirectResult.PageName);
     }
 
     [Fact]
-    public void RedirectIfNotLoggedIn_WhenUserIdIsEmptyString_ReturnsRedirectToLogin()
+    public void RedirectIfNotCoach_WhenUserIsCoach_ReturnsNull()
     {
-        // Arrange
         var pageModel = CreatePageModel<TestPageModel>();
-        // مقدار خالی برای UserId
-        SetSessionValue(pageModel, "UserId", "");
+        SetAuthenticatedUser(pageModel, userId: 2, username: "coach", role: "Coach");
 
-        // Act
-        var result = pageModel.TestRedirectIfNotLoggedIn();
+        var result = pageModel.TestRedirectIfNotCoach();
 
-        // Assert
-        var redirectResult = AssertRedirectToPage(result, "/Login");
-        Assert.NotNull(redirectResult);
+        Assert.Null(result);
     }
 
     [Fact]
-    public void RedirectIfNotLoggedIn_WhenUserIdIsNull_ReturnsRedirectToLogin()
+    public void RedirectIfNotCoach_WhenUserIsMember_ReturnsRedirectToLogin()
     {
-        // Arrange
         var pageModel = CreatePageModel<TestPageModel>();
-        // مطمئن شوید Session هیچ مقداری برای "UserId" ندارد (پیش‌فرض)
+        SetAuthenticatedUser(pageModel, userId: 1, username: "member", role: "Member");
 
-        // Act
-        var result = pageModel.TestRedirectIfNotLoggedIn();
+        var result = pageModel.TestRedirectIfNotCoach();
 
-        // Assert
-        var redirectResult = AssertRedirectToPage(result, "/Login");
-        Assert.NotNull(redirectResult);
+        var redirectResult = Assert.IsType<RedirectToPageResult>(result);
+        Assert.Equal("/Login", redirectResult.PageName);
     }
 }
