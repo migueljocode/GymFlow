@@ -2,6 +2,9 @@ using Microsoft.AspNetCore.Mvc;
 using GymFlow.Dal.Repositories.Interfaces;
 using GymFlow.Api.Controllers.Base;
 using GymFlow.Api.Helpers;
+using GymFlow.Dal.Context;
+using Microsoft.EntityFrameworkCore;
+using Bogus;
 
 namespace GymFlow.Api.Controllers;
 
@@ -12,17 +15,23 @@ namespace GymFlow.Api.Controllers;
 public class TestController : ApiControllerBase
 {
     private readonly IUserRepository _userRepository;
+    private readonly IPersonRepository _personRepository;
     private readonly IExerciseRepository _exerciseRepository;
-    private readonly IWorkoutPlanRepository _workoutPlanRepository;
+    private readonly IWorkoutPlanRepository _workoutPlanRepository; 
+    private readonly AppDbContext _context;
 
     public TestController(
         IUserRepository userRepository,
         IExerciseRepository exerciseRepository,
-        IWorkoutPlanRepository workoutPlanRepository)
+        IWorkoutPlanRepository workoutPlanRepository,
+        AppDbContext context,
+        IPersonRepository personRepository)
     {
         _userRepository = userRepository;
         _exerciseRepository = exerciseRepository;
         _workoutPlanRepository = workoutPlanRepository;
+        _context = context;
+        _personRepository = personRepository;
     }
 
     /// <summary>
@@ -125,6 +134,33 @@ public class TestController : ApiControllerBase
                     .ToDictionary(g => g.Key, g => g.Count())
             },
             timestamp = DateTime.UtcNow
+        });
+    }
+
+    [HttpGet("users")]
+    public async Task<IActionResult> GetAllUsersAsync()
+    {
+        var persons = await _context.Persons
+            .Select(p => new { p.Id, p.Username, p.Password, p.FirstName, p.LastName })
+            .ToListAsync();
+        
+        return Success(persons);
+    }
+
+    [HttpGet("person/{username}")]
+    public async Task<IActionResult> GetPersonByUsernameAsync(string username)
+    {
+        var person = await _personRepository.GetByUsernameAsync(username);
+        if (person == null)
+            return NotFound($"Person with username '{username}' not found");
+        
+        return Ok(new
+        {
+            person.Id,
+            person.Username,
+            person.Password,
+            person.FirstName,
+            person.LastName
         });
     }
 }

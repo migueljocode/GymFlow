@@ -1,3 +1,5 @@
+using GymFlow.Models.Exceptions;
+
 namespace GymFlow.Dal.Repositories.Implementations;
 
 /// <summary>
@@ -80,12 +82,23 @@ public class WorkoutSessionRepository : Repository<WorkoutSession>, IWorkoutSess
     public async Task<double> GetAverageSessionDurationAsync(int userId)
     {
         await using var context = await CreateContextAsync();
-        var avg = await context.WorkoutSessions
+        
+        var durations = await context.WorkoutSessions
             .Include(ws => ws.WorkoutDay)
             .Where(ws => ws.WorkoutDay != null && ws.WorkoutDay.WorkoutPlan!.UserId == userId)
-            .AverageAsync(ws => ws.ActualDurationMinutes);
+            .Select(ws => ws.ActualDurationMinutes)
+            .ToListAsync();
         
-        return avg;
+        if (!durations.Any())
+        {
+            throw new NoDataFoundException(
+                $"No workout sessions found for user ID {userId}. " +
+                "Cannot calculate average session duration.",
+                entityName: nameof(WorkoutSession),
+                filterInfo: $"UserId = {userId}");
+        }
+        
+        return durations.Average();
     }
 
     /// <inheritdoc />

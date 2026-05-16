@@ -28,8 +28,12 @@ public class LogModel : PageModel
     
     public async Task<IActionResult> OnPostAsync()
     {
-        var users = await _apiClient.GetAsync<List<UserDto>>("api/users");
-        var userId = users?.FirstOrDefault()?.Id ?? 1;
+        // گرفتن userId از Session
+        if (!int.TryParse(HttpContext.Session.GetString("UserId"), out var userId))
+        {
+            ErrorMessage = "لطفاً مجدداً وارد شوید.";
+            return RedirectToPage("/Login");
+        }
         
         var dayOfWeek = ActualDate.DayOfWeek;
         var activePlan = await _apiClient.GetAsync<ActivePlanDto>($"api/workoutplans/user/{userId}/active");

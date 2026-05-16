@@ -1,17 +1,18 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using GymFlow.Web.Services;
+using GymFlow.Web.Models;
 
 namespace GymFlow.Web.Pages;
 
 public class IndexModel : PageModel
 {
     private readonly ApiClient _apiClient;
-    
+
     public IndexModel(ApiClient apiClient)
     {
         _apiClient = apiClient;
     }
-    
+
     public QuickStatsDto? Stats { get; set; }
     public WorkoutDayDetailDto? TodayWorkout { get; set; }
     public List<WeightPointDto>? WeightHistory { get; set; }
@@ -19,25 +20,36 @@ public class IndexModel : PageModel
     public List<RecentActivityDto>? RecentActivities { get; set; }
     public string? ActivePlanName { get; set; }
     
+    public string? UserRole { get; set; }
+    public string? Username { get; set; }
+    public bool IsCoach => UserRole == "Coach";
+    public bool IsMember => UserRole == "Member";
+
     public async Task OnGetAsync()
     {
-        var users = await _apiClient.GetAsync<List<UserInfoDto>>("api/users");
-        var userId = users?.FirstOrDefault()?.Id ?? 1;
-        
+        // گرفتن userId از Session
+        if (!int.TryParse(HttpContext.Session.GetString("UserId"), out var userId))
+        {
+            Response.Redirect("/Login");
+            return;
+        }
+
+        UserRole = HttpContext.Session.GetString("UserRole") ?? "Member";
+        Username = HttpContext.Session.GetString("Username") ?? "guest";
+
         Stats = await _apiClient.GetAsync<QuickStatsDto>($"api/statistics/user/{userId}/quick-stats");
-        
         await LoadTodayWorkoutAsync(userId);
         await LoadWeightHistoryAsync(userId);
         await LoadAchievementsAsync(userId);
         await LoadRecentActivitiesAsync(userId);
         await LoadActivePlanNameAsync(userId);
     }
-    
+
     private async Task LoadTodayWorkoutAsync(int userId)
     {
         var today = DateTime.Now;
         var todayDayOfWeek = GetPersianDayOfWeekNumber(today);
-        
+
         var activePlan = await _apiClient.GetAsync<ActivePlanDto>($"api/workoutplans/user/{userId}/active");
         if (activePlan != null && activePlan.Id > 0)
         {
@@ -59,7 +71,7 @@ public class IndexModel : PageModel
             }
         }
     }
-    
+
     private async Task LoadWeightHistoryAsync(int userId)
     {
         var logs = await _apiClient.GetAsync<List<ProgressLogDto>>($"api/progress/user/{userId}");
@@ -80,13 +92,13 @@ public class IndexModel : PageModel
             WeightHistory = new List<WeightPointDto>();
         }
     }
-    
+
     private async Task LoadAchievementsAsync(int userId)
     {
         Achievements = new List<AchievementDto>();
         var sessions = await _apiClient.GetAsync<List<WorkoutSessionDto>>($"api/workoutsessions/user/{userId}");
         var totalWorkouts = sessions?.Count ?? 0;
-        
+
         if (totalWorkouts >= 1)
             Achievements.Add(new AchievementDto { Name = "اولین تمرین", Description = "اولین جلسه تمرینی خود را ثبت کردی! 🎯", Icon = "🎯" });
         if (totalWorkouts >= 5)
@@ -100,11 +112,11 @@ public class IndexModel : PageModel
         if (totalWorkouts >= 100)
             Achievements.Add(new AchievementDto { Name = "اسطوره", Description = "۱۰۰ جلسه تمرین! شما یک افسانه هستید 💪", Icon = "💪" });
     }
-    
+
     private async Task LoadRecentActivitiesAsync(int userId)
     {
         RecentActivities = new List<RecentActivityDto>();
-        
+
         var sessions = await _apiClient.GetAsync<List<WorkoutSessionDto>>($"api/workoutsessions/user/{userId}");
         if (sessions != null)
         {
@@ -121,7 +133,7 @@ public class IndexModel : PageModel
                 });
             }
         }
-        
+
         var logs = await _apiClient.GetAsync<List<ProgressLogDto>>($"api/progress/user/{userId}");
         if (logs != null)
         {
@@ -137,10 +149,10 @@ public class IndexModel : PageModel
                 });
             }
         }
-        
+
         RecentActivities = RecentActivities.OrderByDescending(a => a.Timestamp).Take(10).ToList();
     }
-    
+
     private async Task LoadActivePlanNameAsync(int userId)
     {
         var activePlan = await _apiClient.GetAsync<ActivePlanDto>($"api/workoutplans/user/{userId}/active");
@@ -153,13 +165,13 @@ public class IndexModel : PageModel
             ActivePlanName = "برنامه فعالی ندارید";
         }
     }
-    
+
     private int GetPersianDayOfWeekNumber(DateTime date)
     {
         var dotNetDay = date.DayOfWeek;
         return dotNetDay == DayOfWeek.Saturday ? 6 : (int)dotNetDay;
     }
-    
+
     private string GetPersianDayName(DayOfWeek day)
     {
         return day switch
@@ -174,7 +186,7 @@ public class IndexModel : PageModel
             _ => day.ToString()
         };
     }
-    
+
     private string GetMuscleGroupName(int muscles)
     {
         var names = new List<string>();
@@ -186,7 +198,7 @@ public class IndexModel : PageModel
         if ((muscles & 32) != 0) names.Add("Core");
         return names.Count > 0 ? string.Join(", ", names) : "Full Body";
     }
-    
+
     private string GetIntensityName(int intensity)
     {
         return intensity switch
@@ -200,13 +212,6 @@ public class IndexModel : PageModel
 }
 
 // ========== DTOهای داخلی ==========
-
-public class UserInfoDto
-{
-    public int Id { get; set; }
-    public string FirstName { get; set; } = string.Empty;
-    public string LastName { get; set; } = string.Empty;
-}
 
 public class QuickStatsDto
 {

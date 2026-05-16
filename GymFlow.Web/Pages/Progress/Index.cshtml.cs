@@ -19,7 +19,12 @@ public class IndexModel : PageModel
     
     public async Task OnGetAsync()
     {
-        var userId = 1;
+        if (!int.TryParse(HttpContext.Session.GetString("UserId"), out var userId))
+        {
+            Response.Redirect("/Login");
+            return;
+        }
+        
         WeightHistory = await _apiClient.GetAsync<List<WeightLogDto>>($"api/progress/user/{userId}") ?? new();
         
         if (WeightHistory.Any())

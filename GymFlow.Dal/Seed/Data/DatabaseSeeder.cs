@@ -1,149 +1,141 @@
+using Microsoft.EntityFrameworkCore;
+using GymFlow.Dal.Context;
+
 namespace GymFlow.Dal.Seed.Data;
 
-/// <summary>
-/// Main database seeder that orchestrates the complete seeding process with refresh capabilities.
-/// </summary>
 public class DatabaseSeeder
 {
     private readonly IDbContextFactory<AppDbContext> _dbContextFactory;
     private readonly SeedOptions _options;
-    
+
     public DatabaseSeeder(IDbContextFactory<AppDbContext> dbContextFactory, SeedOptions? options = null)
     {
         _dbContextFactory = dbContextFactory;
-        _options = options ?? SeedProfiles.Development;  // ← Changed from SeedOptions.Development
+        _options = options ?? SeedProfiles.Development;
     }
-    
-    /// <summary>
-    /// Seeds the database with rich test data. In development mode, this refreshes all data.
-    /// </summary>
+
     public async Task SeedAsync()
     {
         await using var context = await _dbContextFactory.CreateDbContextAsync();
-        
-        // Check if database exists and has tables
-        var databaseExists = await context.Database.CanConnectAsync();
-        
-        if (!databaseExists)
-        {
-            Console.WriteLine("📦 Creating database and applying migrations...");
-            await context.Database.MigrateAsync();
-        }
-        
-        // Determine if we should seed
-        var shouldSeed = ShouldSeed(context);
-        
-        if (!shouldSeed)
-        {
-            Console.WriteLine("⏭️ Skipping seeding - conditions not met");
-            return;
-        }
-        
-        // Clear existing data if requested
-        if (_options.ClearExistingData && await HasDataAsync(context))
+
+        if (_options.ClearExistingData && await context.Users.AnyAsync())
         {
             await ClearDatabaseAsync(context);
         }
-        
-        // Generate and seed data
-        Console.WriteLine("🌱 Seeding database with rich test data...");
+
+        Console.WriteLine("🌱 Generating and seeding rich test data...");
         Console.WriteLine("===============================================");
+
+        // 1. Exercises - فقط اگر قرار است دیتایی داشته باشیم
+        var hasAnyData = _options.UserCount > 0 || _options.IncludeDemoUser;
         
-        var generator = new SeedDataGenerator(_options);
-        var data = generator.GenerateAllData();
-        
-        // Save in correct order (respecting foreign keys)
-        await context.Exercises.AddRangeAsync(data.Exercises);
-        await context.SaveChangesAsync();
-        Console.WriteLine($"  ✅ Added {data.Exercises.Count} exercises");
-        
-        await context.Users.AddRangeAsync(data.Users);
-        await context.SaveChangesAsync();
-        Console.WriteLine($"  ✅ Added {data.Users.Count} users");
-        
-        await context.WorkoutPlans.AddRangeAsync(data.WorkoutPlans);
-        await context.SaveChangesAsync();
-        Console.WriteLine($"  ✅ Added {data.WorkoutPlans.Count} workout plans");
-        
-        await context.WorkoutDays.AddRangeAsync(data.WorkoutDays);
-        await context.SaveChangesAsync();
-        Console.WriteLine($"  ✅ Added {data.WorkoutDays.Count} workout days");
-        
-        await context.WorkoutDayExercises.AddRangeAsync(data.WorkoutDayExercises);
-        await context.SaveChangesAsync();
-        Console.WriteLine($"  ✅ Added {data.WorkoutDayExercises.Count} workout day exercises");
-        
-        await context.ProgressLogs.AddRangeAsync(data.ProgressLogs);
-        await context.SaveChangesAsync();
-        Console.WriteLine($"  ✅ Added {data.ProgressLogs.Count} progress logs");
-        
-        await context.WorkoutSessions.AddRangeAsync(data.WorkoutSessions);
-        await context.SaveChangesAsync();
-        
-        Console.WriteLine("===============================================");
-        Console.WriteLine("✅ DATABASE SEEDING COMPLETED SUCCESSFULLY!");
-        Console.WriteLine($"📊 Total records: {GetTotalRecordCount(data)}");
-    }
-    
-    /// <summary>
-    /// Determines whether seeding should run based on options and current state.
-    /// </summary>
-    private bool ShouldSeed(AppDbContext context)
-    {
-        if (_options.RefreshOnStartup)
+        if (hasAnyData)
         {
-            Console.WriteLine("🔄 Refresh mode: ON - Will reseed database");
-            return true;
+            var exercises = DataGenerator.GenerateExercises(30);
+            await context.Exercises.AddRangeAsync(exercises);
+            await context.SaveChangesAsync();
+            Console.WriteLine($"  ✅ Added {exercises.Count} exercises");
         }
-        
-        if (_options.SeedOnlyIfEmpty && !HasDataAsync(context).GetAwaiter().GetResult())
+        else
         {
-            Console.WriteLine("📭 Database is empty - Seeding...");
-            return true;
+            Console.WriteLine("  ⚠️ No exercises generated (no data requested)");
         }
-        
-        if (!_options.SeedOnlyIfEmpty)
+
+        // 2. Persons - فقط اگر IncludeDemoUser فعال باشد یا UserCount > 0
+        var personCount = _options.IncludeDemoUser ? _options.UserCount + 2 : _options.UserCount;
+        if (personCount > 0)
         {
-            Console.WriteLine("📝 Seeding enabled regardless of existing data");
-            return true;
+            var persons = DataGenerator.GeneratePersons(personCount);
+            await context.Persons.AddRangeAsync(persons);
+            await context.SaveChangesAsync();
+            Console.WriteLine($"  ✅ Added {persons.Count} persons");
+
+            // 3. Users
+            var users = DataGenerator.GenerateUsers(persons);
+            await context.Users.AddRangeAsync(users);
+            await context.SaveChangesAsync();
+            Console.WriteLine($"  ✅ Added {users.Count} users");
+
+            // 4. Coaches - فقط اگر IncludeDemoUser فعال باشد
+            if (_options.IncludeDemoUser)
+            {
+                var coaches = DataGenerator.GenerateCoaches(persons);
+                await context.Coaches.AddRangeAsync(coaches);
+                await context.SaveChangesAsync();
+                Console.WriteLine($"  ✅ Added {coaches.Count} coaches");
+            }
+
+            // 5. WorkoutPlans - فقط اگر کاربر وجود داشته باشد
+            if (users.Any())
+            {
+                var plans = DataGenerator.GenerateWorkoutPlans(users);
+                await context.WorkoutPlans.AddRangeAsync(plans);
+                await context.SaveChangesAsync();
+                Console.WriteLine($"  ✅ Added {plans.Count} workout plans");
+
+                // 6. WorkoutDays
+                var days = DataGenerator.GenerateWorkoutDays(plans);
+                await context.WorkoutDays.AddRangeAsync(days);
+                await context.SaveChangesAsync();
+                Console.WriteLine($"  ✅ Added {days.Count} workout days");
+
+                // 7. WorkoutDayExercises
+                var exercises = await context.Exercises.ToListAsync();
+                if (exercises.Any())
+                {
+                    var wdes = DataGenerator.GenerateWorkoutDayExercises(days, exercises);
+                    await context.WorkoutDayExercises.AddRangeAsync(wdes);
+                    await context.SaveChangesAsync();
+                    Console.WriteLine($"  ✅ Added {wdes.Count} workout day exercises");
+                }
+
+                // 8. ProgressLogs
+                var logs = DataGenerator.GenerateProgressLogs(users, plans);
+                await context.ProgressLogs.AddRangeAsync(logs);
+                await context.SaveChangesAsync();
+                Console.WriteLine($"  ✅ Added {logs.Count} progress logs");
+
+                // 9. WorkoutSessions
+                var sessions = DataGenerator.GenerateWorkoutSessions(days);
+                await context.WorkoutSessions.AddRangeAsync(sessions);
+                await context.SaveChangesAsync();
+                Console.WriteLine($"  ✅ Added {sessions.Count} workout sessions");
+            }
         }
-        
-        Console.WriteLine("⏭️ Seeding skipped (database not empty and SeedOnlyIfEmpty=true)");
-        return false;
+        else
+        {
+            Console.WriteLine("  ⚠️ No persons generated (UserCount = 0 and IncludeDemoUser = false)");
+        }
+
+        if (_options.IncludeDemoUser)
+        {
+            Console.WriteLine("===============================================");
+            Console.WriteLine("✅ DATABASE SEEDING COMPLETED SUCCESSFULLY!");
+            Console.WriteLine($"   Coach: coach / coach123");
+            Console.WriteLine($"   Member: member / member123");
+        }
+        else
+        {
+            Console.WriteLine("===============================================");
+            Console.WriteLine("✅ DATABASE SEEDING COMPLETED SUCCESSFULLY!");
+        }
     }
-    
-    /// <summary>
-    /// Checks if the database already has any data.
-    /// </summary>
-    private async Task<bool> HasDataAsync(AppDbContext context)
-    {
-        return await context.Users.AnyAsync() || await context.Exercises.AnyAsync();
-    }
-    
-    /// <summary>
-    /// Clears all data from the database.
-    /// </summary>
+
     private async Task ClearDatabaseAsync(AppDbContext context)
     {
         Console.WriteLine("🗑️ Clearing existing database data...");
-        
-        // Order matters for foreign keys
+
         await context.WorkoutSessions.ExecuteDeleteAsync();
         await context.WorkoutDayExercises.ExecuteDeleteAsync();
         await context.ProgressLogs.ExecuteDeleteAsync();
         await context.WorkoutDays.ExecuteDeleteAsync();
         await context.WorkoutPlans.ExecuteDeleteAsync();
-        await context.Exercises.ExecuteDeleteAsync();
+        await context.Coaches.ExecuteDeleteAsync();
         await context.Users.ExecuteDeleteAsync();
-        
-        // Reset SQLite auto-increment counters
+        await context.Persons.ExecuteDeleteAsync();
+        await context.Exercises.ExecuteDeleteAsync();
+
         await context.Database.ExecuteSqlRawAsync("DELETE FROM sqlite_sequence;");
-        
         Console.WriteLine("  ✅ Database cleared");
     }
-    
-    private int GetTotalRecordCount(SeedDataResult data) =>
-        data.Exercises.Count + data.Users.Count + data.WorkoutPlans.Count +
-        data.WorkoutDays.Count + data.WorkoutDayExercises.Count +
-        data.ProgressLogs.Count + data.WorkoutSessions.Count;
 }

@@ -48,8 +48,11 @@ public class CreateModel : PageModel
     
     public async Task OnGetAsync()
     {
-        var users = await _apiClient.GetAsync<List<UserInfoDto>>("api/users");
-        var userId = users?.FirstOrDefault()?.Id ?? 1;
+        if (!int.TryParse(HttpContext.Session.GetString("UserId"), out var userId))
+        {
+            RedirectToPage("/Login");
+            return;
+        }
         
         var existingPlans = await _apiClient.GetAsync<List<WorkoutPlanInfoDto>>($"api/workoutplans/user/{userId}");
         if (existingPlans != null && existingPlans.Any())
@@ -73,8 +76,10 @@ public class CreateModel : PageModel
             return Page();
         }
         
-        var users = await _apiClient.GetAsync<List<UserInfoDto>>("api/users");
-        var userId = users?.FirstOrDefault()?.Id ?? 1;
+        if (!int.TryParse(HttpContext.Session.GetString("UserId"), out var userId))
+        {
+            return RedirectToPage("/Login");
+        }
         
         var existingPlans = await _apiClient.GetAsync<List<WorkoutPlanInfoDto>>($"api/workoutplans/user/{userId}");
         if (existingPlans != null && existingPlans.Any(p => p.Phase == Phase))
@@ -122,7 +127,6 @@ public class CreateModel : PageModel
             await _apiClient.PostAsync<object>("api/workoutdays", dayRequest);
         }
         
-        // رفتن به صفحه ویرایش برنامه (AddExercises)
         var firstWorkoutDay = await _apiClient.GetAsync<List<WorkoutDayDto>>($"api/workoutdays/plan/{plan.Id}");
         if (firstWorkoutDay != null && firstWorkoutDay.Any())
         {
@@ -135,11 +139,6 @@ public class CreateModel : PageModel
         
         return RedirectToPage("/WorkoutPlans/Details", new { id = plan.Id });
     }
-}
-
-public class UserInfoDto
-{
-    public int Id { get; set; }
 }
 
 public class WorkoutPlanInfoDto

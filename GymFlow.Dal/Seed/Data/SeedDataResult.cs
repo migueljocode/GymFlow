@@ -1,10 +1,8 @@
+using GymFlow.Models.Entities;
 using Person = GymFlow.Models.Entities.Person;
 
 namespace GymFlow.Dal.Seed.Data;
 
-/// <summary>
-/// Container for generated seed data
-/// </summary>
 public class SeedDataResult
 {
     public List<Exercise> Exercises { get; set; } = new();

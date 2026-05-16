@@ -1,12 +1,12 @@
-﻿global using Microsoft.EntityFrameworkCore.Migrations;
-using System;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace GymFlow.Dal.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreateWithSoftDelete : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -31,31 +31,89 @@ namespace GymFlow.Dal.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Persons",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    FirstName = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
+                    LastName = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
+                    Email = table.Column<string>(type: "TEXT", maxLength: 100, nullable: true),
+                    Phone = table.Column<string>(type: "TEXT", maxLength: 15, nullable: true),
+                    Gender = table.Column<string>(type: "TEXT", maxLength: 10, nullable: false),
+                    Age = table.Column<int>(type: "INTEGER", nullable: false),
+                    Weight = table.Column<float>(type: "REAL", precision: 5, scale: 2, nullable: true),
+                    Height = table.Column<float>(type: "REAL", precision: 5, scale: 2, nullable: true),
+                    BodyType = table.Column<string>(type: "TEXT", maxLength: 20, nullable: true),
+                    Username = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
+                    Password = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: false),
+                    DeletedAt = table.Column<DateTime>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Persons", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Coaches",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    PersonId = table.Column<int>(type: "INTEGER", nullable: false),
+                    Specialization = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    YearsOfExperience = table.Column<int>(type: "INTEGER", nullable: false),
+                    CertificateUrl = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: false),
+                    DeletedAt = table.Column<DateTime>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Coaches", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Coaches_Persons_PersonId",
+                        column: x => x.PersonId,
+                        principalTable: "Persons",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
+                    PersonId = table.Column<int>(type: "INTEGER", nullable: false),
                     Goal = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false),
                     EstimatedCaloriesIntake = table.Column<int>(type: "INTEGER", nullable: true),
-                    IsCompetitive = table.Column<bool>(type: "INTEGER", nullable: false),
+                    IsCompetitive = table.Column<bool>(type: "INTEGER", nullable: false, defaultValueSql: "0"),
+                    CoachId = table.Column<int>(type: "INTEGER", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
                     UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
                     IsDeleted = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: false),
-                    DeletedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    FirstName = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
-                    LastName = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
-                    Phone = table.Column<string>(type: "TEXT", maxLength: 15, nullable: true),
-                    Email = table.Column<string>(type: "TEXT", maxLength: 100, nullable: true),
-                    Gender = table.Column<string>(type: "TEXT", maxLength: 10, nullable: false),
-                    Age = table.Column<int>(type: "INTEGER", nullable: false),
-                    Weight = table.Column<float>(type: "REAL", precision: 5, scale: 2, nullable: true),
-                    Height = table.Column<float>(type: "REAL", precision: 5, scale: 2, nullable: true),
-                    BodyType = table.Column<string>(type: "TEXT", maxLength: 20, nullable: true)
+                    DeletedAt = table.Column<DateTime>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Users", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Users_Coaches_CoachId",
+                        column: x => x.CoachId,
+                        principalTable: "Coaches",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_Users_Persons_PersonId",
+                        column: x => x.PersonId,
+                        principalTable: "Persons",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -210,6 +268,17 @@ namespace GymFlow.Dal.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_Coach_IsDeleted",
+                table: "Coaches",
+                column: "IsDeleted");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Coaches_PersonId",
+                table: "Coaches",
+                column: "PersonId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Exercise_IsDeleted",
                 table: "Exercises",
                 column: "IsDeleted");
@@ -218,6 +287,17 @@ namespace GymFlow.Dal.Migrations
                 name: "IX_Exercises_Name",
                 table: "Exercises",
                 column: "Name",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Person_IsDeleted",
+                table: "Persons",
+                column: "IsDeleted");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Persons_Username",
+                table: "Persons",
+                column: "Username",
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -252,15 +332,15 @@ namespace GymFlow.Dal.Migrations
                 column: "IsDeleted");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Users_Email",
+                name: "IX_Users_CoachId",
                 table: "Users",
-                column: "Email",
-                unique: true);
+                column: "CoachId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Users_FullName",
+                name: "IX_Users_PersonId",
                 table: "Users",
-                columns: new[] { "FirstName", "LastName" });
+                column: "PersonId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_WorkoutDayExercise_IsDeleted",
@@ -364,6 +444,12 @@ namespace GymFlow.Dal.Migrations
 
             migrationBuilder.DropTable(
                 name: "Users");
+
+            migrationBuilder.DropTable(
+                name: "Coaches");
+
+            migrationBuilder.DropTable(
+                name: "Persons");
         }
     }
 }

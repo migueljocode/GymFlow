@@ -115,4 +115,37 @@ public class WorkoutPlanRepository : Repository<WorkoutPlan>, IWorkoutPlanReposi
         
         return await context.SaveChangesAsync() > 0;
     }
+
+    public async Task<WorkoutPlan> DeactivateAllAndAddAsync(WorkoutPlan newPlan)
+{
+    await using var context = await CreateContextAsync();
+    await using var transaction = await context.Database.BeginTransactionAsync();
+    try
+    {
+        // غیرفعال کردن برنامه‌های فعال قبلی
+        var activePlans = await context.WorkoutPlans
+            .Where(wp => wp.UserId == newPlan.UserId && wp.IsActive)
+            .ToListAsync();
+        foreach (var plan in activePlans)
+        {
+            plan.IsActive = false;
+            plan.UpdatedAt = DateTime.UtcNow;
+        }
+        
+        // اضافه کردن برنامه جدید
+        newPlan.CreatedAt = DateTime.UtcNow;
+        newPlan.IsActive = true;
+        await context.WorkoutPlans.AddAsync(newPlan);
+        
+        await context.SaveChangesAsync();
+        await transaction.CommitAsync();
+        
+        return newPlan;
+    }
+    catch
+    {
+        await transaction.RollbackAsync();
+        throw;
+    }
+}
 }

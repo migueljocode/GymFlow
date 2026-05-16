@@ -11,14 +11,63 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GymFlow.Dal.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260506162638_InitialCreateWithSoftDelete")]
-    partial class InitialCreateWithSoftDelete
+    [Migration("20260511072042_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.7");
+
+            modelBuilder.Entity("GymFlow.Models.Entities.Coach", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("CertificateUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(false);
+
+                    b.Property<int>("PersonId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Specialization")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("YearsOfExperience")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsDeleted")
+                        .HasDatabaseName("IX_Coach_IsDeleted");
+
+                    b.HasIndex("PersonId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Coaches_PersonId");
+
+                    b.ToTable("Coaches", (string)null);
+                });
 
             modelBuilder.Entity("GymFlow.Models.Entities.Exercise", b =>
                 {
@@ -66,6 +115,88 @@ namespace GymFlow.Dal.Migrations
                         .HasDatabaseName("IX_Exercises_Name");
 
                     b.ToTable("Exercises", (string)null);
+                });
+
+            modelBuilder.Entity("GymFlow.Models.Entities.Person", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Age")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("BodyType")
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Gender")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<float?>("Height")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("REAL");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(15)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<float?>("Weight")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("REAL");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsDeleted")
+                        .HasDatabaseName("IX_Person_IsDeleted");
+
+                    b.HasIndex("Username")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Persons_Username");
+
+                    b.ToTable("Persons", (string)null);
                 });
 
             modelBuilder.Entity("GymFlow.Models.Entities.ProgressLog", b =>
@@ -137,12 +268,8 @@ namespace GymFlow.Dal.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Age")
+                    b.Property<int?>("CoachId")
                         .HasColumnType("INTEGER");
-
-                    b.Property<string>("BodyType")
-                        .HasMaxLength(20)
-                        .HasColumnType("TEXT");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -152,67 +279,41 @@ namespace GymFlow.Dal.Migrations
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Email")
-                        .HasMaxLength(100)
-                        .HasColumnType("TEXT");
-
                     b.Property<int?>("EstimatedCaloriesIntake")
                         .HasColumnType("INTEGER");
-
-                    b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Gender")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("TEXT");
 
                     b.Property<string>("Goal")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("TEXT");
 
-                    b.Property<float?>("Height")
-                        .HasPrecision(5, 2)
-                        .HasColumnType("REAL");
-
                     b.Property<bool>("IsCompetitive")
-                        .HasColumnType("INTEGER");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValueSql("0");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER")
                         .HasDefaultValue(false);
 
-                    b.Property<string>("LastName")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Phone")
-                        .HasMaxLength(15)
-                        .HasColumnType("TEXT");
+                    b.Property<int>("PersonId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("TEXT");
 
-                    b.Property<float?>("Weight")
-                        .HasPrecision(5, 2)
-                        .HasColumnType("REAL");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("Email")
-                        .IsUnique()
-                        .HasDatabaseName("IX_Users_Email");
+                    b.HasIndex("CoachId")
+                        .HasDatabaseName("IX_Users_CoachId");
 
                     b.HasIndex("IsDeleted")
                         .HasDatabaseName("IX_User_IsDeleted");
 
-                    b.HasIndex("FirstName", "LastName")
-                        .HasDatabaseName("IX_Users_FullName");
+                    b.HasIndex("PersonId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Users_PersonId");
 
                     b.ToTable("Users", (string)null);
                 });
@@ -454,6 +555,17 @@ namespace GymFlow.Dal.Migrations
                     b.ToTable("WorkoutSessions", (string)null);
                 });
 
+            modelBuilder.Entity("GymFlow.Models.Entities.Coach", b =>
+                {
+                    b.HasOne("GymFlow.Models.Entities.Person", "Person")
+                        .WithOne("Coach")
+                        .HasForeignKey("GymFlow.Models.Entities.Coach", "PersonId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Person");
+                });
+
             modelBuilder.Entity("GymFlow.Models.Entities.ProgressLog", b =>
                 {
                     b.HasOne("GymFlow.Models.Entities.User", "User")
@@ -470,6 +582,24 @@ namespace GymFlow.Dal.Migrations
                     b.Navigation("User");
 
                     b.Navigation("WorkoutPlan");
+                });
+
+            modelBuilder.Entity("GymFlow.Models.Entities.User", b =>
+                {
+                    b.HasOne("GymFlow.Models.Entities.Coach", "Coach")
+                        .WithMany("Clients")
+                        .HasForeignKey("CoachId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("GymFlow.Models.Entities.Person", "Person")
+                        .WithOne("User")
+                        .HasForeignKey("GymFlow.Models.Entities.User", "PersonId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Coach");
+
+                    b.Navigation("Person");
                 });
 
             modelBuilder.Entity("GymFlow.Models.Entities.WorkoutDay", b =>
@@ -524,9 +654,21 @@ namespace GymFlow.Dal.Migrations
                     b.Navigation("WorkoutDay");
                 });
 
+            modelBuilder.Entity("GymFlow.Models.Entities.Coach", b =>
+                {
+                    b.Navigation("Clients");
+                });
+
             modelBuilder.Entity("GymFlow.Models.Entities.Exercise", b =>
                 {
                     b.Navigation("WorkoutDayExercises");
+                });
+
+            modelBuilder.Entity("GymFlow.Models.Entities.Person", b =>
+                {
+                    b.Navigation("Coach");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("GymFlow.Models.Entities.User", b =>

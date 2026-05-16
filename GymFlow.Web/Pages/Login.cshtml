@@ -1,0 +1,43 @@
+@page
+@model LoginModel
+@{
+    ViewData["Title"] = "ورود";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-4">
+        <div class="card shadow-sm mt-5">
+            <div class="card-header bg-primary text-white text-center">
+                <h4 class="mb-0">🔐 ورود به GymFlow</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    <div class="mb-3">
+                        <label class="form-label">نام کاربری</label>
+                        <input type="text" class="form-control" asp-for="Username" required autofocus />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">رمز عبور</label>
+                        <input type="password" class="form-control" asp-for="Password" required />
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">ورود</button>
+                </form>
+
+                @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+                {
+                    <div class="alert alert-danger mt-3">@Model.ErrorMessage</div>
+                }
+
+                <div class="alert alert-info mt-3 text-center">
+                    <strong>🔧 کاربران تست:</strong><br />
+                    مربی: <code>coach</code> / <code>coach123</code><br />
+                    کاربر معمولی: <code>member</code> / <code>member123</code>
+                </div>
+
+                <div class="text-center mt-2">
+                    <small class="text-muted">📝 ثبت‌نام غیرفعال است. لطفاً با اطلاعات بالا وارد شوید.</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

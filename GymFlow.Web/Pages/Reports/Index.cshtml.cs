@@ -14,19 +14,19 @@ public class IndexModel : PageModel
     }
     
     public int ActivePlanId { get; set; }
-    public int CurrentUserId { get; set; } = 1;
-    
-    public async Task OnGetAsync()
-    {
-        var users = await _apiClient.GetAsync<List<UserDto>>("api/users");
-        var firstUser = users?.FirstOrDefault();
+    public int CurrentUserId { get; set; }
         
-        if (firstUser != null)
+    public async Task<IActionResult> OnGetAsync()
+    {
+        if (!int.TryParse(HttpContext.Session.GetString("UserId"), out var userId))
         {
-            CurrentUserId = firstUser.Id;
-            var activePlan = await _apiClient.GetAsync<ActivePlanDto>($"api/workoutplans/user/{CurrentUserId}/active");
-            ActivePlanId = activePlan?.Id ?? 0;
+            return RedirectToPage("/Login");
         }
+
+        CurrentUserId = userId;
+        var activePlan = await _apiClient.GetAsync<ActivePlanDto>($"api/workoutplans/user/{CurrentUserId}/active");
+        ActivePlanId = activePlan?.Id ?? 0;
+        return Page();
     }
     
     public async Task<IActionResult> OnPostDownloadWorkoutPlanAsync(int planId)
@@ -64,13 +64,6 @@ public class IndexModel : PageModel
         
         return File(pdfBytes, "application/pdf", $"WeeklySummary_User_{userId}.pdf");
     }
-}
-
-public class UserDto
-{
-    public int Id { get; set; }
-    public string FirstName { get; set; } = string.Empty;
-    public string LastName { get; set; } = string.Empty;
 }
 
 public class ActivePlanDto

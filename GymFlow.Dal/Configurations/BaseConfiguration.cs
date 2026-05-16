@@ -1,8 +1,9 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using GymFlow.Models.Base;
+
 namespace GymFlow.Dal.Configurations;
 
-/// <summary>
-/// Base configuration with soft delete handling for all entities.
-/// </summary>
 public abstract class BaseConfiguration<T> : IEntityTypeConfiguration<T> where T : BaseEntity
 {
     public virtual void Configure(EntityTypeBuilder<T> builder)
@@ -23,10 +24,8 @@ public abstract class BaseConfiguration<T> : IEntityTypeConfiguration<T> where T
         builder.Property(e => e.DeletedAt)
             .IsRequired(false);
         
-        // Global query filter for soft delete - explicitly in each config
         builder.HasQueryFilter(e => !e.IsDeleted);
         
-        // Index for soft delete to improve query performance
         builder.HasIndex(e => e.IsDeleted)
             .HasDatabaseName($"IX_{typeof(T).Name}_IsDeleted");
     }

@@ -31,6 +31,13 @@ public class AddModel : PageModel
     
     public async Task<IActionResult> OnPostAsync()
     {
+        // گرفتن userId از Session
+        if (!int.TryParse(HttpContext.Session.GetString("UserId"), out var userId))
+        {
+            ErrorMessage = "لطفاً مجدداً وارد شوید.";
+            return RedirectToPage("/Login");
+        }
+
         if (Weight < 20 || Weight > 300)
         {
             ErrorMessage = "وزن باید بین ۲۰ تا ۳۰۰ کیلوگرم باشد";
@@ -48,9 +55,6 @@ public class AddModel : PageModel
             ErrorMessage = "تاریخ نمی‌تواند در آینده باشد";
             return Page();
         }
-        
-        var users = await _apiClient.GetAsync<List<UserDto>>("api/users");
-        var userId = users?.FirstOrDefault()?.Id ?? 1;
         
         var request = new CreateProgressLogRequest
         {

@@ -1,4 +1,11 @@
+using GymFlow.Dal.Context;
+using GymFlow.Models.Entities;
+using GymFlow.Models.Enums;
 using GymFlow.Services.Extensions;
+using GymFlow.Services.Interfaces;
+using GymFlow.Services.Implementations;
+using GymFlow.Api.Middleware;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +20,12 @@ builder.Services.AddGymFlowServices();
 // Register OpenAPI
 builder.Services.AddOpenApi();
 
+builder.Services.AddScoped<IAuthService>(provider =>
+{
+    var factory = provider.GetRequiredService<IDbContextFactory<AppDbContext>>();
+    return new AuthService(factory);
+});
+
 var app = builder.Build();
 
 // Development Pipeline
@@ -23,8 +36,10 @@ if (app.Environment.IsDevelopment())
     await app.Services.EnsureDatabaseSeededAsync();
 }
 
-// Production Pipeline
-app.UseHttpsRedirection();
+// *** اضافه کردن Middleware سفارشی احراز هویت ***
+app.UseMiddleware<BasicAuthMiddleware>();
+
+// app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
 

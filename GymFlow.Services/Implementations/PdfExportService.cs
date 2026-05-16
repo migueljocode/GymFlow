@@ -47,7 +47,30 @@ public class PdfExportService : IPdfExportService
                 page.DefaultTextStyle(x => x.FontSize(11).FontFamily("Arial"));
 
                 AddWorkoutPlanHeader(page, user.Person, plan);
-                AddWorkoutPlanContent(page, plan);
+                
+                page.Content().Column(column =>
+                {
+                    foreach (var workoutDay in plan.WorkoutDays.OrderBy(wd => wd.DayOfWeek))
+                    {
+                        column.Item().PaddingBottom(15).BorderBottom(0.5f).BorderColor(Colors.Grey.Lighten2).Column(innerCol =>
+                        {
+                            innerCol.Item().Row(row =>
+                            {
+                                row.AutoItem().Text($"[DAY] {workoutDay.DayOfWeek}").FontSize(14).Bold().FontColor(Colors.Blue.Medium);
+                                row.RelativeItem().AlignRight().Text($"[TARGET] {workoutDay.TargetMuscles}").FontSize(12).FontColor(Colors.Grey.Darken1);
+                            });
+                            
+                            innerCol.Item().Height(5);
+                            AddExerciseTable(innerCol, workoutDay);
+                            
+                            if (!string.IsNullOrEmpty(workoutDay.Notes))
+                            {
+                                innerCol.Item().PaddingTop(5).Text($"Note: {workoutDay.Notes}").FontSize(10).FontColor(Colors.Grey.Darken2).Italic();
+                            }
+                        });
+                    }
+                });
+                
                 AddFooter(page);
             });
         }).GeneratePdf();
@@ -74,8 +97,16 @@ public class PdfExportService : IPdfExportService
                 page.DefaultTextStyle(x => x.FontSize(11).FontFamily("Arial"));
 
                 AddProgressReportHeader(page, user.Person, fromDate, toDate);
-                AddProgressStatsCards(page, stats);
-                AddWeightHistoryTable(page, filteredLogs);
+                
+                page.Content().Column(column =>
+                {
+                    AddProgressStatsCards(column, stats);
+                    column.Item().Height(15);
+                    column.Item().Text("WEIGHT HISTORY").FontSize(14).Bold().FontColor(Colors.Blue.Darken1);
+                    column.Item().Height(5);
+                    AddWeightHistoryTable(column, filteredLogs);
+                });
+                
                 AddFooter(page);
             });
         }).GeneratePdf();
@@ -103,8 +134,16 @@ public class PdfExportService : IPdfExportService
                 page.DefaultTextStyle(x => x.FontSize(11).FontFamily("Arial"));
 
                 AddWeeklySummaryHeader(page, user.Person, startOfWeek, endOfWeek);
-                AddWeeklyStatsCards(page, sessions, activePlan);
-                AddDailyBreakdownTable(page, sessions);
+                
+                page.Content().Column(column =>
+                {
+                    AddWeeklyStatsCards(column, sessions, activePlan);
+                    column.Item().Height(15);
+                    column.Item().Text("DAILY BREAKDOWN").FontSize(14).Bold().FontColor(Colors.Blue.Darken1);
+                    column.Item().Height(5);
+                    AddDailyBreakdownTable(column, sessions);
+                });
+                
                 AddFooter(page);
             });
         }).GeneratePdf();
@@ -159,32 +198,6 @@ public class PdfExportService : IPdfExportService
             
             col.Item().Height(10);
             col.Item().LineHorizontal(0.5f);
-        });
-    }
-    
-    private void AddWorkoutPlanContent(PageDescriptor page, WorkoutPlan plan)
-    {
-        page.Content().Column(col =>
-        {
-            foreach (var workoutDay in plan.WorkoutDays.OrderBy(wd => wd.DayOfWeek))
-            {
-                col.Item().PaddingBottom(15).BorderBottom(0.5f).BorderColor(Colors.Grey.Lighten2).Column(innerCol =>
-                {
-                    innerCol.Item().Row(row =>
-                    {
-                        row.AutoItem().Text($"[DAY] {workoutDay.DayOfWeek}").FontSize(14).Bold().FontColor(Colors.Blue.Medium);
-                        row.RelativeItem().AlignRight().Text($"[TARGET] {workoutDay.TargetMuscles}").FontSize(12).FontColor(Colors.Grey.Darken1);
-                    });
-                    
-                    innerCol.Item().Height(5);
-                    AddExerciseTable(innerCol, workoutDay);
-                    
-                    if (!string.IsNullOrEmpty(workoutDay.Notes))
-                    {
-                        innerCol.Item().PaddingTop(5).Text($"Note: {workoutDay.Notes}").FontSize(10).FontColor(Colors.Grey.Darken2).Italic();
-                    }
-                });
-            }
         });
     }
     
@@ -244,22 +257,15 @@ public class PdfExportService : IPdfExportService
         });
     }
     
-    private void AddProgressStatsCards(PageDescriptor page, ProgressStats stats)
+    private void AddProgressStatsCards(ColumnDescriptor column, ProgressStats stats)
     {
-        page.Content().Column(col =>
+        column.Item().Row(row =>
         {
-            col.Item().Row(row =>
-            {
-                AddStatCard(row, "Starting Weight", $"{stats.StartingWeight:F1} kg", Colors.Green.Darken2);
-                AddStatCard(row, "Current Weight", $"{stats.CurrentWeight:F1} kg", Colors.Blue.Darken2);
-                AddStatCard(row, "Total Change", $"{(stats.TotalChange > 0 ? "+" : "")}{stats.TotalChange:F1} kg", 
-                    stats.TotalChange < 0 ? Colors.Green.Medium : Colors.Red.Medium);
-                AddStatCard(row, "Total Workouts", $"{stats.TotalWorkouts}", Colors.Green.Darken2);
-            });
-            
-            col.Item().Height(15);
-            col.Item().Text("WEIGHT HISTORY").FontSize(14).Bold().FontColor(Colors.Blue.Darken1);
-            col.Item().Height(5);
+            AddStatCard(row, "Starting Weight", $"{stats.StartingWeight:F1} kg", Colors.Green.Darken2);
+            AddStatCard(row, "Current Weight", $"{stats.CurrentWeight:F1} kg", Colors.Blue.Darken2);
+            AddStatCard(row, "Total Change", $"{(stats.TotalChange > 0 ? "+" : "")}{stats.TotalChange:F1} kg", 
+                stats.TotalChange < 0 ? Colors.Green.Medium : Colors.Red.Medium);
+            AddStatCard(row, "Total Workouts", $"{stats.TotalWorkouts}", Colors.Green.Darken2);
         });
     }
     
@@ -272,36 +278,33 @@ public class PdfExportService : IPdfExportService
         });
     }
     
-    private void AddWeightHistoryTable(PageDescriptor page, List<ProgressLog> logs)
+    private void AddWeightHistoryTable(ColumnDescriptor column, List<ProgressLog> logs)
     {
-        page.Content().Column(col =>
+        column.Item().Table(table =>
         {
-            col.Item().Table(table =>
+            table.ColumnsDefinition(columns =>
             {
-                table.ColumnsDefinition(columns =>
-                {
-                    columns.RelativeColumn(2);
-                    columns.RelativeColumn(1);
-                    columns.RelativeColumn(1);
-                    columns.RelativeColumn(3);
-                });
-                
-                table.Header(header =>
-                {
-                    header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Date").Bold();
-                    header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Weight (kg)").Bold();
-                    header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Body Fat %").Bold();
-                    header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Notes").Bold();
-                });
-                
-                foreach (var log in logs.Take(20))
-                {
-                    table.Cell().Padding(5).Text(log.LogDate.ToString());
-                    table.Cell().Padding(5).Text($"{log.Weight:F1}");
-                    table.Cell().Padding(5).Text(log.BodyFatPercentage?.ToString("F1") ?? "-");
-                    table.Cell().Padding(5).Text(log.Notes ?? "-");
-                }
+                columns.RelativeColumn(2);
+                columns.RelativeColumn(1);
+                columns.RelativeColumn(1);
+                columns.RelativeColumn(3);
             });
+            
+            table.Header(header =>
+            {
+                header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Date").Bold();
+                header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Weight (kg)").Bold();
+                header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Body Fat %").Bold();
+                header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Notes").Bold();
+            });
+            
+            foreach (var log in logs.Take(20))
+            {
+                table.Cell().Padding(5).Text(log.LogDate.ToString());
+                table.Cell().Padding(5).Text($"{log.Weight:F1}");
+                table.Cell().Padding(5).Text(log.BodyFatPercentage?.ToString("F1") ?? "-");
+                table.Cell().Padding(5).Text(log.Notes ?? "-");
+            }
         });
     }
     
@@ -325,63 +328,53 @@ public class PdfExportService : IPdfExportService
         });
     }
     
-    private void AddWeeklyStatsCards(PageDescriptor page, List<WorkoutSession> sessions, WorkoutPlan? activePlan)
+    private void AddWeeklyStatsCards(ColumnDescriptor column, List<WorkoutSession> sessions, WorkoutPlan? activePlan)
     {
         var percentage = activePlan?.SessionsPerWeek > 0 
             ? (int)((double)sessions.Count / activePlan.SessionsPerWeek * 100) 
             : 0;
         
-        page.Content().Column(col =>
+        column.Item().Row(row =>
         {
-            col.Item().Row(row =>
-            {
-                AddStatCard(row, "Completed", $"{sessions.Count}", Colors.Green.Darken2);
-                AddStatCard(row, "Planned", $"{activePlan?.SessionsPerWeek ?? 0}", Colors.Blue.Darken2);
-                AddStatCard(row, "Completion", $"{percentage}%", Colors.Orange.Darken2);
-                AddStatCard(row, "Total Minutes", $"{sessions.Sum(s => s.ActualDurationMinutes)}", Colors.Purple.Darken2);
-            });
-            
-            col.Item().Height(15);
-            col.Item().Text("DAILY BREAKDOWN").FontSize(14).Bold().FontColor(Colors.Blue.Darken1);
-            col.Item().Height(5);
+            AddStatCard(row, "Completed", $"{sessions.Count}", Colors.Green.Darken2);
+            AddStatCard(row, "Planned", $"{activePlan?.SessionsPerWeek ?? 0}", Colors.Blue.Darken2);
+            AddStatCard(row, "Completion", $"{percentage}%", Colors.Orange.Darken2);
+            AddStatCard(row, "Total Minutes", $"{sessions.Sum(s => s.ActualDurationMinutes)}", Colors.Purple.Darken2);
         });
     }
     
-    private void AddDailyBreakdownTable(PageDescriptor page, List<WorkoutSession> sessions)
+    private void AddDailyBreakdownTable(ColumnDescriptor column, List<WorkoutSession> sessions)
     {
-        page.Content().Column(col =>
+        column.Item().Table(table =>
         {
-            col.Item().Table(table =>
+            table.ColumnsDefinition(columns =>
             {
-                table.ColumnsDefinition(columns =>
-                {
-                    columns.RelativeColumn(1);
-                    columns.RelativeColumn(1);
-                    columns.RelativeColumn(1);
-                    columns.RelativeColumn(2);
-                });
-                
-                table.Header(header =>
-                {
-                    header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Day").Bold();
-                    header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Duration").Bold();
-                    header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Muscle Group").Bold();
-                    header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Feeling").Bold();
-                });
-                
-                var sessionsByDay = sessions
-                    .GroupBy(s => s.ActualDate.DayOfWeek)
-                    .OrderBy(g => g.Key);
-                
-                foreach (var group in sessionsByDay)
-                {
-                    var session = group.First();
-                    table.Cell().Padding(5).Text(group.Key.ToString());
-                    table.Cell().Padding(5).Text($"{group.Sum(s => s.ActualDurationMinutes)} min");
-                    table.Cell().Padding(5).Text(session.WorkoutDay?.TargetMuscles.ToString() ?? "-");
-                    table.Cell().Padding(5).Text(session.Feeling ?? "-");
-                }
+                columns.RelativeColumn(1);
+                columns.RelativeColumn(1);
+                columns.RelativeColumn(1);
+                columns.RelativeColumn(2);
             });
+            
+            table.Header(header =>
+            {
+                header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Day").Bold();
+                header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Duration").Bold();
+                header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Muscle Group").Bold();
+                header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Feeling").Bold();
+            });
+            
+            var sessionsByDay = sessions
+                .GroupBy(s => s.ActualDate.DayOfWeek)
+                .OrderBy(g => g.Key);
+            
+            foreach (var group in sessionsByDay)
+            {
+                var session = group.First();
+                table.Cell().Padding(5).Text(group.Key.ToString());
+                table.Cell().Padding(5).Text($"{group.Sum(s => s.ActualDurationMinutes)} min");
+                table.Cell().Padding(5).Text(session.WorkoutDay?.TargetMuscles.ToString() ?? "-");
+                table.Cell().Padding(5).Text(session.Feeling ?? "-");
+            }
         });
     }
     
@@ -453,7 +446,7 @@ public class PdfExportService : IPdfExportService
             StartingWeight = firstLog?.Weight ?? 0,
             CurrentWeight = lastLog?.Weight ?? 0,
             TotalChange = (lastLog?.Weight ?? 0) - (firstLog?.Weight ?? 0),
-            TotalWorkouts = 0 // Would need to be passed in
+            TotalWorkouts = 0
         };
     }
     

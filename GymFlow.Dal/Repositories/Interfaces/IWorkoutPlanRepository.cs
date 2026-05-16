@@ -145,4 +145,9 @@ public interface IWorkoutPlanRepository : IRepository<WorkoutPlan>
     /// first if you want a single active plan per user.
     /// </remarks>
     Task<bool> ActivateWorkoutPlanAsync(int planId);
+
+    /// <summary>
+    /// Deactivates all active plans for a user and creates a new plan in a single transaction.
+    /// </summary>
+    Task<WorkoutPlan> DeactivateAllAndAddAsync(WorkoutPlan newPlan);
 }

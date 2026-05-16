@@ -3,5 +3,6 @@
   <Project Path="GymFlow.Dal/GymFlow.Dal.csproj" />
   <Project Path="GymFlow.Models/GymFlow.Models.csproj" />
   <Project Path="GymFlow.Services/GymFlow.Services.csproj" />
+  <Project Path="GymFlow.Tests/GymFlow.Tests.csproj" />
   <Project Path="GymFlow.Web/GymFlow.Web.csproj" />
 </Solution>

@@ -1,3 +1,7 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using GymFlow.Models.Entities;
+
 namespace GymFlow.Dal.Configurations;
 
 public class CoachConfiguration : BaseConfiguration<Coach>
@@ -18,21 +22,19 @@ public class CoachConfiguration : BaseConfiguration<Coach>
         builder.Property(c => c.CertificateUrl)
             .HasMaxLength(500);
         
-        // رابطه با Person (یک به یک)
         builder.HasOne(c => c.Person)
             .WithOne(p => p.Coach)
             .HasForeignKey<Coach>(c => c.PersonId)
             .OnDelete(DeleteBehavior.Cascade);
         
-        // ایندکس‌ها
+        // رابطه با Users (یک به چند)
+        builder.HasMany(c => c.Clients)
+            .WithOne(u => u.Coach)
+            .HasForeignKey(u => u.CoachId)
+            .OnDelete(DeleteBehavior.SetNull);
+        
         builder.HasIndex(c => c.PersonId)
             .IsUnique()
             .HasDatabaseName("IX_Coaches_PersonId");
-        
-        // رابطه مربی با کاربران (اختیاری برای آینده)
-        builder.HasMany(c => c.Clients)
-            .WithOne()
-            .HasForeignKey("CoachId")
-            .OnDelete(DeleteBehavior.SetNull);
     }
 }

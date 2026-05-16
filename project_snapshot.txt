@@ -1,0 +1,30 @@
+# باشه، این اسکریپت رو توی ریشه پروژه (~/Documents/repo/GymFlow) بزن تا همه فایل‌های کد رو برات جمع‌آوری کنه:
+
+
+#!/bin/bash
+
+OUTPUT_FILE="project_snapshot.txt"
+
+echo "=========================================" > $OUTPUT_FILE
+echo "GymFlow Project Snapshot" >> $OUTPUT_FILE
+echo "Generated: $(date)" >> $OUTPUT_FILE
+echo "=========================================" >> $OUTPUT_FILE
+echo "" >> $OUTPUT_FILE
+
+# پیدا کردن و خوندن فایل‌های مورد نظر
+find . -type f \( -name "*.cs" -o -name "*.cshtml" -o -name "*.css" -o -name "*.json" \) \
+    -not -path "*/bin/*" \
+    -not -path "*/obj/*" \
+    -not -path "*/.git/*" \
+    -not -path "*/node_modules/*" \
+    -not -path "*/wwwroot/lib/*" \
+    -not -path "*/runtimes/*" \
+    | sort | while read -r file; do
+        echo "📁 FILE: $file" >> $OUTPUT_FILE
+        echo "=========================================" >> $OUTPUT_FILE
+        cat "$file" >> $OUTPUT_FILE
+        echo -e "\n\n" >> $OUTPUT_FILE
+    done
+
+echo "✅ Done! Output saved to: $OUTPUT_FILE"
+echo "📊 File size: $(du -h $OUTPUT_FILE | cut -f1)"

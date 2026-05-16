@@ -116,8 +116,6 @@ public class WorkoutPlansController : ApiControllerBase
         if (user is null)
             return NotFoundResponse("User", request.UserId);
         
-        await _workoutPlanRepository.DeactivateAllUserPlansAsync(request.UserId);
-        
         var plan = new WorkoutPlan
         {
             UserId = request.UserId,
@@ -129,12 +127,13 @@ public class WorkoutPlansController : ApiControllerBase
             Notes = request.Notes
         };
         
-        var created = await _workoutPlanRepository.AddAsync(plan);
-        var response = await MapToResponseAsync(created);
+        // استفاده از متد جدید که همزمان غیرفعال و اضافه می‌کند
+        var created = await _workoutPlanRepository.DeactivateAllAndAddAsync(plan);
         
+        var response = await MapToResponseAsync(created);
         return CreatedResponse<WorkoutPlanResponse>(response, "Workout plan created successfully");
     }
-
+    
     [HttpPut("{id:int}")]
     public async Task<IActionResult> UpdateAsync(int id, [FromBody] UpdateWorkoutPlanRequest request)
     {

@@ -112,6 +112,8 @@ public interface IRepository<T> where T : class
     /// </code>
     /// </example>
     Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate);
+    Task<T?> FindAsync(int id);
+
     
     // ========== Query Methods - Aggregation ==========
     
@@ -321,4 +323,5 @@ public interface IRepository<T> where T : class
     /// but is exposed for scenarios where multiple changes are batched together.
     /// </remarks>
     Task<int> SaveChangesAsync();
+    Task<bool> DeleteAllAsync();
 }

@@ -29,7 +29,7 @@ public class UserGenerator
                 PersonId = person.Id,
                 Goal = Goal.MuscleGain,
                 EstimatedCaloriesIntake = 2500,
-                IsCompetitive = false,
+                // IsCompetitive = false,
                 CreatedAt = person.CreatedAt
             };
         }
@@ -40,7 +40,7 @@ public class UserGenerator
             PersonId = person.Id,
             Goal = _faker.PickRandom<Goal>(),
             EstimatedCaloriesIntake = _faker.Random.Bool(0.7f) ? _faker.Random.Int(1800, 3200) : null,
-            IsCompetitive = _faker.Random.Bool(0.15f),
+            // IsCompetitive = _faker.Random.Bool(0.15f),
             CreatedAt = person.CreatedAt
         };
     }

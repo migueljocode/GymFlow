@@ -1,3 +1,5 @@
+using Bogus.DataSets;
+
 namespace GymFlow.Dal.Repositories.Implementations;
 
 /// <summary>
@@ -68,6 +70,13 @@ public class Repository<T> : IRepository<T> where T : BaseEntity
         return await context.Set<T>().Where(predicate).ToListAsync();
     }
 
+    public virtual async Task<T?> FindAsync(int id)
+    {
+        await using var context = await CreateContextAsync();
+        var entity =  await context.Set<T>().FindAsync(id);
+        if (entity is null) return null;
+        return entity.IsDeleted == false ? entity : null;
+    }
     /// <inheritdoc />
     public virtual async Task<bool> AnyAsync(Expression<Func<T, bool>> predicate)
     {
@@ -116,8 +125,18 @@ public class Repository<T> : IRepository<T> where T : BaseEntity
     public virtual async Task<bool> DeleteAsync(T entity)
     {
         await using var context = await CreateContextAsync();
-        context.Set<T>().Remove(entity);
-        return await context.SaveChangesAsync() > 0;
+        
+        if (!context.Set<T>().Contains(entity))
+            return false;
+
+        var e = await context.Set<T>().FindAsync(entity.Id);
+        
+        if (e is null) return false;
+        e.IsDeleted = true;
+        e.DeletedAt = DateTime.UtcNow;
+        await context.SaveChangesAsync();
+        // context.Set<T>().Remove(entity);
+        return true;
     }
 
     /// <inheritdoc />
@@ -126,12 +145,15 @@ public class Repository<T> : IRepository<T> where T : BaseEntity
         await using var context = await CreateContextAsync();
         var entity = await context.Set<T>().FindAsync(id);
         if (entity is null) return false;
-        
-        context.Set<T>().Remove(entity);
+        entity.IsDeleted = true;
+        entity.DeletedAt = DateTime.UtcNow;
+        // context.Set<T>().Remove(entity);
         return await context.SaveChangesAsync() > 0;
     }
 
     /// <inheritdoc />
+    /// all delete methods should soft delete 
+    [Obsolete("Use DeleteByIdAsync() instead")]
     public virtual async Task<bool> SoftDeleteAsync(int id)
     {
         await using var context = await CreateContextAsync();
@@ -142,6 +164,22 @@ public class Repository<T> : IRepository<T> where T : BaseEntity
         entity.DeletedAt = DateTime.UtcNow;
         
         return await context.SaveChangesAsync() > 0;
+    }
+
+    public virtual async Task<bool> DeleteAllAsync()
+    {
+        await using var context = await CreateContextAsync();
+        
+        if (!await context.Set<T>().AnyAsync())
+            return false;
+
+        await context.Set<T>().ForEachAsync(x =>
+        {
+            x.IsDeleted = true;
+            x.DeletedAt = DateTime.UtcNow;
+        });
+        await context.SaveChangesAsync();
+        return true;
     }
 
     /// <inheritdoc />
@@ -157,7 +195,12 @@ public class Repository<T> : IRepository<T> where T : BaseEntity
     public virtual async Task<bool> DeleteRangeAsync(IEnumerable<T> entities)
     {
         await using var context = await CreateContextAsync();
-        context.Set<T>().RemoveRange(entities);
+        foreach (var x in context.Set<T>())
+        {
+            x.IsDeleted = true;
+            x.DeletedAt = DateTime.UtcNow;
+        }
+        // context.Set<T>().RemoveRange(entities);
         return await context.SaveChangesAsync() > 0;
     }
 

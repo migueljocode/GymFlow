@@ -1,3 +1,6 @@
+using System.Security.Cryptography.X509Certificates;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using SQLitePCL;
 using Person = GymFlow.Models.Entities.Person;
 
 namespace GymFlow.Dal.Repositories.Implementations;
@@ -48,7 +51,39 @@ public class PersonRepository : Repository<Person>, IPersonRepository
     public async Task<Person?> AuthenticateAsync(string username, string password)
     {
         await using var context = await CreateContextAsync();
-        return await context.Persons
-            .FirstOrDefaultAsync(p => p.Username == username && p.Password == password);
+        
+        var person = await context.Persons.FirstAsync(x => x.Username == username);
+ 
+        if (person is null)
+            return null;
+
+        var isPasswordTrue = person.Password == password;
+
+        return isPasswordTrue ? person : null; 
+    }
+
+    public override async Task<Person> AddAsync(Person entity)
+    {
+        await using var context = await CreateContextAsync();
+        await context.Persons.AddAsync(entity);
+        try
+        {
+            await context.SaveChangesAsync();        
+            return entity;
+        }
+        catch (DbUpdateException ex)
+        {
+            string message = "";
+            // بررسی خطای یکتایی (Unique Constraint)
+            if (ex.InnerException?.Message.Contains("UNIQUE constraint failed") == true ||
+                ex.Message.Contains("IX_Persons_Username") == true)
+            {
+                message = "این نام کاربری قبلاً ثبت شده است. لطفاً نام کاربری دیگری انتخاب کنید.";
+            }
+            else
+                message = ex.Message;
+
+            throw new Exception(message);
+        }
     }
 }

@@ -1,4 +1,5 @@
 using GymFlow.Models.Interfaces;
+using Microsoft.EntityFrameworkCore.Query;
 
 namespace GymFlow.Models.Entities;
 
@@ -15,7 +16,7 @@ public class Person : BaseEntity, IAuthenticable
     public float? Height { get; set; }
     public BodyType? BodyType { get; set; }
     
-    // اطلاعات ورود (Authentication) - پیاده‌سازی از IAuthenticable
+    // اطلاعات ورود (Authentication) - پیاده‌سازی از IAuthenticableu
     public string Username { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
     

@@ -16,7 +16,12 @@ public class IndexModel : PageModel
     
     public async Task OnGetAsync()
     {
-        var userId = 1;
+        if (!int.TryParse(HttpContext.Session.GetString("UserId"), out var userId))
+        {
+            Response.Redirect("/Login");
+            return;
+        }
+        
         WorkoutPlans = await _apiClient.GetAsync<List<WorkoutPlanListDto>>($"api/workoutplans/user/{userId}") ?? new();
     }
 }

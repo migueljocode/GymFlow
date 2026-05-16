@@ -75,6 +75,7 @@ public class WeightPredictionService : IWeightPredictionService
         analysis.TotalChangePercentage = (analysis.TotalChange / firstLog.Weight) * 100;
         analysis.FirstLogDate = firstLog.LogDate;
         analysis.LastLogDate = lastLog.LogDate;
+        analysis.DataPointsCount = logs.Count;
         
         if (weeklyChange.HasValue)
         {
@@ -115,14 +116,17 @@ public class WeightPredictionService : IWeightPredictionService
     
     private float CalculateAverageWeeklyChange(List<ProgressLog> logs)
     {
+        // logs are expected in descending order (newest first) from repository
+        // For calculation we need chronological order, so we reverse
+        var chronological = logs.OrderBy(l => l.LogDate).ToList();
         var weeklyChanges = new List<float>();
         
-        for (int i = 0; i < logs.Count - 1; i++)
+        for (int i = 0; i < chronological.Count - 1; i++)
         {
-            var daysDiff = logs[i].LogDate.DayNumber - logs[i + 1].LogDate.DayNumber;
+            var daysDiff = chronological[i + 1].LogDate.DayNumber - chronological[i].LogDate.DayNumber;
             if (daysDiff > 0)
             {
-                var weeklyChange = (logs[i].Weight - logs[i + 1].Weight) / (daysDiff / 7f);
+                var weeklyChange = (chronological[i + 1].Weight - chronological[i].Weight) / (daysDiff / 7f);
                 weeklyChanges.Add(weeklyChange);
             }
         }
