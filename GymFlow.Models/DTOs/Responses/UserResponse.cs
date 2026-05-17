@@ -1,5 +1,3 @@
-namespace GymFlow.Models.DTOs.Responses;
-
 public class UserResponse
 {
     public int Id { get; set; }
@@ -20,4 +18,5 @@ public class UserResponse
     public int ProgressLogsCount { get; set; }
     public int TotalWorkoutSessions { get; set; }
     public DateTime CreatedAt { get; set; }
+    public string? Username { get; set; }  // اضافه شد
 }

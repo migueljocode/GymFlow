@@ -33,7 +33,8 @@ public static class UserMappingHelper
             WorkoutPlansCount = user.WorkoutPlans?.Count ?? 0,
             ProgressLogsCount = user.ProgressLogs?.Count ?? 0,
             TotalWorkoutSessions = 0,
-            CreatedAt = user.CreatedAt
+            CreatedAt = user.CreatedAt,
+            Username = user.Person.Username   // اضافه شد
         };
     }
     
