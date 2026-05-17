@@ -230,6 +230,23 @@ public class ApiClient
             return null;
         }
     }
+
+    public virtual async Task<string?> GetRawAsync(string url)
+    {
+        try
+        {
+            using var client = CreateClient();
+            var fullUrl = $"{GetBaseUrl()}{url}";
+            var response = await client.GetAsync(fullUrl);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error GET raw {url}");
+            return null;
+        }
+    }
 }
 
 public class ApiResponse<T>

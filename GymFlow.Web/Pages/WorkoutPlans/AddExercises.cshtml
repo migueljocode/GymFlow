@@ -22,17 +22,19 @@
 }
 
 <div class="container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>تنظیمات روز @GetPersianDayName(Model.DayOfWeek)</h2>
-        <a href="/WorkoutPlans/Details?id=@Model.WorkoutPlanId" class="btn btn-success btn-lg">اتمام و بازگشت</a>
-    </div>
-
-    <!-- فرم تنظیمات پایه -->
-    <form method="post" class="mb-4">
+    <form method="post" id="mainForm">
         <input type="hidden" asp-for="WorkoutDayId" />
         <input type="hidden" asp-for="WorkoutPlanId" />
         <input type="hidden" asp-for="DayOfWeek" />
+        <input type="hidden" asp-for="ClientId" />
 
+        <!-- هدر با عنوان و دکمه اتمام و بازگشت -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>تنظیمات روز @GetPersianDayName(Model.DayOfWeek)</h2>
+            <button type="submit" name="action" value="finish" class="btn btn-success btn-lg">✅ اتمام و بازگشت</button>
+        </div>
+
+        <!-- کارت عضلات هدف -->
         <div class="row mb-4">
             <div class="col-md-6">
                 <div class="card">
@@ -81,61 +83,57 @@
             </div>
         </div>
 
-        <div class="text-center">
-            <button type="submit" name="action" value="save" class="btn btn-primary btn-lg">ذخیره تنظیمات پایه</button>
+        <!-- لیست حرکات موجود (درون فرم اصلی) -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5>حرکات تمرینی این روز</h5>
+            </div>
+            <div class="card-body">
+                @if (Model.ExistingExercises.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>نام حرکت</th>
+                                    <th>ست</th>
+                                    <th>تکرار</th>
+                                    <th>استراحت (ثانیه)</th>
+                                    <th>عملیات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var ex in Model.ExistingExercises)
+                                {
+                                    <tr>
+                                        <td>@ex.ExerciseName</td>
+                                        <td>
+                                            <input type="number" name="ExerciseSets[@ex.Id]" value="@ex.Sets" class="form-control" style="width:80px" min="1" max="10" />
+                                        </td>
+                                        <td>
+                                            <input type="text" name="ExerciseReps[@ex.Id]" value="@ex.Reps" class="form-control" style="width:100px" />
+                                        </td>
+                                        <td>
+                                            <input type="number" name="ExerciseRest[@ex.Id]" value="@ex.RestSeconds" class="form-control" style="width:100px" min="30" max="180" />
+                                        </td>
+                                        <td>
+                                            <button type="submit" name="action" value="delete_@ex.Id" class="btn btn-sm btn-danger" onclick="return confirm('حذف شود؟')">🗑️ حذف</button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-info">هنوز حرکتی اضافه نشده است.</div>
+                }
+            </div>
         </div>
     </form>
 
-    <!-- لیست حرکات موجود -->
-    <div class="card mb-4">
-        <div class="card-header bg-primary text-white">
-            <h5>حرکات تمرینی این روز</h5>
-        </div>
-        <div class="card-body">
-            @if (Model.ExistingExercises.Any())
-            {
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>نام حرکت</th>
-                            <th>ست</th>
-                            <th>تکرار</th>
-                            <th>استراحت</th>
-                            <th>عملیات</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var ex in Model.ExistingExercises)
-                        {
-                            <tr>
-                                <form method="post" style="margin:0; display:inline-block;">
-                                    <input type="hidden" name="exerciseId" value="@ex.Id" />
-                                    <input type="hidden" name="workoutDayId" value="@Model.WorkoutDayId" />
-                                    <input type="hidden" name="workoutPlanId" value="@Model.WorkoutPlanId" />
-                                    <input type="hidden" name="dayOfWeek" value="@Model.DayOfWeek" />
-                                    
-                                    <td>@ex.ExerciseName</td>
-                                    <td><input type="number" name="Sets" value="@ex.Sets" style="width:80px" min="1" max="10" /></td>
-                                    <td><input type="text" name="Reps" value="@ex.Reps" style="width:100px" /></td>
-                                    <td><input type="number" name="RestSeconds" value="@ex.RestSeconds" style="width:100px" min="30" max="180" /></td>
-                                    <td>
-                                        <button type="submit" name="action" value="update_@ex.Id" class="btn btn-sm btn-warning">ویرایش</button>
-                                        <button type="submit" name="action" value="delete_@ex.Id" class="btn btn-sm btn-danger" onclick="return confirm('حذف شود؟')">حذف</button>
-                                    </td>
-                                </form>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            }
-            else
-            {
-                <div class="alert alert-info">هنوز حرکتی اضافه نشده است.</div>
-            }
-        </div>
-    </div>
-
-    <!-- فرم افزودن حرکت جدید -->
+    <!-- فرم افزودن حرکت جدید (خارج از فرم اصلی) -->
     <div class="card mb-4">
         <div class="card-header bg-success text-white">
             <h5>افزودن حرکت جدید</h5>
@@ -145,6 +143,7 @@
                 <input type="hidden" name="workoutDayId" value="@Model.WorkoutDayId" />
                 <input type="hidden" name="workoutPlanId" value="@Model.WorkoutPlanId" />
                 <input type="hidden" name="dayOfWeek" value="@Model.DayOfWeek" />
+                <input type="hidden" name="userId" value="@Model.ClientId" />
 
                 <div class="row">
                     <div class="col-md-5">

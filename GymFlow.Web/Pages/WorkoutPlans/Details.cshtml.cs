@@ -1,42 +1,53 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using GymFlow.Web.Services;
 
 namespace GymFlow.Web.Pages.WorkoutPlans;
 
-public class DetailsModel : PageModel
+public class DetailsModel : BasePageModel
 {
     private readonly ApiClient _apiClient;
-    
+
     public DetailsModel(ApiClient apiClient)
     {
         _apiClient = apiClient;
     }
-    
+
     public WorkoutPlanDetailsDto? Plan { get; set; }
     public int CompletedSessions { get; set; }
     public int TotalSessions { get; set; }
     public int CompletionPercentage { get; set; }
-    
-    public async Task OnGetAsync(int id)
+    public int? ClientId { get; set; }
+
+    public async Task<IActionResult> OnGetAsync(int id, int? userId = null)
     {
+        if (IsCoach)
+        {
+            if (!userId.HasValue || userId.Value == 0)
+                return RedirectToPage("/Coach/Clients");
+            ClientId = userId.Value;
+        }
+        else
+        {
+            if (!int.TryParse(HttpContext.Session.GetString("UserId"), out var currentUserId))
+                return RedirectToPage("/Login");
+            ClientId = currentUserId;
+        }
+
         Plan = await _apiClient.GetAsync<WorkoutPlanDetailsDto>($"api/workoutplans/{id}/details");
-        
+
         if (Plan != null && Plan.WorkoutDays != null)
         {
             TotalSessions = Plan.WorkoutDays.Count * 4;
-            CompletedSessions = 0;
+            CompletedSessions = 0; // در صورت نیاز از API واقعی بگیرید
             CompletionPercentage = TotalSessions > 0 ? (CompletedSessions * 100 / TotalSessions) : 0;
         }
+        return Page();
     }
-    
+
     public async Task<IActionResult> OnPostDownloadPdfAsync(int planId)
     {
         var pdfBytes = await _apiClient.DownloadPdfAsync($"api/export/workout-plan/{planId}");
-        if (pdfBytes == null)
-            return NotFound();
-        
-        return File(pdfBytes, "application/pdf", $"WorkoutPlan_{planId}.pdf");
+        return pdfBytes == null ? NotFound() : File(pdfBytes, "application/pdf", $"WorkoutPlan_{planId}.pdf");
     }
 }
 

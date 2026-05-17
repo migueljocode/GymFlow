@@ -5,9 +5,19 @@
 }
 
 <div class="container">
+        @if (Model.IsCoach && !string.IsNullOrEmpty(Request.Query["userId"]))
+        {
+            <div class="mb-3">
+                <a href="/Coach/Clients" class="btn btn-secondary">← بازگشت به لیست مشتریان</a>
+            </div>
+        }
+
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>📊 تاریخچه وزن</h2>
-        <a href="/Progress/Add" class="btn btn-primary">+ ثبت وزن جدید</a>
+        @if (!Model.IsCoach)
+        {
+            <a href="/Progress/Add" class="btn btn-primary">+ ثبت وزن جدید</a>
+        }
     </div>
 
     @if (!Model.WeightHistory.Any())

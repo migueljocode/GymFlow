@@ -6,7 +6,7 @@ using GymFlow.Models.Enums;
 
 namespace GymFlow.Web.Pages.WorkoutPlans;
 
-public class CreateModel : PageModel
+public class CreateModel : BasePageModel  // ← تغییر ارث‌بری
 {
     private readonly ApiClient _apiClient;
     
@@ -14,6 +14,9 @@ public class CreateModel : PageModel
     {
         _apiClient = apiClient;
     }
+    
+    [BindProperty]
+    public int ClientId { get; set; }  // ← اضافه شد
     
     [BindProperty]
     public int Phase { get; set; } = 1;
@@ -46,24 +49,34 @@ public class CreateModel : PageModel
     
     public string? ErrorMessage { get; set; }
     
-    public async Task OnGetAsync()
+    public async Task<IActionResult> OnGetAsync(int? userId = null)
     {
-        if (!int.TryParse(HttpContext.Session.GetString("UserId"), out var userId))
-        {
-            RedirectToPage("/Login");
-            return;
-        }
-        
-        var existingPlans = await _apiClient.GetAsync<List<WorkoutPlanInfoDto>>($"api/workoutplans/user/{userId}");
+        if (!IsCoach)
+            return RedirectToPage("/Login");
+
+        if (!userId.HasValue)
+            return RedirectToPage("/Coach/Clients");
+
+        ClientId = userId.Value;
+
+        var existingPlans = await _apiClient.GetAsync<List<WorkoutPlanInfoDto>>($"api/workoutplans/user/{ClientId}");
         if (existingPlans != null && existingPlans.Any())
         {
-            var maxPhase = existingPlans.Max(p => p.Phase);
-            Phase = maxPhase + 1;
+            Phase = existingPlans.Max(p => p.Phase) + 1;
         }
+        else
+        {
+            Phase = 1;
+        }
+
+        return Page();
     }
     
     public async Task<IActionResult> OnPostAsync()
     {
+        if (!IsCoach)
+            return RedirectToPage("/Login");
+
         if (!ModelState.IsValid)
         {
             ErrorMessage = "اطلاعات وارد شده معتبر نیست";
@@ -76,12 +89,7 @@ public class CreateModel : PageModel
             return Page();
         }
         
-        if (!int.TryParse(HttpContext.Session.GetString("UserId"), out var userId))
-        {
-            return RedirectToPage("/Login");
-        }
-        
-        var existingPlans = await _apiClient.GetAsync<List<WorkoutPlanInfoDto>>($"api/workoutplans/user/{userId}");
+        var existingPlans = await _apiClient.GetAsync<List<WorkoutPlanInfoDto>>($"api/workoutplans/user/{ClientId}");
         if (existingPlans != null && existingPlans.Any(p => p.Phase == Phase))
         {
             ErrorMessage = $"فاز {Phase} قبلاً ایجاد شده است!";
@@ -96,7 +104,7 @@ public class CreateModel : PageModel
         
         var request = new CreateWorkoutPlanRequest
         {
-            UserId = userId,
+            UserId = ClientId,
             Phase = Phase,
             SessionsPerWeek = SessionsPerWeek,
             StartDate = StartDate,
@@ -133,11 +141,12 @@ public class CreateModel : PageModel
             return RedirectToPage("/WorkoutPlans/AddExercises", new { 
                 workoutDayId = firstWorkoutDay.First().Id, 
                 workoutPlanId = plan.Id, 
-                dayOfWeek = firstWorkoutDay.First().DayOfWeek.ToString() 
+                dayOfWeek = firstWorkoutDay.First().DayOfWeek.ToString(),
+                userId = ClientId
             });
         }
         
-        return RedirectToPage("/WorkoutPlans/Details", new { id = plan.Id });
+        return RedirectToPage("/WorkoutPlans/Index", new { userId = ClientId });
     }
 }
 

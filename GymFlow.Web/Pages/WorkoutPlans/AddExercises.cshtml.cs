@@ -6,7 +6,7 @@ using Microsoft.Extensions.Primitives;
 
 namespace GymFlow.Web.Pages.WorkoutPlans;
 
-public class AddExercisesModel : PageModel
+public class AddExercisesModel : BasePageModel  // ← تغییر ارث‌بری
 {
     private readonly ApiClient _apiClient;
     
@@ -23,6 +23,9 @@ public class AddExercisesModel : PageModel
     
     [BindProperty]
     public string DayOfWeek { get; set; } = string.Empty;
+    
+    [BindProperty]
+    public int ClientId { get; set; }  // ← اضافه شد (id مشتری جاری)
     
     [BindProperty]
     public int TargetMuscles { get; set; }
@@ -54,45 +57,63 @@ public class AddExercisesModel : PageModel
     public List<SelectListItem> ExerciseList { get; set; } = new();
     public List<WorkoutExerciseItem> ExistingExercises { get; set; } = new();
     
-    public async Task<IActionResult> OnGetAsync(int workoutDayId, int workoutPlanId, string dayOfWeek)
+    public async Task<IActionResult> OnGetAsync(int workoutDayId, int workoutPlanId, string dayOfWeek, int? userId = null)
     {
+        // فقط مربی می‌تواند وارد این صفحه شود
+        if (!IsCoach)
+            return RedirectToPage("/Login");
+
+        if (!userId.HasValue)
+            return RedirectToPage("/Coach/Clients");
+
         WorkoutDayId = workoutDayId;
         WorkoutPlanId = workoutPlanId;
         DayOfWeek = dayOfWeek;
-        
+        ClientId = userId.Value;
+
         await LoadDataAsync();
         return Page();
     }
-    
+
     public async Task<IActionResult> OnPostAsync()
     {
         var action = Request.Form["action"].ToString();
-        
-        if (action == "save")
+
+        if (action == "finish")
         {
             await SaveAllChangesAsync();
-            TempData["Message"] = "تغییرات با موفقیت ذخیره شد!";
+
+            foreach (var key in Request.Form.Keys)
+            {
+                if (key != null && key.StartsWith("ExerciseSets["))
+                {
+                    var startIndex = "ExerciseSets[".Length;
+                    var endIndex = key.IndexOf(']', startIndex);
+                    if (endIndex > startIndex)
+                    {
+                        var exerciseIdStr = key.Substring(startIndex, endIndex - startIndex);
+                        if (int.TryParse(exerciseIdStr, out var exerciseId))
+                        {
+                            if (int.TryParse(Request.Form[key], out var sets))
+                            {
+                                var reps = Request.Form[$"ExerciseReps[{exerciseId}]"].ToString() ?? string.Empty;
+                                if (int.TryParse(Request.Form[$"ExerciseRest[{exerciseId}]"], out var restSeconds))
+                                {
+                                    await UpdateExerciseAsync(exerciseId, sets, reps, restSeconds);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return RedirectToPage("/WorkoutPlans/Details", new { id = WorkoutPlanId, userId = ClientId });
         }
         else if (action == "add")
         {
             await AddExerciseAsync();
             TempData["Message"] = "حرکت با موفقیت اضافه شد!";
-        }
-        else if (!string.IsNullOrEmpty(action) && action.StartsWith("update_"))
-        {
-            var parts = action.Split('_');
-            if (parts.Length > 1 && int.TryParse(parts[1], out var exerciseId))
-            {
-                var setsStr = Request.Form["Sets"].ToString();
-                var reps = Request.Form["Reps"].ToString();
-                var restStr = Request.Form["RestSeconds"].ToString();
-                
-                if (int.TryParse(setsStr, out var sets) && int.TryParse(restStr, out var restSeconds))
-                {
-                    await UpdateExerciseAsync(exerciseId, sets, reps, restSeconds);
-                    TempData["Message"] = "حرکت با موفقیت به‌روز شد!";
-                }
-            }
+            return RedirectToPage(new { workoutDayId = WorkoutDayId, workoutPlanId = WorkoutPlanId, dayOfWeek = DayOfWeek, userId = ClientId });
         }
         else if (!string.IsNullOrEmpty(action) && action.StartsWith("delete_"))
         {
@@ -102,9 +123,10 @@ public class AddExercisesModel : PageModel
                 await DeleteExerciseAsync(exerciseId);
                 TempData["Message"] = "حرکت با موفقیت حذف شد!";
             }
+            return RedirectToPage(new { workoutDayId = WorkoutDayId, workoutPlanId = WorkoutPlanId, dayOfWeek = DayOfWeek, userId = ClientId });
         }
-        
-        return RedirectToPage(new { workoutDayId = WorkoutDayId, workoutPlanId = WorkoutPlanId, dayOfWeek = DayOfWeek });
+
+        return RedirectToPage(new { workoutDayId = WorkoutDayId, workoutPlanId = WorkoutPlanId, dayOfWeek = DayOfWeek, userId = ClientId });
     }
     
     private async Task SaveAllChangesAsync()

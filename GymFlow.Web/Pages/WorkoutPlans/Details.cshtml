@@ -54,6 +54,12 @@
 else
 {
     <div class="container">
+        @* @if (Model.IsCoach)
+        {
+            <div class="mb-3">
+                <a href="/WorkoutPlans/Index?userId=@Model.ClientId" class="btn btn-secondary">← بازگشت به لیست برنامه‌های مشتری</a>
+            </div>
+        } *@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2>📋 برنامه فاز @Model.Plan.Phase</h2>
             <div>
@@ -62,7 +68,7 @@ else
                         📄 دانلود PDF
                     </button>
                 </form>
-                <a href="/WorkoutPlans" class="btn btn-secondary ms-2">بازگشت</a>
+                <a href="@(Model.IsCoach ? $"/WorkoutPlans/Index?userId={Model.ClientId}" : "/WorkoutPlans")" class="btn btn-secondary ms-2">بازگشت</a>
             </div>
         </div>
 
@@ -200,23 +206,25 @@ else
                         </div>
                     }
                     
-                    @if (User.IsInRole("Coach"))
+                    @* مربی می‌تواند حرکات را ویرایش کند  *@
+                    @if (Model.IsCoach)   
                     {
                         <div class="text-center mt-3">
-                            <a href="/WorkoutPlans/AddExercises?workoutDayId=@day.Id&workoutPlanId=@Model.Plan.Id&dayOfWeek=@day.DayOfWeek" 
-                               class="btn btn-sm btn-outline-primary">
-                                🏋️ اضافه کردن/ویرایش حرکات
-                            </a>
+                            <a href="/WorkoutPlans/AddExercises?workoutDayId=@day.Id&workoutPlanId=@Model.Plan.Id&dayOfWeek=@day.DayOfWeek&userId=@Model.ClientId"
+                            class="btn btn-sm btn-outline-primary">🏋️ اضافه کردن/ویرایش حرکات</a>
                         </div>
                     }
                 </div>
             </div>
         }
         
+    @if (Model.IsMember)
+    {
         <div class="text-center mt-4 mb-5">
             <a href="/Workout/Log" class="btn btn-success btn-lg">
                 ✅ ثبت تمرین امروز
             </a>
         </div>
+    }
     </div>
 }

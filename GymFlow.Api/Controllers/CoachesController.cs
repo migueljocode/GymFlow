@@ -12,41 +12,59 @@ public class CoachesController : ApiControllerBase
     private readonly IUserRepository _userRepository;
     private readonly ICoachRepository _coachRepository;
     private readonly IPersonRepository _personRepository; // اضافه شد
+    private readonly IProgressLogRepository _progressLogRepository;
+    private readonly IWorkoutSessionRepository _workoutSessionRepository;
 
     public CoachesController
     (
         IUserRepository userRepository,
         ICoachRepository coachRepository,
-        IPersonRepository personRepository)
+        IPersonRepository personRepository,
+        IProgressLogRepository progressLogRepository,
+        IWorkoutSessionRepository workoutSessionRepository)
     {
         _userRepository = userRepository;
         _coachRepository = coachRepository;
         _personRepository = personRepository;
+        _progressLogRepository = progressLogRepository;
+        _workoutSessionRepository = workoutSessionRepository;
     }
 
     [HttpGet("{userId:int}/clients")]
     public async Task<IActionResult> GetClientsAsync(int userId)
     {
+        // بررسی دسترسی: فقط خود مربی می‌تواند مشتریانش را ببیند
+        var currentUserId = HttpContext.Items["UserId"] as int?;
+        if (currentUserId == null || currentUserId != userId)
+            return Unauthorized();
+
         var user = await _userRepository.GetUserWithPersonAsync(userId);
-        if (user == null)
+        if (user == null || user.Person == null)
             return NotFoundResponse("User", userId);
 
-        var person = user.Person;
-        if (person == null)
-            return NotFoundResponse("Person for user", userId);
-
-        var coach = await _coachRepository.GetByPersonIdAsync(person.Id);
+        var coach = await _coachRepository.GetByPersonIdAsync(user.Person.Id);
         if (coach == null)
             return NotFoundResponse("Coach for user", userId);
 
-        var clients = await _userRepository.FindAsync(u => u.CoachId == coach.Id);
-        var result = clients.Select(c => new
+        // اصلاح: استفاده از متدی که Person را Include کند
+        var clients = await _userRepository.GetUsersByCoachIdWithPersonAsync(coach.Id);
+        clients = clients.Where(u => u.CoachId == coach.Id).ToList();
+
+        var result = new List<object>();
+        foreach (var client in clients)
         {
-            c.Id,
-            FullName = c.Person == null ? "Unknown" : $"{c.Person.FirstName} {c.Person.LastName}",
-            c.Goal,
-            CurrentWeight = c.Person?.Weight
-        });
+            var latestLog = await _progressLogRepository.GetLatestProgressLogAsync(client.Id);
+            var sessionsCount = await _workoutSessionRepository.GetSessionCountByUserAsync(client.Id);
+            
+            result.Add(new
+            {
+                client.Id,
+                FullName = client.Person == null ? "Unknown" : $"{client.Person.FirstName} {client.Person.LastName}",
+                Goal = client.Goal.ToString(),
+                CurrentWeight = latestLog?.Weight ?? client.Person?.Weight ?? 0,
+                CompletedSessions = sessionsCount
+            });
+        }
 
         return Success(result);
     }

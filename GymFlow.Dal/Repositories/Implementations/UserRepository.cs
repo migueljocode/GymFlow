@@ -72,4 +72,13 @@ public class UserRepository : Repository<User>, IUserRepository
             .Include(u => u.Person)
             .FirstOrDefaultAsync(u => u.Person != null && u.Person.Email == email);
     }
+
+    public async Task<IEnumerable<User>> GetUsersByCoachIdWithPersonAsync(int coachId)
+    {
+        await using var context = await CreateContextAsync();
+        return await context.Users
+            .Include(u => u.Person)
+            .Where(u => u.CoachId == coachId)
+            .ToListAsync();
+    }
 }

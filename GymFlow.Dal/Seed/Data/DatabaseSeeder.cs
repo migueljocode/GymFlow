@@ -63,6 +63,29 @@ public class DatabaseSeeder
                 await context.Coaches.AddRangeAsync(coaches);
                 await context.SaveChangesAsync();
                 Console.WriteLine($"  ✅ Added {coaches.Count} coaches");
+
+                // ========== تخصیص مشتری به مربی ==========
+                var demoCoach = await context.Coaches
+                    .Include(c => c.Person)
+                    .FirstOrDefaultAsync(c => c.Person != null && c.Person.Username == "coach");
+
+                if (demoCoach != null)
+                {
+                    var allUsers = await context.Users
+                        .Include(u => u.Person)
+                        .ToListAsync();
+
+                    foreach (var user in allUsers)
+                    {
+                        // اگر کاربر خودش مربی نباشد و CoachId نداشته باشد
+                        if (user.Person?.Username != "coach" && user.CoachId == null)
+                        {
+                            user.CoachId = demoCoach.Id;
+                        }
+                    }
+                    await context.SaveChangesAsync();
+                    Console.WriteLine($"  ✅ Assigned coach to {allUsers.Count(u => u.CoachId == demoCoach.Id)} clients");
+                }
             }
 
             // 5. WorkoutPlans - فقط اگر کاربر وجود داشته باشد

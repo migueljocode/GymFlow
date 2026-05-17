@@ -1,9 +1,97 @@
 @page
-@model GymFlow.Web.Pages.Coach.ClientsModel
+@model ClientsModel
 @{
     ViewData["Title"] = "مشتریان من";
 }
+
 <div class="container">
-    <h2>👥 لیست مشتریان</h2>
-    <div class="alert alert-info">صفحه مشتریان مربی – در حال تکمیل</div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>👥 لیست مشتریان</h2>
+    </div>
+
+    @if (!Model.Clients.Any())
+    {
+        <div class="alert alert-info text-center">
+            <p>شما هنوز مشتری‌ای ندارید.</p>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var client in Model.Clients)
+            {
+                <div class="col-md-6 mb-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">@client.FullName</h5>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>هدف تمرینی:</strong> @client.Goal</p>
+                            <p><strong>وزن فعلی:</strong> @client.CurrentWeight kg</p>
+                            <p><strong>تعداد جلسات تکمیل شده:</strong> @client.CompletedSessions</p>
+                            <hr />
+                            <div class="d-flex gap-2">
+                                <a href="/WorkoutPlans/Index?userId=@client.Id" class="btn btn-outline-primary btn-sm">
+                                    📋 برنامه‌های تمرینی
+                                </a>
+                                <a href="/Progress/Index?userId=@client.Id" class="btn btn-outline-success btn-sm">
+                                    ⚖️ تاریخچه وزن
+                                </a>
+                                <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#reportModal_@client.Id">
+                                    📄 گزارش PDF
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- مودال دانلود گزارش برای هر مشتری -->
+                <div class="modal fade" id="reportModal_@client.Id" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">📄 دانلود گزارش برای @client.FullName</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form method="post" asp-page-handler="DownloadProgress" asp-route-userId="@client.Id">
+                                    <button type="submit" class="btn btn-success w-100 mb-2">📊 گزارش پیشرفت وزنی</button>
+                                </form>
+                                <form method="post" asp-page-handler="DownloadCertificate" asp-route-userId="@client.Id">
+                                    <button type="submit" class="btn btn-warning w-100 mb-2">🏆 گواهی دستاوردها</button>
+                                </form>
+                                <form method="post" asp-page-handler="DownloadWeeklySummary" asp-route-userId="@client.Id">
+                                    <div class="input-group mb-3">
+                                        <input type="date" name="weekStart" class="form-control" required />
+                                        <button type="submit" class="btn btn-info">📅 خلاصه هفتگی</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
 </div>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('show.bs.modal', function (event) {
+                var weekStartInput = this.querySelector('input[name="weekStart"]');
+                if (weekStartInput && !weekStartInput.value) {
+                    var today = new Date();
+                    var dayOfWeek = today.getDay();
+                    var diffToSaturday = (dayOfWeek === 6) ? 0 : (dayOfWeek + 1) % 7;
+                    var saturday = new Date(today);
+                    saturday.setDate(today.getDate() - diffToSaturday);
+                    var year = saturday.getFullYear();
+                    var month = String(saturday.getMonth() + 1).padStart(2, '0');
+                    var day = String(saturday.getDate()).padStart(2, '0');
+                    weekStartInput.value = `${year}-${month}-${day}`;
+                }
+            });
+        });
+    </script>
+}
