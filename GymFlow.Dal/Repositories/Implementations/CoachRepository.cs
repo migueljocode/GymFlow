@@ -36,4 +36,19 @@ public class CoachRepository : Repository<Coach>, ICoachRepository
             .Include(c => c.Person)
             .ToListAsync();
     }
+
+    public async Task<Coach?> GetByUserIdAsync(int userId)
+    {
+        await using var context = await CreateContextAsync();
+        // ابتدا User را با Person می‌گیریم
+        var user = await context.Users
+            .Include(u => u.Person)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+        
+        if (user?.Person == null) return null;
+        
+        return await context.Coaches
+            .Include(c => c.Person)
+            .FirstOrDefaultAsync(c => c.PersonId == user.Person.Id);
+    }
 }

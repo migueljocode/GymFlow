@@ -44,59 +44,74 @@
 
     <div class="row">
         <div class="col-md-8">
-            <!-- کارت خلاصه وضعیت -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">📊 خلاصه وضعیت</h4>
+            <!-- ========== کارت خلاصه وضعیت ========== -->
+            @if (Model.IsCoach)
+            {
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">📊 خلاصه وضعیت</h4>
+                    </div>
+                    <div class="card-body text-center">
+                        <p class="text-muted">آمار مخصوص مربی به زودی اضافه خواهد شد.</p>
+                    </div>
                 </div>
-                <div class="card-body">
-                    @if (Model.Stats != null)
-                    {
-                        <div class="row text-center">
-                            <div class="col-md-3 col-6 mb-3">
-                                <div class="card bg-success text-white stats-card">
-                                    <div class="card-body">
-                                        <h3>@Model.Stats.TotalWorkouts</h3>
-                                        <p class="mb-0">تمرین کل</p>
+            }
+            else
+            {
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">📊 خلاصه وضعیت</h4>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.Stats != null)
+                        {
+                            <div class="row text-center">
+                                <div class="col-md-3 col-6 mb-3">
+                                    <div class="card bg-success text-white stats-card">
+                                        <div class="card-body">
+                                            <h3>@Model.Stats.TotalWorkouts</h3>
+                                            <p class="mb-0">تمرین کل</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-6 mb-3">
+                                    <div class="card bg-info text-white stats-card">
+                                        <div class="card-body">
+                                            <h3>@Model.Stats.CurrentStreak</h3>
+                                            <p class="mb-0">روز متوالی</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-6 mb-3">
+                                    <div class="card bg-warning text-white stats-card">
+                                        <div class="card-body">
+                                            <h3>@Model.Stats.ConsistencyScore%</h3>
+                                            <p class="mb-0">تعهد به تمرین</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-6 mb-3">
+                                    <div class="card bg-danger text-white stats-card">
+                                        <div class="card-body">
+                                            <h3>@Model.Stats.CurrentWeight.ToString("F1") kg</h3>
+                                            <p class="mb-0">وزن فعلی</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-3 col-6 mb-3">
-                                <div class="card bg-info text-white stats-card">
-                                    <div class="card-body">
-                                        <h3>@Model.Stats.CurrentStreak</h3>
-                                        <p class="mb-0">روز متوالی</p>
-                                    </div>
-                                </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-info text-center">
+                                <p class="mb-0">در حال بارگذاری اطلاعات...</p>
                             </div>
-                            <div class="col-md-3 col-6 mb-3">
-                                <div class="card bg-warning text-white stats-card">
-                                    <div class="card-body">
-                                        <h3>@Model.Stats.ConsistencyScore%</h3>
-                                        <p class="mb-0">تعهد به تمرین</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3 col-6 mb-3">
-                                <div class="card bg-danger text-white stats-card">
-                                    <div class="card-body">
-                                        <h3>@Model.Stats.CurrentWeight.ToString("F1") kg</h3>
-                                        <p class="mb-0">وزن فعلی</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="alert alert-info text-center">
-                            <p class="mb-0">در حال بارگذاری اطلاعات...</p>
-                        </div>
-                    }
+                        }
+                    </div>
                 </div>
-            </div>
+            }
 
-            <!-- کارت نمودار روند وزنی -->
+            <!-- ========== کارت نمودار روند وزنی ========== -->
+            <!-- این بخش برای هر دو نقش یکسان است (مربی هم می‌تواند وزن خود را ببیند) -->
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-primary text-white">
                     <h4 class="mb-0">📈 روند وزنی</h4>
@@ -116,13 +131,19 @@
                 </div>
             </div>
 
-            <!-- کارت فعالیت‌های اخیر -->
+            <!-- ========== کارت فعالیت‌های اخیر ========== -->
             <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white">
                     <h4 class="mb-0">🔄 فعالیت‌های اخیر</h4>
                 </div>
                 <div class="card-body" style="max-height: 400px; overflow-y: auto;">
-                    @if (Model.RecentActivities != null && Model.RecentActivities.Any())
+                    @if (Model.IsCoach)
+                    {
+                        <div class="alert alert-secondary text-center">
+                            <p class="mb-0">فعالیت‌های مربی به زودی در اینجا نمایش داده می‌شود.</p>
+                        </div>
+                    }
+                    else if (Model.RecentActivities != null && Model.RecentActivities.Any())
                     {
                         @foreach (var activity in Model.RecentActivities)
                         {
@@ -150,77 +171,90 @@
         </div>
 
         <div class="col-md-4">
-            <!-- کارت برنامه امروز -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-success text-white">
-                    <h4 class="mb-0">🎯 برنامه امروز</h4>
+            <!-- ========== کارت برنامه امروز ========== -->
+            @if (!Model.IsCoach)
+            {
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h4 class="mb-0">🎯 برنامه امروز</h4>
+                    </div>
+                    <div class="card-body text-center">
+                        <h5 class="text-primary mb-3">@(Model.TodayWorkout?.DayOfWeekPersian ?? DateTime.Now.ToString("dddd", new System.Globalization.CultureInfo("fa-IR")))</h5>
+                        @if (Model.TodayWorkout != null)
+                        {
+                            <p><strong>🎯 عضلات هدف:</strong> @Model.TodayWorkout.TargetMuscles</p>
+                            <p><strong>⏱️ مدت زمان:</strong> @Model.TodayWorkout.DurationMinutes دقیقه</p>
+                            <p><strong>⚡ شدت:</strong> @Model.TodayWorkout.Intensity</p>
+                            <a href="/Workout/Log" class="btn btn-success w-100 mt-2">✅ ثبت تمرین امروز</a>
+                        }
+                        else
+                        {
+                            <div class="text-center">
+                                <p class="text-muted">🎉 امروز تمرین برنامه‌ریزی نشده!</p>
+                                <small>از برنامه تمرینی خود لذت ببرید و استراحت کنید</small>
+                                <hr />
+                                <p class="text-muted small">@(string.IsNullOrEmpty(Model.ActivePlanName) ? "برنامه فعالی ندارید" : $"برنامه فعال: {Model.ActivePlanName}")</p>
+                                <a href="/WorkoutPlans" class="btn btn-outline-primary w-100 mt-2">مشاهده برنامه‌ها</a>
+                            </div>
+                        }
+                    </div>
                 </div>
-                <div class="card-body text-center">
-                    <h5 class="text-primary mb-3">@(Model.TodayWorkout?.DayOfWeekPersian ?? DateTime.Now.ToString("dddd", new System.Globalization.CultureInfo("fa-IR")))</h5>
-                    @if (Model.TodayWorkout != null)
-                    {
-                        <p><strong>🎯 عضلات هدف:</strong> @Model.TodayWorkout.TargetMuscles</p>
-                        <p><strong>⏱️ مدت زمان:</strong> @Model.TodayWorkout.DurationMinutes دقیقه</p>
-                        <p><strong>⚡ شدت:</strong> @Model.TodayWorkout.Intensity</p>
-                        <a href="/Workout/Log" class="btn btn-success w-100 mt-2">✅ ثبت تمرین امروز</a>
-                    }
-                    else
-                    {
-                        <div class="text-center">
-                            <p class="text-muted">🎉 امروز تمرین برنامه‌ریزی نشده!</p>
-                            <small>از برنامه تمرینی خود لذت ببرید و استراحت کنید</small>
-                            <hr />
-                            <p class="text-muted small">@(string.IsNullOrEmpty(Model.ActivePlanName) ? "برنامه فعالی ندارید" : $"برنامه فعال: {Model.ActivePlanName}")</p>
-                            <a href="/WorkoutPlans" class="btn btn-outline-primary w-100 mt-2">مشاهده برنامه‌ها</a>
-                        </div>
-                    }
-                </div>
-            </div>
+            }
 
-            <!-- کارت دستاوردها -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-warning text-white">
-                    <h4 class="mb-0">🏆 دستاوردها</h4>
-                </div>
-                <div class="card-body" style="max-height: 300px; overflow-y: auto;">
-                    @if (Model.Achievements != null && Model.Achievements.Any())
-                    {
-                        <ul class="list-unstyled mb-0">
-                            @foreach (var ach in Model.Achievements)
-                            {
-                                <li class="mb-3">
-                                    <div class="d-flex align-items-center">
-                                        <span class="fs-3 me-2">@ach.Icon</span>
-                                        <div>
-                                            <strong>@ach.Name</strong>
-                                            <p class="text-muted small mb-0">@ach.Description</p>
+            <!-- ========== کارت دستاوردها ========== -->
+            @if (!Model.IsCoach)
+            {
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-warning text-white">
+                        <h4 class="mb-0">🏆 دستاوردها</h4>
+                    </div>
+                    <div class="card-body" style="max-height: 300px; overflow-y: auto;">
+                        @if (Model.Achievements != null && Model.Achievements.Any())
+                        {
+                            <ul class="list-unstyled mb-0">
+                                @foreach (var ach in Model.Achievements)
+                                {
+                                    <li class="mb-3">
+                                        <div class="d-flex align-items-center">
+                                            <span class="fs-3 me-2">@ach.Icon</span>
+                                            <div>
+                                                <strong>@ach.Name</strong>
+                                                <p class="text-muted small mb-0">@ach.Description</p>
+                                            </div>
                                         </div>
-                                    </div>
-                                </li>
-                            }
-                        </ul>
-                    }
-                    else
-                    {
-                        <div class="text-center">
-                            <p>🌟 هنوز دستاوردی ندارید</p>
-                            <small class="text-muted">با ادامه تمرینات، دستاوردهای جدید کسب کنید!</small>
-                        </div>
-                    }
+                                    </li>
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <div class="text-center">
+                                <p>🌟 هنوز دستاوردی ندارید</p>
+                                <small class="text-muted">با ادامه تمرینات، دستاوردهای جدید کسب کنید!</small>
+                            </div>
+                        }
+                    </div>
                 </div>
-            </div>
+            }
 
-            <!-- کارت لینک‌های سریع -->
+            <!-- ========== کارت لینک‌های سریع ========== -->
             <div class="card shadow-sm">
                 <div class="card-header bg-info text-white">
                     <h4 class="mb-0">⚡ لینک‌های سریع</h4>
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
-                        <a href="/Workout/Log" class="btn btn-outline-primary">📝 ثبت تمرین جدید</a>
-                        <a href="/Progress/Add" class="btn btn-outline-primary">⚖️ ثبت وزن جدید</a>
-                        <a href="/Reports" class="btn btn-outline-primary">📄 دانلود گزارش PDF</a>
-                        <a href="/WorkoutPlans" class="btn btn-outline-primary">📋 مشاهده برنامه‌های تمرینی</a>
+                        @if (Model.IsCoach)
+                        {
+                            <a href="/Reports" class="btn btn-outline-primary">📄 دانلود گزارش PDF</a>
+                        }
+                        else
+                        {
+                            <a href="/Workout/Log" class="btn btn-outline-primary">📝 ثبت تمرین جدید</a>
+                            <a href="/Progress/Add" class="btn btn-outline-primary">⚖️ ثبت وزن جدید</a>
+                            <a href="/Reports" class="btn btn-outline-primary">📄 دانلود گزارش PDF</a>
+                            <a href="/WorkoutPlans" class="btn btn-outline-primary">📋 مشاهده برنامه‌های تمرینی</a>
+                        }
                     </div>
                 </div>
             </div>

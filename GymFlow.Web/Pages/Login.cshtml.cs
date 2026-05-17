@@ -39,7 +39,9 @@ public class LoginModel : PageModel
             HttpContext.Session.SetString("Username", Username);
             HttpContext.Session.SetString("UserRole", Username == "coach" ? "Coach" : "Member");
             HttpContext.Session.SetString("UserId", userId.ToString());
-            
+
+            Console.WriteLine($"[DEBUG] UserId saved in session: {userId}");
+
             return RedirectToPage("/Index");
         }
 

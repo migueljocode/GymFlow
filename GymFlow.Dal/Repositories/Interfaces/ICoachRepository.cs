@@ -24,4 +24,9 @@ public interface ICoachRepository : IRepository<Coach>
     /// Gets all coaches with their Person data
     /// </summary>
     Task<IEnumerable<Coach>> GetAllCoachesWithPersonAsync();
+
+    /// <summary>
+    /// Gets a coach by User ID (through Person relation)
+    /// </summary>
+    Task<Coach?> GetByUserIdAsync(int userId);
 }

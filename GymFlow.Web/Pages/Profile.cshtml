@@ -1,9 +1,91 @@
 @page
-@model GymFlow.Web.Pages.ProfileModel
+@model ProfileModel
 @{
-    ViewData["Title"] = "پروفایل کاربری";
+    ViewData["Title"] = "پروفایل مربی";
 }
+
 <div class="container">
-    <h2>👤 پروفایل من</h2>
-    <div class="alert alert-info">صفحه پروفایل – در حال تکمیل</div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>👤 پروفایل مربی</h2>
+        <a href="/" class="btn btn-secondary">بازگشت به داشبورد</a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">ویرایش اطلاعات</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        <!-- اطلاعات شخصی -->
+                        <h5 class="border-bottom pb-2 mb-3">📋 اطلاعات شخصی</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">نام</label>
+                                <input type="text" class="form-control" asp-for="FirstName" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">نام خانوادگی</label>
+                                <input type="text" class="form-control" asp-for="LastName" required />
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">ایمیل</label>
+                                <input type="email" class="form-control" asp-for="Email" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">تلفن</label>
+                                <input type="tel" class="form-control" asp-for="Phone" />
+                            </div>
+                        </div>
+
+                        <!-- اطلاعات حرفه‌ای -->
+                        <h5 class="border-bottom pb-2 mb-3 mt-4">💼 اطلاعات حرفه‌ای</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">تخصص</label>
+                                <input type="text" class="form-control" asp-for="Specialization" required />
+                                <small class="text-muted">مثلاً بدنسازی، فیتنس، پاورلیفتینگ، یوگا، تغذیه، کاهش وزن</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">سال‌های تجربه</label>
+                                <input type="number" class="form-control" asp-for="YearsOfExperience" min="0" max="50" required />
+                            </div>
+                        </div>
+
+                        <!-- اطلاعات فقط خواندنی -->
+                        <h5 class="border-bottom pb-2 mb-3 mt-4">ℹ️ اطلاعات حساب</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label">نام کاربری</label>
+                                <input type="text" class="form-control" asp-for="Username" readonly disabled />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">نقش</label>
+                                <input type="text" class="form-control" value="مربی" readonly disabled />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">تاریخ عضویت</label>
+                                <input type="text" class="form-control" asp-for="CreatedAt" readonly disabled />
+                            </div>
+                        </div>
+
+                        <hr />
+                        <button type="submit" class="btn btn-primary w-100">💾 ذخیره تغییرات</button>
+                    </form>
+
+                    @if (!string.IsNullOrEmpty(Model.Message))
+                    {
+                        <div class="alert alert-success mt-3">@Model.Message</div>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+                    {
+                        <div class="alert alert-danger mt-3">@Model.ErrorMessage</div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

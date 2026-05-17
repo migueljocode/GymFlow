@@ -14,12 +14,21 @@ public class BasicAuthMiddleware
 
     public async Task InvokeAsync(HttpContext context, IAuthService authService)
     {
-        // فقط درخواست‌هایی که نیاز به احراز هویت دارند بررسی شوند
-        var protectedPaths = new[] { "/api/workoutplans", "/api/workoutdays", "/api/workoutsessions", "/api/progress", "/api/statistics", "/api/predictions" };
+        var protectedPaths = new[] { 
+            "/api/workoutplans", 
+            "/api/workoutdays", 
+            "/api/workoutsessions", 
+            "/api/progress", 
+            "/api/statistics", 
+            "/api/predictions",
+            "/api/coaches"  // ← اضافه کردن این خط
+        };
         
         // تغییر: مسیر درخواست را به حروف کوچک تبدیل می‌کنیم تا مقایسه case-insensitive باشد
         var requestPath = context.Request.Path.Value?.ToLowerInvariant() ?? "";
         var isProtected = protectedPaths.Any(p => requestPath.StartsWith(p));
+
+        Console.WriteLine($"[DEBUG] Request: {requestPath}, IsProtected: {isProtected}");
         
         if (!isProtected)
         {
@@ -28,6 +37,8 @@ public class BasicAuthMiddleware
         }
 
         var authHeader = context.Request.Headers["Authorization"].ToString();
+        
+        Console.WriteLine($"[DEBUG] AuthHeader: {(string.IsNullOrEmpty(authHeader) ? "NULL" : authHeader)}");
         
         if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Basic "))
         {

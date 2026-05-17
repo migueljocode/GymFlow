@@ -41,6 +41,7 @@ public class ApiClient
     {
         var client = _httpClientFactory.CreateClient();
         var token = GetAuthToken();
+        Console.WriteLine($"[DEBUG] AuthToken from session: {(string.IsNullOrEmpty(token) ? "NULL" : token)}");
         if (!string.IsNullOrEmpty(token))
         {
             client.DefaultRequestHeaders.Add("Authorization", token);
@@ -82,10 +83,14 @@ public class ApiClient
             var token = $"Basic {credentials}";
             SetAuthToken(token);
             
+            // اضافه کردن لاگ برای دیباگ
+            Console.WriteLine($"[DEBUG] Token stored in session: {token}");
+            
             try
             {
                 var result = JsonSerializer.Deserialize<ApiResponse<LoginResponseData>>(responseString, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                 var userId = result?.Data?.Id ?? 0;
+                Console.WriteLine($"[DEBUG] UserId from API: {userId}");
                 return (true, userId);
             }
             catch

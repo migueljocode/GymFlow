@@ -37,12 +37,26 @@ public class IndexModel : PageModel
         UserRole = HttpContext.Session.GetString("UserRole") ?? "Member";
         Username = HttpContext.Session.GetString("Username") ?? "guest";
 
-        Stats = await _apiClient.GetAsync<QuickStatsDto>($"api/statistics/user/{userId}/quick-stats");
-        await LoadTodayWorkoutAsync(userId);
-        await LoadWeightHistoryAsync(userId);
-        await LoadAchievementsAsync(userId);
-        await LoadRecentActivitiesAsync(userId);
-        await LoadActivePlanNameAsync(userId);
+        if (IsCoach)
+        {
+            // برای مربی فقط وزن فعلی و روند وزنی را بارگیری می‌کنیم
+            await LoadWeightHistoryAsync(userId);
+            // سایر بخش‌ها را خالی نگه می‌داریم (یا اصلاً بارگیری نمی‌کنیم)
+            Stats = null;
+            TodayWorkout = null;
+            Achievements = null;
+            RecentActivities = null;
+            ActivePlanName = null;
+        }
+        else
+        {
+            Stats = await _apiClient.GetAsync<QuickStatsDto>($"api/statistics/user/{userId}/quick-stats");
+            await LoadTodayWorkoutAsync(userId);
+            await LoadWeightHistoryAsync(userId);
+            await LoadAchievementsAsync(userId);
+            await LoadRecentActivitiesAsync(userId);
+            await LoadActivePlanNameAsync(userId);
+        }
     }
 
     private async Task LoadTodayWorkoutAsync(int userId)
