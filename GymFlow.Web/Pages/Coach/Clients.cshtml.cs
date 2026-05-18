@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using GymFlow.Web.Services;
-using System.Text.Json.Serialization;
 using System.Text.Json;
 
 namespace GymFlow.Web.Pages.Coach;
@@ -25,26 +24,19 @@ public class ClientsModel : BasePageModel
         if (!int.TryParse(HttpContext.Session.GetString("UserId"), out var coachId))
             return RedirectToPage("/Login");
 
-        var rawJson = await _apiClient.GetRawAsync($"api/coaches/{coachId}/clients");
-        Console.WriteLine("=== RAW JSON FROM API ===");
-        Console.WriteLine(rawJson);
-        Console.WriteLine("=========================");
-
+        // دریافت داده از API به صورت Raw
+        var rawJson = await GetRawApiResponseAsync($"api/coaches/{coachId}/clients");
+        
         if (!string.IsNullOrEmpty(rawJson))
         {
             using JsonDocument doc = JsonDocument.Parse(rawJson);
             var root = doc.RootElement;
+            
+            // بررسی ساختار پاسخ: { success: true, data: [...] }
             if (root.TryGetProperty("data", out var dataArray) && dataArray.ValueKind == JsonValueKind.Array)
             {
                 foreach (var item in dataArray.EnumerateArray())
                 {
-                    Console.WriteLine("--- ITEM ---");
-                    foreach (var prop in item.EnumerateObject())
-                    {
-                        Console.WriteLine($"{prop.Name} : {prop.Value}");
-                    }
-                    Console.WriteLine("------------");
-                    
                     var dto = new ClientInfoDto
                     {
                         Id = item.TryGetProperty("id", out var idProp) ? idProp.GetInt32() : 0,
@@ -61,23 +53,51 @@ public class ClientsModel : BasePageModel
         return Page();
     }
 
+    private async Task<string?> GetRawApiResponseAsync(string url)
+    {
+        try
+        {
+            using var client = new HttpClient();
+            var baseUrl = "http://localhost:5291/"; // از تنظیمات بگیرید
+            var fullUrl = $"{baseUrl}{url}";
+            
+            // اضافه کردن توکن احراز هویت
+            var token = HttpContext.Session.GetString("AuthToken");
+            if (!string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Add("Authorization", token);
+            }
+            
+            var response = await client.GetAsync(fullUrl);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error getting raw API response: {ex.Message}");
+            return null;
+        }
+    }
 
     public async Task<IActionResult> OnPostDownloadProgressAsync(int userId)
     {
         var pdfBytes = await _apiClient.DownloadPdfAsync($"api/export/progress/{userId}");
-        return pdfBytes == null ? NotFound() : File(pdfBytes, "application/pdf", $"ProgressReport_User_{userId}.pdf");
+        if (pdfBytes == null) return NotFound();
+        return File(pdfBytes, "application/pdf", $"ProgressReport_User_{userId}.pdf");
     }
 
     public async Task<IActionResult> OnPostDownloadCertificateAsync(int userId)
     {
         var pdfBytes = await _apiClient.DownloadPdfAsync($"api/export/certificate/{userId}");
-        return pdfBytes == null ? NotFound() : File(pdfBytes, "application/pdf", $"Certificate_User_{userId}.pdf");
+        if (pdfBytes == null) return NotFound();
+        return File(pdfBytes, "application/pdf", $"Certificate_User_{userId}.pdf");
     }
 
     public async Task<IActionResult> OnPostDownloadWeeklySummaryAsync(int userId, string weekStart)
     {
         var pdfBytes = await _apiClient.DownloadPdfAsync($"api/export/weekly-summary/{userId}?weekStart={weekStart}");
-        return pdfBytes == null ? NotFound() : File(pdfBytes, "application/pdf", $"WeeklySummary_User_{userId}.pdf");
+        if (pdfBytes == null) return NotFound();
+        return File(pdfBytes, "application/pdf", $"WeeklySummary_User_{userId}.pdf");
     }
 }
 

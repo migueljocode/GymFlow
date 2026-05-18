@@ -16,23 +16,24 @@ public class DetailsModel : BasePageModel
     public int CompletedSessions { get; set; }
     public int TotalSessions { get; set; }
     public int CompletionPercentage { get; set; }
-    public int? ClientId { get; set; }
+    public int ClientId { get; set; }
 
     public async Task<IActionResult> OnGetAsync(int id, int? userId = null)
     {
-        if (IsCoach)
+        // اگر مربی است و userId دارد، آن را به عنوان ClientId ذخیره کن
+        if (IsCoach && userId.HasValue && userId.Value > 0)
         {
-            if (!userId.HasValue || userId.Value == 0)
-                return RedirectToPage("/Coach/Clients");
             ClientId = userId.Value;
         }
         else
         {
+            // در غیر این صورت (کاربر عادی یا مربی در حال مشاهده برنامه خودش)
             if (!int.TryParse(HttpContext.Session.GetString("UserId"), out var currentUserId))
                 return RedirectToPage("/Login");
             ClientId = currentUserId;
         }
 
+        // دریافت جزئیات برنامه
         Plan = await _apiClient.GetAsync<WorkoutPlanDetailsDto>($"api/workoutplans/{id}/details");
 
         if (Plan != null && Plan.WorkoutDays != null)
@@ -41,13 +42,15 @@ public class DetailsModel : BasePageModel
             CompletedSessions = 0; // در صورت نیاز از API واقعی بگیرید
             CompletionPercentage = TotalSessions > 0 ? (CompletedSessions * 100 / TotalSessions) : 0;
         }
+
         return Page();
     }
 
     public async Task<IActionResult> OnPostDownloadPdfAsync(int planId)
     {
         var pdfBytes = await _apiClient.DownloadPdfAsync($"api/export/workout-plan/{planId}");
-        return pdfBytes == null ? NotFound() : File(pdfBytes, "application/pdf", $"WorkoutPlan_{planId}.pdf");
+        if (pdfBytes == null) return NotFound();
+        return File(pdfBytes, "application/pdf", $"WorkoutPlan_{planId}.pdf");
     }
 }
 

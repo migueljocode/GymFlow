@@ -149,27 +149,28 @@ public static class DataGenerator
     {
         var faker = new Faker();
         var plans = new List<WorkoutPlan>();
-
+        
         foreach (var user in users)
         {
             var planCount = faker.Random.Int(1, 3);
             for (int i = 0; i < planCount; i++)
             {
                 var startDate = DateOnly.FromDateTime(DateTime.UtcNow.AddMonths(-i * 2));
+                var isLastPlan = (i == planCount - 1); // آخرین فاز فعال باشد
+                
                 plans.Add(new WorkoutPlan
                 {
                     UserId = user.Id,
                     Phase = i + 1,
                     SessionsPerWeek = faker.Random.Int(3, 5),
                     StartDate = startDate,
-                    EndDate = i == 0 ? null : startDate.AddMonths(2),
-                    IsActive = i == 0,
+                    EndDate = isLastPlan ? null : startDate.AddMonths(2), // آخرین برنامه پایان ندارد
+                    IsActive = isLastPlan, // ← فقط آخرین فاز فعال
                     Notes = faker.Random.Bool(0.3f) ? faker.Lorem.Sentence() : null,
                     CreatedAt = startDate.ToDateTime(TimeOnly.MinValue)
                 });
             }
         }
-
         return plans;
     }
 

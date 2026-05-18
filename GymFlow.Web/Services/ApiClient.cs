@@ -41,7 +41,6 @@ public class ApiClient
     {
         var client = _httpClientFactory.CreateClient();
         var token = GetAuthToken();
-        Console.WriteLine($"[DEBUG] AuthToken from session: {(string.IsNullOrEmpty(token) ? "NULL" : token)}");
         if (!string.IsNullOrEmpty(token))
         {
             client.DefaultRequestHeaders.Add("Authorization", token);
@@ -83,14 +82,10 @@ public class ApiClient
             var token = $"Basic {credentials}";
             SetAuthToken(token);
             
-            // اضافه کردن لاگ برای دیباگ
-            Console.WriteLine($"[DEBUG] Token stored in session: {token}");
-            
             try
             {
                 var result = JsonSerializer.Deserialize<ApiResponse<LoginResponseData>>(responseString, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                 var userId = result?.Data?.Id ?? 0;
-                Console.WriteLine($"[DEBUG] UserId from API: {userId}");
                 return (true, userId);
             }
             catch
@@ -135,8 +130,8 @@ public class ApiClient
         }
     }
 
-    // ========== POST ==========
-    public virtual async Task<T?> PostAsync<T>(string url, object data)
+    // ========== POST با بازگشت خطا ==========
+    public virtual async Task<(T? Data, string? ErrorMessage)> PostWithErrorAsync<T>(string url, object data)
     {
         try
         {
@@ -153,7 +148,20 @@ public class ApiClient
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogError($"API returned {response.StatusCode}: {responseJson}");
-                return default;
+                
+                // تلاش برای استخراج پیام خطا از پاسخ استاندارد API
+                try
+                {
+                    var errorResponse = JsonSerializer.Deserialize<ApiErrorResponse>(responseJson, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+                    return (default, errorResponse?.Error ?? $"خطا با کد {response.StatusCode}");
+                }
+                catch
+                {
+                    return (default, $"خطا با کد {response.StatusCode}");
+                }
             }
 
             var result = JsonSerializer.Deserialize<ApiResponse<T>>(responseJson, new JsonSerializerOptions
@@ -161,13 +169,25 @@ public class ApiClient
                 PropertyNameCaseInsensitive = true
             });
 
-            return result != null && result.Success ? result.Data : default;
+            if (result != null && result.Success)
+            {
+                return (result.Data, null);
+            }
+            
+            return (default, result?.Message ?? "خطای ناشناخته");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, $"Error POST {url}");
-            return default;
+            return (default, ex.Message);
         }
+    }
+
+    // ========== POST (سازگاری با کدهای قبلی) ==========
+    public virtual async Task<T?> PostAsync<T>(string url, object data)
+    {
+        var (result, _) = await PostWithErrorAsync<T>(url, data);
+        return result;
     }
 
     // ========== PUT ==========
@@ -230,30 +250,23 @@ public class ApiClient
             return null;
         }
     }
-
-    public virtual async Task<string?> GetRawAsync(string url)
-    {
-        try
-        {
-            using var client = CreateClient();
-            var fullUrl = $"{GetBaseUrl()}{url}";
-            var response = await client.GetAsync(fullUrl);
-            response.EnsureSuccessStatusCode();
-            return await response.Content.ReadAsStringAsync();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error GET raw {url}");
-            return null;
-        }
-    }
 }
+
+// ========== کلاس‌های پاسخ ==========
 
 public class ApiResponse<T>
 {
     public bool Success { get; set; }
     public string? Message { get; set; }
     public T? Data { get; set; }
+    public DateTime Timestamp { get; set; }
+}
+
+public class ApiErrorResponse
+{
+    public bool Success { get; set; }
+    public string? Error { get; set; }
+    public List<string>? Errors { get; set; }
     public DateTime Timestamp { get; set; }
 }
 

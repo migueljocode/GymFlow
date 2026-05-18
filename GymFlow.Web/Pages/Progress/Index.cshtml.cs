@@ -17,23 +17,17 @@ public class IndexModel : BasePageModel
     public float FirstWeight { get; set; }
     public float TotalChange { get; set; }
     
-    public async Task<IActionResult> OnGetAsync(int? userId = null)
+    public async Task<IActionResult> OnGetAsync()
     {
-        int targetUserId;
-        if (IsCoach && userId.HasValue && userId.Value > 0)
+        var redirect = RedirectIfNotMember();
+        if (redirect != null) return redirect;
+
+        if (!int.TryParse(HttpContext.Session.GetString("UserId"), out var userId))
         {
-            targetUserId = userId.Value;
+            return RedirectToPage("/Login");
         }
-        else
-        {
-            if (!int.TryParse(HttpContext.Session.GetString("UserId"), out targetUserId))
-                return RedirectToPage("/Login");
-            if (!IsCoach)
-            {
-                var redirect = RedirectIfNotMember();
-                if (redirect != null) return redirect;
-            }
-        }
+        
+        // اصلاح آدرس API - اضافه کردن userId به انتهای آدرس
         WeightHistory = await _apiClient.GetAsync<List<WeightLogDto>>($"api/progress/user/{userId}") ?? new();
         
         if (WeightHistory.Any())

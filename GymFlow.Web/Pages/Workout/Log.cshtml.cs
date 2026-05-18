@@ -1,11 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using GymFlow.Web.Services;
 using GymFlow.Models.DTOs.Requests;
-using GymFlow.Web.Pages.WorkoutPlans;
 
 namespace GymFlow.Web.Pages.Workout;
 
-public class LogModel : BasePageModel   // تغییر ارث‌بری
+public class LogModel : BasePageModel
 {
     private readonly ApiClient _apiClient;
     
@@ -23,20 +22,21 @@ public class LogModel : BasePageModel   // تغییر ارث‌بری
     [BindProperty]
     public string? Feeling { get; set; }
     
-    public string? Message { get; set; }
-    public string? ErrorMessage { get; set; }
-    
     public async Task<IActionResult> OnPostAsync()
     {
-        // اعمال محدودیت دسترسی
         var redirect = RedirectIfNotMember();
         if (redirect != null) return redirect;
 
-        // گرفتن userId از Session
         if (!int.TryParse(HttpContext.Session.GetString("UserId"), out var userId))
         {
-            ErrorMessage = "لطفاً مجدداً وارد شوید.";
+            TempData["ErrorMessage"] = "لطفاً مجدداً وارد شوید.";
             return RedirectToPage("/Login");
+        }
+        
+        if (DurationMinutes < 1 || DurationMinutes > 300)
+        {
+            TempData["ErrorMessage"] = "مدت زمان باید بین ۱ تا ۳۰۰ دقیقه باشد.";
+            return RedirectToPage();
         }
         
         var dayOfWeek = ActualDate.DayOfWeek;
@@ -44,8 +44,8 @@ public class LogModel : BasePageModel   // تغییر ارث‌بری
         
         if (activePlan == null || activePlan.Id == 0)
         {
-            ErrorMessage = "❌ برنامه تمرینی فعالی ندارید! لطفاً ابتدا یک برنامه تمرینی ایجاد کنید.";
-            return Page();
+            TempData["ErrorMessage"] = "❌ برنامه تمرینی فعالی ندارید! لطفاً با مربی خود تماس بگیرید.";
+            return RedirectToPage();
         }
         
         var workoutDays = await _apiClient.GetAsync<List<WorkoutDayDto>>($"api/workoutdays/plan/{activePlan.Id}");
@@ -53,8 +53,8 @@ public class LogModel : BasePageModel   // تغییر ارث‌بری
         
         if (targetDay == null)
         {
-            ErrorMessage = $"❌ برای روز {dayOfWeek} برنامه تمرینی ندارید!";
-            return Page();
+            TempData["ErrorMessage"] = $"❌ برای روز {GetPersianDayName(dayOfWeek)} برنامه تمرینی ندارید!";
+            return RedirectToPage();
         }
         
         var request = new LogWorkoutRequest
@@ -65,30 +65,47 @@ public class LogModel : BasePageModel   // تغییر ارث‌بری
             Feeling = Feeling
         };
         
-        try
+        // استفاده از نام متد صحیح با مشخص کردن نوع صریح
+        var (result, errorMessage) = await _apiClient.PostWithErrorAsync<object>("api/workoutsessions/log", request);
+        
+        if (result != null)
         {
-            var result = await _apiClient.PostAsync<object>("api/workoutsessions/log", request);
-            
-            if (result != null)
-            {
-                Message = $"✅ تمرین برای تاریخ {ActualDate} با موفقیت ثبت شد! 🔥";
-                return Page();
-            }
-            
-            ErrorMessage = "❌ خطا در ثبت تمرین. دوباره تلاش کن.";
+            TempData["Message"] = $"✅ تمرین برای تاریخ {ActualDate.ToString("yyyy/MM/dd")} با موفقیت ثبت شد! 🔥";
         }
-        catch (Exception ex)
+        else
         {
-            if (ex.Message.Contains("409") || ex.Message.Contains("Conflict"))
-            {
-                ErrorMessage = $"⚠️ تمرین برای تاریخ {ActualDate} قبلاً ثبت شده است! نمی‌توانید دوباره ثبت کنید.";
-            }
-            else
-            {
-                ErrorMessage = $"❌ خطا در ثبت تمرین: {ex.Message}";
-            }
+            TempData["ErrorMessage"] = errorMessage ?? "❌ خطا در ثبت تمرین. لطفاً دوباره تلاش کنید.";
         }
         
-        return Page();
+        return RedirectToPage();
     }
+    
+    private string GetPersianDayName(DayOfWeek day)
+    {
+        return day switch
+        {
+            DayOfWeek.Saturday => "شنبه",
+            DayOfWeek.Sunday => "یکشنبه",
+            DayOfWeek.Monday => "دوشنبه",
+            DayOfWeek.Tuesday => "سه‌شنبه",
+            DayOfWeek.Wednesday => "چهارشنبه",
+            DayOfWeek.Thursday => "پنجشنبه",
+            DayOfWeek.Friday => "جمعه",
+            _ => day.ToString()
+        };
+    }
+}
+
+// DTOهای مورد نیاز
+public class ActivePlanDto
+{
+    public int Id { get; set; }
+    public int Phase { get; set; }
+    public bool IsActive { get; set; }
+}
+
+public class WorkoutDayDto
+{
+    public int Id { get; set; }
+    public DayOfWeek DayOfWeek { get; set; }
 }

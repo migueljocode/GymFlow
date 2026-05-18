@@ -33,16 +33,41 @@
                     
                     <button type="submit" class="btn btn-primary w-100">💾 ذخیره وزن</button>
                 </form>
-                
-                @if (!string.IsNullOrEmpty(Model.Message))
-                {
-                    <div class="alert alert-success mt-3">@Model.Message</div>
-                }
-                @if (!string.IsNullOrEmpty(Model.ErrorMessage))
-                {
-                    <div class="alert alert-danger mt-3">@Model.ErrorMessage</div>
-                }
             </div>
         </div>
     </div>
 </div>
+
+<!-- المنت‌های مخفی برای نمایش Toast -->
+@if (TempData["Message"] != null)
+{
+    <input type="hidden" id="toastMessage" value="@TempData["Message"]" />
+    <input type="hidden" id="toastTitle" value="موفقیت ✅" />
+    <input type="hidden" id="toastIsError" value="false" />
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <input type="hidden" id="toastMessage" value="@TempData["ErrorMessage"]" />
+    <input type="hidden" id="toastTitle" value="خطا ❌" />
+    <input type="hidden" id="toastIsError" value="true" />
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var messageElem = document.getElementById('toastMessage');
+            if (messageElem && messageElem.value) {
+                var titleElem = document.getElementById('toastTitle');
+                var isErrorElem = document.getElementById('toastIsError');
+                var title = titleElem ? titleElem.value : "اطلاعیه";
+                var isError = isErrorElem ? isErrorElem.value === 'true' : false;
+                
+                if (typeof showToast === 'function') {
+                    showToast(messageElem.value, title, isError);
+                } else {
+                    console.log('Toast: ' + messageElem.value);
+                }
+            }
+        });
+    </script>
+}

@@ -28,10 +28,9 @@
         <input type="hidden" asp-for="DayOfWeek" />
         <input type="hidden" asp-for="ClientId" />
 
-        <!-- هدر با عنوان و دکمه اتمام و بازگشت -->
+        <!-- هدر با عنوان -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2>تنظیمات روز @GetPersianDayName(Model.DayOfWeek)</h2>
-            <button type="submit" name="action" value="finish" class="btn btn-success btn-lg">✅ اتمام و بازگشت</button>
         </div>
 
         <!-- کارت عضلات هدف -->
@@ -83,7 +82,7 @@
             </div>
         </div>
 
-        <!-- لیست حرکات موجود (درون فرم اصلی) -->
+        <!-- لیست حرکات موجود -->
         <div class="card mb-4">
             <div class="card-header bg-primary text-white">
                 <h5>حرکات تمرینی این روز</h5>
@@ -109,16 +108,16 @@
                                         <td>@ex.ExerciseName</td>
                                         <td>
                                             <input type="number" name="ExerciseSets[@ex.Id]" value="@ex.Sets" class="form-control" style="width:80px" min="1" max="10" />
-                                        </td>
+                                         </td>
                                         <td>
                                             <input type="text" name="ExerciseReps[@ex.Id]" value="@ex.Reps" class="form-control" style="width:100px" />
-                                        </td>
+                                         </td>
                                         <td>
                                             <input type="number" name="ExerciseRest[@ex.Id]" value="@ex.RestSeconds" class="form-control" style="width:100px" min="30" max="180" />
-                                        </td>
+                                         </td>
                                         <td>
                                             <button type="submit" name="action" value="delete_@ex.Id" class="btn btn-sm btn-danger" onclick="return confirm('حذف شود؟')">🗑️ حذف</button>
-                                        </td>
+                                         </td>
                                     </tr>
                                 }
                             </tbody>
@@ -131,20 +130,13 @@
                 }
             </div>
         </div>
-    </form>
 
-    <!-- فرم افزودن حرکت جدید (خارج از فرم اصلی) -->
-    <div class="card mb-4">
-        <div class="card-header bg-success text-white">
-            <h5>افزودن حرکت جدید</h5>
-        </div>
-        <div class="card-body">
-            <form method="post">
-                <input type="hidden" name="workoutDayId" value="@Model.WorkoutDayId" />
-                <input type="hidden" name="workoutPlanId" value="@Model.WorkoutPlanId" />
-                <input type="hidden" name="dayOfWeek" value="@Model.DayOfWeek" />
-                <input type="hidden" name="userId" value="@Model.ClientId" />
-
+        <!-- بخش افزودن حرکت جدید -->
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h5>افزودن حرکت جدید</h5>
+            </div>
+            <div class="card-body">
                 <div class="row">
                     <div class="col-md-5">
                         <label>حرکت جدید</label>
@@ -166,7 +158,7 @@
                     </div>
                     <div class="col-md-1">
                         <label>&nbsp;</label>
-                        <button type="submit" name="action" value="add" class="btn btn-primary w-100">+ افزودن</button>
+                        <button type="submit" name="action" value="add" class="btn btn-primary w-100" style="white-space: nowrap; font-size: 0.85rem; font-weight: bolder;">+</button>
                     </div>
                 </div>
                 <div class="row mt-2">
@@ -175,16 +167,46 @@
                         <textarea name="NewNotes" class="form-control" rows="1"></textarea>
                     </div>
                 </div>
-            </form>
+            </div>
         </div>
-    </div>
+
+        <!-- دکمه اتمام و بازگشت -->
+        <div class="text-center mt-4">
+            <button type="submit" name="action" value="finish" class="btn btn-success btn-lg px-5" style="font-size: 18px;">✅ اتمام و بازگشت</button>
+        </div>
+    </form>
 </div>
 
+<!-- المنت‌های مخفی برای ارسال پیام به Toast -->
 @if (TempData["Message"] != null)
 {
-    <div class="alert alert-success">@TempData["Message"]</div>
+    <input type="hidden" id="toastMessage" value="@TempData["Message"]" />
+    <input type="hidden" id="toastTitle" value="موفقیت ✅" />
+    <input type="hidden" id="toastIsError" value="false" />
 }
 @if (TempData["ErrorMessage"] != null)
 {
-    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+    <input type="hidden" id="toastMessage" value="@TempData["ErrorMessage"]" />
+    <input type="hidden" id="toastTitle" value="خطا ❌" />
+    <input type="hidden" id="toastIsError" value="true" />
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var messageElem = document.getElementById('toastMessage');
+            if (messageElem && messageElem.value) {
+                var titleElem = document.getElementById('toastTitle');
+                var isErrorElem = document.getElementById('toastIsError');
+                var title = titleElem ? titleElem.value : "اطلاعیه";
+                var isError = isErrorElem ? isErrorElem.value === 'true' : false;
+                
+                if (typeof showToast === 'function') {
+                    showToast(messageElem.value, title, isError);
+                } else {
+                    console.log('Toast: ' + messageElem.value);
+                }
+            }
+        });
+    </script>
 }

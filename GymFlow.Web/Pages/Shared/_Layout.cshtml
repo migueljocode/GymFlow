@@ -1,4 +1,4 @@
-﻿﻿<!DOCTYPE html>
+﻿﻿﻿﻿<!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="utf-8" />
@@ -7,7 +7,12 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <style>
-        /* چسبندگی فوتر با flexbox */
+        /* reset margins */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         html, body {
             height: 100%;
             margin: 0;
@@ -17,6 +22,7 @@
             display: flex;
             flex-direction: column;
             background-color: #f8f9fa;
+            padding-top: 0 !important; /* حذف پدینگ اضافی */
         }
         main {
             flex: 1 0 auto;
@@ -28,13 +34,17 @@
             padding: 1rem 0;
             margin-top: 2rem;
         }
-        /* TopBar چسبنده */
+        /* TopBar چسبنده - بدون فاصله اولیه */
         .top-bar {
             position: sticky;
             top: 0;
             z-index: 1000;
             background-color: #343a40;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            width: 100%;
+        }
+        /* Toast container */
+        .toast-container {
+            z-index: 1050;
         }
     </style>
 </head>
@@ -60,7 +70,6 @@
                         {
                             <li class="nav-item"><a class="nav-link" href="/">📊 داشبورد</a></li>
                             <li class="nav-item"><a class="nav-link" href="/Coach/Clients">👥 مشتریان من</a></li>
-                            @* <li class="nav-item"><a class="nav-link" href="/Reports">📄 گزارش‌ها</a></li> *@
                             <li class="nav-item"><a class="nav-link" href="/Profile">👤 پروفایل</a></li>
                         }
                         else
@@ -103,8 +112,66 @@
         </footer>
     }
 
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1050;">
+        <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="4000" style="min-width: 300px; max-width: 400px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
+            <div class="toast-header" style="background-color: #f8f9fa; border-bottom: 2px solid #dee2e6; border-radius: 12px 12px 0 0; padding: 12px 16px;">
+                <strong class="fs-5" id="toast-title" style="font-weight: bold; margin-left: auto;">اطلاعیه</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" style="margin-right: auto;"></button>
+            </div>
+            <div class="toast-body fs-6" id="toast-message" style="padding: 16px; font-size: 1rem; line-height: 1.6; word-wrap: break-word; white-space: normal; background-color: white; border-radius: 0 0 12px 12px; text-align: right;">
+                پیام
+            </div>
+        </div>
+    </div>
+
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    
+    <script>
+        function showToast(message, title = "اطلاعیه", isError = false) {
+            var toastElement = document.getElementById('liveToast');
+            var toastTitle = document.getElementById('toast-title');
+            var toastMessage = document.getElementById('toast-message');
+            
+            toastTitle.textContent = title;
+            toastMessage.textContent = message;
+            
+            // تنظیم استایل‌ها
+            toastTitle.style.fontSize = "1.1rem";
+            toastTitle.style.fontWeight = "bold";
+            toastMessage.style.fontSize = "1rem";
+            toastMessage.style.lineHeight = "1.6";
+            toastMessage.style.wordBreak = "break-word";
+            
+            if (isError) {
+                toastTitle.classList.add('text-danger');
+                toastMessage.style.color = "#842029";
+                toastMessage.style.backgroundColor = "#f8d7da";
+            } else {
+                toastTitle.classList.remove('text-danger');
+                toastMessage.style.color = "#0f5132";
+                toastMessage.style.backgroundColor = "#d1e7dd";
+            }
+            
+            var toast = new bootstrap.Toast(toastElement, {
+                autohide: true,
+                delay: 4000
+            });
+            toast.show();
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var messageElem = document.querySelector('[data-toast-message]');
+            var errorElem = document.querySelector('[data-toast-error]');
+            if (messageElem && messageElem.value) {
+                showToast(messageElem.value, "موفقیت ✅");
+            }
+            if (errorElem && errorElem.value) {
+                showToast(errorElem.value, "خطا ❌", true);
+            }
+        });
+    </script>
+    
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

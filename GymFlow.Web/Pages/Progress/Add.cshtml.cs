@@ -26,34 +26,30 @@ public class AddModel : PageModel
     [BindProperty]
     public string? Notes { get; set; }
     
-    public string? Message { get; set; }
-    public string? ErrorMessage { get; set; }
-    
     public async Task<IActionResult> OnPostAsync()
     {
-        // گرفتن userId از Session
         if (!int.TryParse(HttpContext.Session.GetString("UserId"), out var userId))
         {
-            ErrorMessage = "لطفاً مجدداً وارد شوید.";
+            TempData["ErrorMessage"] = "لطفاً مجدداً وارد شوید.";
             return RedirectToPage("/Login");
         }
 
         if (Weight < 20 || Weight > 300)
         {
-            ErrorMessage = "وزن باید بین ۲۰ تا ۳۰۰ کیلوگرم باشد";
-            return Page();
+            TempData["ErrorMessage"] = "وزن باید بین ۲۰ تا ۳۰۰ کیلوگرم باشد";
+            return RedirectToPage();
         }
         
         if (BodyFatPercentage.HasValue && (BodyFatPercentage < 3 || BodyFatPercentage > 50))
         {
-            ErrorMessage = "درصد چربی باید بین ۳ تا ۵۰ باشد";
-            return Page();
+            TempData["ErrorMessage"] = "درصد چربی باید بین ۳ تا ۵۰ باشد";
+            return RedirectToPage();
         }
         
         if (LogDate > DateOnly.FromDateTime(DateTime.Now))
         {
-            ErrorMessage = "تاریخ نمی‌تواند در آینده باشد";
-            return Page();
+            TempData["ErrorMessage"] = "تاریخ نمی‌تواند در آینده باشد";
+            return RedirectToPage();
         }
         
         var request = new CreateProgressLogRequest
@@ -64,27 +60,17 @@ public class AddModel : PageModel
             Notes = Notes
         };
         
-        var result = await _apiClient.PostAsync<ProgressLogResponse>($"api/progress/user/{userId}", request);
+        var (result, errorMessage) = await _apiClient.PostWithErrorAsync<ProgressLogResponse>($"api/progress/user/{userId}", request);
         
         if (result != null)
         {
-            Message = $"وزن {Weight} کیلوگرم با موفقیت ثبت شد! 📊";
-            Weight = 0;
-            BodyFatPercentage = null;
-            Notes = null;
-            return Page();
+            TempData["Message"] = $"✅ وزن {Weight} کیلوگرم با موفقیت ثبت شد! 📊";
+            return RedirectToPage("/Progress/Index");
         }
         
-        ErrorMessage = "خطا در ثبت وزن. لطفاً دوباره تلاش کنید.";
-        return Page();
+        TempData["ErrorMessage"] = errorMessage ?? "❌ خطا در ثبت وزن. لطفاً دوباره تلاش کنید.";
+        return RedirectToPage();
     }
-}
-
-public class UserDto
-{
-    public int Id { get; set; }
-    public string FirstName { get; set; } = string.Empty;
-    public string LastName { get; set; } = string.Empty;
 }
 
 public class ProgressLogResponse

@@ -5,19 +5,9 @@
 }
 
 <div class="container">
-        @if (Model.IsCoach && !string.IsNullOrEmpty(Request.Query["userId"]))
-        {
-            <div class="mb-3">
-                <a href="/Coach/Clients" class="btn btn-secondary">← بازگشت به لیست مشتریان</a>
-            </div>
-        }
-
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>📊 تاریخچه وزن</h2>
-        @if (!Model.IsCoach)
-        {
-            <a href="/Progress/Add" class="btn btn-primary">+ ثبت وزن جدید</a>
-        }
+        <a href="/Progress/Add" class="btn btn-primary">+ ثبت وزن جدید</a>
     </div>
 
     @if (!Model.WeightHistory.Any())
@@ -92,28 +82,61 @@
     }
 </div>
 
+<!-- المنت‌های مخفی برای نمایش Toast -->
+@if (TempData["Message"] != null)
+{
+    <input type="hidden" id="toastMessage" value="@TempData["Message"]" />
+    <input type="hidden" id="toastTitle" value="موفقیت ✅" />
+    <input type="hidden" id="toastIsError" value="false" />
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <input type="hidden" id="toastMessage" value="@TempData["ErrorMessage"]" />
+    <input type="hidden" id="toastTitle" value="خطا ❌" />
+    <input type="hidden" id="toastIsError" value="true" />
+}
+
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    @if (Model.WeightHistory.Any())
+    {
+        <script>
+            const ctx = document.getElementById('weightChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [@Html.Raw(string.Join(",", Model.WeightHistory.Select(w => $"'{w.LogDate.ToString("yyyy/MM/dd")}'")))],
+                    datasets: [{
+                        label: 'وزن (kg)',
+                        data: [@string.Join(",", Model.WeightHistory.Select(w => w.Weight))],
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        tension: 0.1,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: { callbacks: { label: (ctx) => `${ctx.raw} kg` } }
+                    }
+                }
+            });
+        </script>
+    }
+    
     <script>
-        const ctx = document.getElementById('weightChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: [@Html.Raw(string.Join(",", Model.WeightHistory.Select(w => $"'{w.LogDate.ToString("yyyy/MM/dd")}'")))],
-                datasets: [{
-                    label: 'وزن (kg)',
-                    data: [@string.Join(",", Model.WeightHistory.Select(w => w.Weight))],
-                    borderColor: 'rgb(75, 192, 192)',
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    tension: 0.1,
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { position: 'top' },
-                    tooltip: { callbacks: { label: (ctx) => `${ctx.raw} kg` } }
+        document.addEventListener('DOMContentLoaded', function() {
+            var messageElem = document.getElementById('toastMessage');
+            if (messageElem && messageElem.value) {
+                var titleElem = document.getElementById('toastTitle');
+                var isErrorElem = document.getElementById('toastIsError');
+                var title = titleElem ? titleElem.value : "اطلاعیه";
+                var isError = isErrorElem ? isErrorElem.value === 'true' : false;
+                
+                if (typeof showToast === 'function') {
+                    showToast(messageElem.value, title, isError);
                 }
             }
         });

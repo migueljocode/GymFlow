@@ -13,31 +13,35 @@ public class IndexModel : BasePageModel
     }
 
     public List<WorkoutPlanListDto> WorkoutPlans { get; set; } = new();
-    public int? ClientId { get; set; }   // برای مربی، id مشتری جاری
+    public bool IsViewingOwnPlans { get; set; } = true;
+    public int? ClientId { get; set; }
 
     public async Task<IActionResult> OnGetAsync(int? userId = null)
     {
-        if (IsCoach)
-        {
-            // مربی حتماً باید userId یک مشتری را دریافت کند
-            if (!userId.HasValue || userId.Value == 0)
-                return RedirectToPage("/Coach/Clients");
+        int targetUserId;
+        bool isViewingOwn;
 
+        if (IsCoach && userId.HasValue && userId.Value > 0)
+        {
+            targetUserId = userId.Value;
+            isViewingOwn = false;
             ClientId = userId.Value;
-            WorkoutPlans = await _apiClient.GetAsync<List<WorkoutPlanListDto>>($"api/workoutplans/user/{ClientId}") ?? new();
-            return Page();
         }
-        else // عضو عادی
+        else
         {
-            if (!int.TryParse(HttpContext.Session.GetString("UserId"), out var currentUserId))
+            if (!int.TryParse(HttpContext.Session.GetString("UserId"), out targetUserId))
                 return RedirectToPage("/Login");
-
-            WorkoutPlans = await _apiClient.GetAsync<List<WorkoutPlanListDto>>($"api/workoutplans/user/{currentUserId}") ?? new();
-            return Page();
+            isViewingOwn = true;
+            ClientId = null;
         }
+
+        IsViewingOwnPlans = isViewingOwn;
+        WorkoutPlans = await _apiClient.GetAsync<List<WorkoutPlanListDto>>($"api/workoutplans/user/{targetUserId}") ?? new();
+        return Page();
     }
 }
 
+// DTO مورد استفاده در Index (اگر خارج از این فایل تعریف نشده باشد)
 public class WorkoutPlanListDto
 {
     public int Id { get; set; }

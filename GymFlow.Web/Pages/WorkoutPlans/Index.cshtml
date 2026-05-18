@@ -5,28 +5,36 @@
 }
 
 <div class="container">
-    @if (Model.IsCoach)
+    @if (Model.IsCoach && !Model.IsViewingOwnPlans)
     {
-        <div class="mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0">📋 برنامه‌های تمرینی مشتری</h2>
             <a href="/Coach/Clients" class="btn btn-secondary">← بازگشت به لیست مشتریان</a>
         </div>
     }
-
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>📋 برنامه‌های تمرینی @(Model.IsCoach ? "مشتری" : "من")</h2>
-        @if (Model.IsCoach)
-        {
-            <a href="/WorkoutPlans/Create?userId=@Model.ClientId" class="btn btn-primary">+ برنامه جدید</a>
-        }
-    </div>
+    else
+    {
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div></div>
+            <h2 class="mb-0">📋 برنامه‌های تمرینی من</h2>
+            @if (Model.IsCoach && Model.IsViewingOwnPlans)
+            {
+                <a href="/WorkoutPlans/Create" class="btn btn-primary">+ برنامه جدید</a>
+            }
+            else
+            {
+                <div></div>
+            }
+        </div>
+    }
 
     @if (!Model.WorkoutPlans.Any())
     {
         <div class="alert alert-info text-center">
             <p>هیچ برنامه تمرینی یافت نشد.</p>
-            @if (Model.IsCoach)
+            @if (Model.IsCoach && Model.IsViewingOwnPlans)
             {
-                <a href="/WorkoutPlans/Create?userId=@Model.ClientId" class="btn btn-primary">ایجاد اولین برنامه</a>
+                <a href="/WorkoutPlans/Create" class="btn btn-primary">ایجاد اولین برنامه</a>
             }
         </div>
     }
@@ -57,7 +65,7 @@
                             {
                                 <p><strong>پایان:</strong> @plan.EndDate.Value.ToString("yyyy/MM/dd")</p>
                             }
-                            <a href="/WorkoutPlans/Details?id=@plan.Id&userId=@(Model.IsCoach ? Model.ClientId : "")" 
+                            <a href="/WorkoutPlans/Details?id=@plan.Id&userId=@(Model.ClientId)" 
                                class="btn btn-outline-primary mt-2">مشاهده جزئیات</a>
                         </div>
                     </div>
