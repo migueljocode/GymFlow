@@ -19,4 +19,5 @@ public class UserResponse
     public int TotalWorkoutSessions { get; set; }
     public DateTime CreatedAt { get; set; }
     public string? Username { get; set; }  // اضافه شد
+    public int? CoachId { get; set; }  // اضافه شد
 }

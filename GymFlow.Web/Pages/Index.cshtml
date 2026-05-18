@@ -4,28 +4,6 @@
     ViewData["Title"] = "داشبورد";
 }
 
-@functions {
-    string GetPersianMonthName(int month)
-    {
-        return month switch
-        {
-            1 => "فروردین",
-            2 => "اردیبهشت",
-            3 => "خرداد",
-            4 => "تیر",
-            5 => "مرداد",
-            6 => "شهریور",
-            7 => "مهر",
-            8 => "آبان",
-            9 => "آذر",
-            10 => "دی",
-            11 => "بهمن",
-            12 => "اسفند",
-            _ => ""
-        };
-    }
-}
-
 <div class="container">
     <!-- خوش آمدید با نقش -->
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -49,10 +27,50 @@
             {
                 <div class="card shadow-sm mb-4">
                     <div class="card-header bg-primary text-white">
-                        <h4 class="mb-0">📊 خلاصه وضعیت</h4>
+                        <h4 class="mb-0">📊 خلاصه وضعیت مربی</h4>
                     </div>
-                    <div class="card-body text-center">
-                        <p class="text-muted">آمار مخصوص مربی به زودی اضافه خواهد شد.</p>
+                    <div class="card-body">
+                        @if (Model.CoachStats != null)
+                        {
+                            <div class="row text-center">
+                                <div class="col-md-3 col-6 mb-3">
+                                    <div class="card bg-success text-white stats-card">
+                                        <div class="card-body">
+                                            <h3>@Model.CoachStats.TotalClients</h3>
+                                            <p class="mb-0">تعداد مشتریان</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-6 mb-3">
+                                    <div class="card bg-info text-white stats-card">
+                                        <div class="card-body">
+                                            <h3>@Model.CoachStats.ActiveClients</h3>
+                                            <p class="mb-0">مشتریان فعال</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-6 mb-3">
+                                    <div class="card bg-warning text-white stats-card">
+                                        <div class="card-body">
+                                            <h3>@Model.CoachStats.TotalWorkoutsThisWeek</h3>
+                                            <p class="mb-0">تمرین این هفته</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-6 mb-3">
+                                    <div class="card bg-danger text-white stats-card">
+                                        <div class="card-body">
+                                            <h3>@Model.CoachStats.PlansCreated</h3>
+                                            <p class="mb-0">برنامه‌های ایجاد شده</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-info text-center">در حال بارگذاری آمار...</div>
+                        }
                     </div>
                 </div>
             }
@@ -102,34 +120,90 @@
                         }
                         else
                         {
-                            <div class="alert alert-info text-center">
-                                <p class="mb-0">در حال بارگذاری اطلاعات...</p>
-                            </div>
+                            <div class="alert alert-info text-center">در حال بارگذاری اطلاعات...</div>
                         }
                     </div>
                 </div>
             }
 
-            <!-- ========== کارت نمودار روند وزنی ========== -->
-            <!-- این بخش برای هر دو نقش یکسان است (مربی هم می‌تواند وزن خود را ببیند) -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">📈 روند وزنی</h4>
-                </div>
-                <div class="card-body">
-                    @if (Model.WeightHistory != null && Model.WeightHistory.Any())
-                    {
-                        <canvas id="weightChart" height="250"></canvas>
-                    }
-                    else
-                    {
-                        <div class="alert alert-info text-center">
-                            <p class="mb-0">هنوز وزنی ثبت نشده است. اولین وزن خود را ثبت کنید! 📊</p>
-                            <a href="/Progress/Add" class="btn btn-primary mt-2">ثبت وزن جدید</a>
+            <!-- ========== کارت روند وزنی ========== -->
+           <!-- ========== کارت روند وزنی ========== -->
+            @if (Model.WeightHistory != null && Model.WeightHistory.Any())
+            {
+                var firstWeight = Model.WeightHistory.First().Weight;
+                var lastWeight = Model.WeightHistory.Last().Weight;
+                var totalChange = lastWeight - firstWeight;
+                var changeClass = totalChange < 0 ? "text-success" : totalChange > 0 ? "text-danger" : "text-muted";
+                var changeSign = totalChange > 0 ? "+" : "";
+                
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">📈 روند وزنی</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered text-center">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>تاریخ</th>
+                                        <th>وزن (kg)</th>
+                                        <th>درصد چربی</th>
+                                        <th>تغییر نسبت به قبلی</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @for (int i = 0; i < Model.WeightHistory.Count; i++)
+                                    {
+                                        var item = Model.WeightHistory[i];
+                                        var change = i > 0 ? item.Weight - Model.WeightHistory[i - 1].Weight : 0;
+                                        var changeClassRow = change < 0 ? "text-success" : change > 0 ? "text-danger" : "text-muted";
+                                        var changeSignRow = change > 0 ? "+" : "";
+                                        <tr>
+                                            <td>@item.Date.ToString("yyyy/MM/dd")</td>
+                                            <td><strong>@item.Weight.ToString("F1")</strong></td>
+                                            <td>@(item.BodyFatPercentage?.ToString("F1") ?? "-")</td>
+                                            <td class="@changeClassRow">
+                                                @if (i > 0)
+                                                {
+                                                    @($"{changeSignRow}{change:F1}")
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">-</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
                         </div>
-                    }
+                        <div class="alert alert-info mt-2">
+                            <strong>📊 خلاصه کلی:</strong><br />
+                            از <strong>@firstWeight.ToString("F1") kg</strong> به <strong>@lastWeight.ToString("F1") kg</strong><br />
+                            <span class="@changeClass">
+                                تغییر کل: @changeSign@(totalChange.ToString("F1")) kg
+                            </span>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            }
+            else
+            {
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">📈 روند وزنی</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info text-center">
+                            <p class="mb-0">هنوز وزنی ثبت نشده است.</p>
+                            @if (!Model.IsCoach)
+                            {
+                                <a href="/Progress/Add" class="btn btn-primary mt-2">ثبت وزن جدید</a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
 
             <!-- ========== کارت فعالیت‌های اخیر ========== -->
             <div class="card shadow-sm">
@@ -137,13 +211,7 @@
                     <h4 class="mb-0">🔄 فعالیت‌های اخیر</h4>
                 </div>
                 <div class="card-body" style="max-height: 400px; overflow-y: auto;">
-                    @if (Model.IsCoach)
-                    {
-                        <div class="alert alert-secondary text-center">
-                            <p class="mb-0">فعالیت‌های مربی به زودی در اینجا نمایش داده می‌شود.</p>
-                        </div>
-                    }
-                    else if (Model.RecentActivities != null && Model.RecentActivities.Any())
+                    @if (Model.RecentActivities != null && Model.RecentActivities.Any())
                     {
                         @foreach (var activity in Model.RecentActivities)
                         {
@@ -152,7 +220,13 @@
                                     <span class="badge bg-secondary p-2 fs-5">@activity.Icon</span>
                                 </div>
                                 <div>
-                                    <h6 class="mb-0">@activity.Title</h6>
+                                    <h6 class="mb-0">
+                                        @activity.Title
+                                        @if (!string.IsNullOrEmpty(activity.ClientName))
+                                        {
+                                            <span class="text-muted small">- @activity.ClientName</span>
+                                        }
+                                    </h6>
                                     <small class="text-muted">@activity.Description</small><br />
                                     <small class="text-muted">@activity.Timestamp.ToString("yyyy/MM/dd HH:mm")</small>
                                 </div>
@@ -162,8 +236,11 @@
                     else
                     {
                         <div class="alert alert-info text-center">
-                            <p class="mb-0">هنوز فعالیتی ثبت نشده است. اولین تمرین خود را ثبت کنید! 💪</p>
-                            <a href="/Workout/Log" class="btn btn-primary mt-2">ثبت تمرین</a>
+                            <p class="mb-0">هنوز فعالیتی ثبت نشده است.</p>
+                            @if (!Model.IsCoach)
+                            {
+                                <a href="/Workout/Log" class="btn btn-primary mt-2">ثبت تمرین</a>
+                            }
                         </div>
                     }
                 </div>
@@ -246,6 +323,7 @@
                     <div class="d-grid gap-2">
                         @if (Model.IsCoach)
                         {
+                            <a href="/Coach/Clients" class="btn btn-outline-primary">👥 مشاهده مشتریان</a>
                             <a href="/Reports" class="btn btn-outline-primary">📄 دانلود گزارش PDF</a>
                         }
                         else
@@ -262,49 +340,34 @@
     </div>
 </div>
 
+<!-- المنت‌های مخفی برای نمایش Toast -->
+@if (TempData["Message"] != null)
+{
+    <input type="hidden" id="toastMessage" value="@TempData["Message"]" />
+    <input type="hidden" id="toastTitle" value="موفقیت ✅" />
+    <input type="hidden" id="toastIsError" value="false" />
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <input type="hidden" id="toastMessage" value="@TempData["ErrorMessage"]" />
+    <input type="hidden" id="toastTitle" value="خطا ❌" />
+    <input type="hidden" id="toastIsError" value="true" />
+}
+
 @section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    @if (Model.WeightHistory != null && Model.WeightHistory.Any())
-    {
-        <script>
-            const ctx = document.getElementById('weightChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: [@Html.Raw(string.Join(",", Model.WeightHistory.Select(w => $"'{w.Date.ToString("yyyy/MM/dd")}'")))],
-                    datasets: [{
-                        label: 'وزن (کیلوگرم)',
-                        data: [@string.Join(",", Model.WeightHistory.Select(w => w.Weight))],
-                        borderColor: 'rgb(75, 192, 192)',
-                        backgroundColor: 'rgba(75, 192, 192, 0.1)',
-                        borderWidth: 2,
-                        tension: 0.1,
-                        fill: true,
-                        pointBackgroundColor: 'rgb(75, 192, 192)',
-                        pointBorderColor: '#fff',
-                        pointRadius: 4,
-                        pointHoverRadius: 6
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                        legend: { position: 'top' },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return `${context.raw} کیلوگرم`;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: { title: { display: true, text: 'وزن (کیلوگرم)' } },
-                        x: { title: { display: true, text: 'تاریخ' } }
-                    }
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var messageElem = document.getElementById('toastMessage');
+            if (messageElem && messageElem.value) {
+                var titleElem = document.getElementById('toastTitle');
+                var isErrorElem = document.getElementById('toastIsError');
+                var title = titleElem ? titleElem.value : "اطلاعیه";
+                var isError = isErrorElem ? isErrorElem.value === 'true' : false;
+                
+                if (typeof showToast === 'function') {
+                    showToast(messageElem.value, title, isError);
                 }
-            });
-        </script>
-    }
+            }
+        });
+    </script>
 }

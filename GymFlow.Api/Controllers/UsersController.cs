@@ -43,7 +43,33 @@ public class UsersController : ApiControllerBase
             return NotFoundResponse("User", id);
         
         var response = UserMappingHelper.ToUserResponse(user);
-        return Success<UserResponse>(response);
+        
+        // اضافه کردن CoachId به پاسخ
+        var result = new
+        {
+            response.Id,
+            response.FirstName,
+            response.LastName,
+            response.FullName,
+            response.Email,
+            response.Phone,
+            response.Gender,
+            response.Age,
+            response.Weight,
+            response.Height,
+            response.BodyType,
+            response.Goal,
+            response.EstimatedCaloriesIntake,
+            response.IsCompetitive,
+            response.WorkoutPlansCount,
+            response.ProgressLogsCount,
+            response.TotalWorkoutSessions,
+            response.CreatedAt,
+            response.Username,
+            CoachId = user.CoachId  // اضافه شد
+        };
+        
+        return Success(result);
     }
 
     [HttpGet("email/{email}")]
@@ -88,7 +114,23 @@ public class UsersController : ApiControllerBase
         if (user is null)
             return NotFoundResponse("User", id);
         
+        // لاگ برای دیباگ
+        Console.WriteLine($"[DEBUG] UpdateAsync - Received CoachId: {request.CoachId}");
+        
         UserMappingHelper.UpdateUserFromRequest(user, request);
+        
+        // اگر CoachId در ریکوئست وجود دارد (حتی اگر null باشد)
+        if (request.CoachId.HasValue)
+        {
+            user.CoachId = request.CoachId.Value;
+            Console.WriteLine($"[DEBUG] Setting CoachId to {request.CoachId.Value}");
+        }
+        else
+        {
+            // اگر CoachId در ریکوئست null است، یعنی کاربر می‌خواهد مربی را حذف کند
+            user.CoachId = null;
+            Console.WriteLine($"[DEBUG] Setting CoachId to null");
+        }
         
         var updated = await _userRepository.UpdateAsync(user);
         var response = UserMappingHelper.ToUserResponse(updated);

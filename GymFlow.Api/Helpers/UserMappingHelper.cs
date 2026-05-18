@@ -34,7 +34,8 @@ public static class UserMappingHelper
             ProgressLogsCount = user.ProgressLogs?.Count ?? 0,
             TotalWorkoutSessions = 0,
             CreatedAt = user.CreatedAt,
-            Username = user.Person.Username   // اضافه شد
+            Username = user.Person.Username,   // اضافه شد
+            CoachId = user.CoachId
         };
     }
     
@@ -86,5 +87,6 @@ public static class UserMappingHelper
         if (request.Goal.HasValue) user.Goal = request.Goal.Value;
         if (request.EstimatedCaloriesIntake.HasValue) user.EstimatedCaloriesIntake = request.EstimatedCaloriesIntake;
         if (request.IsCompetitive.HasValue) user.IsCompetitive = request.IsCompetitive.Value;
+        if (request.CoachId.HasValue) user.CoachId = request.CoachId.Value;  // ← اضافه شد
     }
 }

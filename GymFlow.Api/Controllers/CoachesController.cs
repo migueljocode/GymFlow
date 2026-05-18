@@ -128,4 +128,19 @@ public class CoachesController : ApiControllerBase
 
         return Success<object>(null, "Profile updated successfully");
     }
+
+    [HttpGet("list")]
+    public async Task<IActionResult> GetAllCoachesAsync()
+    {
+        var coaches = await _coachRepository.GetAllCoachesWithPersonAsync();
+        
+        var result = coaches.Select(c => new
+        {
+            c.Id,
+            FullName = c.Person == null ? "Unknown" : $"{c.Person.FirstName} {c.Person.LastName}",
+            Specialization = c.Specialization
+        });
+        
+        return Success(result);
+    }
 }

@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using GymFlow.Web.Services;
-using GymFlow.Web.Models;
 
 namespace GymFlow.Web.Pages;
 
@@ -14,6 +13,7 @@ public class IndexModel : PageModel
     }
 
     public QuickStatsDto? Stats { get; set; }
+    public CoachStatsDto? CoachStats { get; set; }
     public WorkoutDayDetailDto? TodayWorkout { get; set; }
     public List<WeightPointDto>? WeightHistory { get; set; }
     public List<AchievementDto>? Achievements { get; set; }
@@ -39,17 +39,14 @@ public class IndexModel : PageModel
 
         if (IsCoach)
         {
-            // برای مربی فقط وزن فعلی و روند وزنی را بارگیری می‌کنیم
+            // آمار مخصوص مربی
+            CoachStats = await _apiClient.GetAsync<CoachStatsDto>($"api/statistics/coach/{userId}/dashboard");
             await LoadWeightHistoryAsync(userId);
-            // سایر بخش‌ها را خالی نگه می‌داریم (یا اصلاً بارگیری نمی‌کنیم)
-            Stats = null;
-            TodayWorkout = null;
-            Achievements = null;
-            RecentActivities = null;
-            ActivePlanName = null;
+            RecentActivities = await _apiClient.GetAsync<List<RecentActivityDto>>($"api/statistics/coach/{userId}/recent-activities");
         }
         else
         {
+            // آمار مخصوص کاربر عادی
             Stats = await _apiClient.GetAsync<QuickStatsDto>($"api/statistics/user/{userId}/quick-stats");
             await LoadTodayWorkoutAsync(userId);
             await LoadWeightHistoryAsync(userId);
@@ -91,8 +88,9 @@ public class IndexModel : PageModel
         var logs = await _apiClient.GetAsync<List<ProgressLogDto>>($"api/progress/user/{userId}");
         if (logs != null && logs.Any())
         {
+            // مرتب‌سازی صعودی (از قدیم به جدید)
             WeightHistory = logs
-                .OrderBy(l => l.LogDate)
+                .OrderBy(l => l.LogDate)  // ← این خط مهم است (نه OrderByDescending)
                 .Select(l => new WeightPointDto
                 {
                     Date = l.LogDate,
@@ -225,7 +223,7 @@ public class IndexModel : PageModel
     }
 }
 
-// ========== DTOهای داخلی ==========
+// ========== DTOها ==========
 
 public class QuickStatsDto
 {
@@ -233,6 +231,16 @@ public class QuickStatsDto
     public int CurrentStreak { get; set; }
     public int ConsistencyScore { get; set; }
     public float CurrentWeight { get; set; }
+}
+
+public class CoachStatsDto
+{
+    public int TotalClients { get; set; }
+    public int ActiveClients { get; set; }
+    public int TotalWorkoutsThisWeek { get; set; }
+    public int TotalWorkoutsThisMonth { get; set; }
+    public float AverageClientWeight { get; set; }
+    public int PlansCreated { get; set; }
 }
 
 public class ActivePlanDto
@@ -281,6 +289,7 @@ public class RecentActivityDto
     public DateTime Timestamp { get; set; }
     public string Icon { get; set; } = string.Empty;
     public string Type { get; set; } = string.Empty;
+    public string? ClientName { get; set; }
 }
 
 public class ProgressLogDto

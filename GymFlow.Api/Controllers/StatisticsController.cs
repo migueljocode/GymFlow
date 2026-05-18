@@ -15,19 +15,22 @@ public class StatisticsController : ApiControllerBase
     private readonly IWorkoutSessionRepository _workoutSessionRepository;
     private readonly IExerciseRepository _exerciseRepository;
     private readonly IProgressLogRepository _progressLogRepository;
+    private readonly ICoachRepository _coachRepository;
 
     public StatisticsController(
         IUserRepository userRepository,
         IWorkoutPlanRepository workoutPlanRepository,
         IWorkoutSessionRepository workoutSessionRepository,
         IExerciseRepository exerciseRepository,
-        IProgressLogRepository progressLogRepository)
+        IProgressLogRepository progressLogRepository,
+        ICoachRepository coachRepository)
     {
         _userRepository = userRepository;
         _workoutPlanRepository = workoutPlanRepository;
         _workoutSessionRepository = workoutSessionRepository;
         _exerciseRepository = exerciseRepository;
         _progressLogRepository = progressLogRepository;
+        _coachRepository = coachRepository;
     }
 
     [HttpGet("dashboard")]
@@ -224,5 +227,135 @@ public class StatisticsController : ApiControllerBase
         }
         
         return streak;
+    }
+
+    [HttpGet("coach/{userId:int}/dashboard")]
+    public async Task<IActionResult> GetCoachDashboardAsync(int userId)
+    {
+        try
+        {
+            // پیدا کردن Coach بر اساس UserId
+            var coach = await _coachRepository.GetByUserIdAsync(userId);
+            if (coach == null)
+                return NotFoundResponse("Coach", userId);
+
+            // دریافت لیست مشتریان این مربی
+            var clients = await _userRepository.FindAsync(u => u.CoachId == coach.Id);
+            var clientsList = clients.ToList();
+            
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var startOfWeek = today.AddDays(-(int)today.DayOfWeek);
+            var startOfMonth = new DateOnly(today.Year, today.Month, 1);
+
+            int totalWorkoutsThisWeek = 0;
+            int totalWorkoutsThisMonth = 0;
+
+            foreach (var client in clientsList)
+            {
+                var weekSessions = await _workoutSessionRepository.GetSessionsByDateRangeAsync(client.Id, startOfWeek, today);
+                totalWorkoutsThisWeek += weekSessions.Count();
+                
+                var monthSessions = await _workoutSessionRepository.GetSessionsByDateRangeAsync(client.Id, startOfMonth, today);
+                totalWorkoutsThisMonth += monthSessions.Count();
+            }
+
+            float averageWeight = clientsList
+                .Where(c => c.Person?.Weight != null)
+                .Select(c => c.Person!.Weight!.Value)
+                .DefaultIfEmpty(0)
+                .Average();
+
+            var stats = new
+            {
+                TotalClients = clientsList.Count,
+                ActiveClients = clientsList.Count(u => u.WorkoutPlans != null && u.WorkoutPlans.Any(p => p.IsActive)),
+                TotalWorkoutsThisWeek = totalWorkoutsThisWeek,
+                TotalWorkoutsThisMonth = totalWorkoutsThisMonth,
+                AverageClientWeight = averageWeight,
+                PlansCreated = clientsList.Sum(u => u.WorkoutPlans?.Count ?? 0)
+            };
+
+            return Success(stats);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ERROR] GetCoachDashboardAsync: {ex.Message}");
+            return Error($"خطا در دریافت آمار مربی: {ex.Message}", 500);
+        }
+    }
+
+    [HttpGet("coach/{userId:int}/recent-activities")]
+    public async Task<IActionResult> GetCoachRecentActivitiesAsync(int userId)
+    {
+        try
+        {
+            var coach = await _coachRepository.GetByUserIdAsync(userId);
+            if (coach == null)
+                return NotFoundResponse("Coach", userId);
+
+            // دریافت لیست مشتریان به همراه Person
+            var clients = await _userRepository.GetAllUsersWithPersonAsync();
+            var coachClients = clients.Where(u => u.CoachId == coach.Id).ToList();
+            
+            var activities = new List<object>();
+
+            foreach (var client in coachClients.Take(10))
+            {
+
+                Console.WriteLine($"[DEBUG] Client ID: {client.Id}, Person: {client.Person?.FirstName} {client.Person?.LastName}");
+                
+                // گرفتن نام کامل مشتری
+                var clientName = client.Person != null 
+                    ? $"{client.Person.FirstName} {client.Person.LastName}" 
+                    : "مشتری ناشناس";
+                
+                // آخرین جلسه تمرینی مشتری
+                var latestSession = await _workoutSessionRepository.GetLatestSessionAsync(client.Id);
+                if (latestSession != null)
+                {
+                    activities.Add(new
+                    {
+                        Type = "workout",
+                        ClientName = clientName,
+                        Title = "تمرین جدید",
+                        Description = $"{latestSession.ActualDurationMinutes} دقیقه - {latestSession.Feeling ?? "بدون توضیح"}",
+                        Timestamp = latestSession.CreatedAt,
+                        Icon = "💪"
+                    });
+                }
+                
+                // آخرین ثبت وزن مشتری
+                var latestLog = await _progressLogRepository.GetLatestProgressLogAsync(client.Id);
+                if (latestLog != null)
+                {
+                    activities.Add(new
+                    {
+                        Type = "weight",
+                        ClientName = clientName,
+                        Title = "وزن جدید",
+                        Description = $"وزن: {latestLog.Weight} کیلوگرم",
+                        Timestamp = latestLog.CreatedAt,
+                        Icon = "⚖️"
+                    });
+                }
+            }
+
+            // مرتب‌سازی بر اساس زمان و گرفتن ۱۰ مورد آخر
+            var result = activities
+                .OrderByDescending(a => 
+                {
+                    var timestampProp = a.GetType().GetProperty("Timestamp");
+                    return timestampProp != null ? (DateTime)timestampProp.GetValue(a)! : DateTime.MinValue;
+                })
+                .Take(10)
+                .ToList();
+
+            return Success(result);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ERROR] GetCoachRecentActivitiesAsync: {ex.Message}");
+            return Error($"خطا در دریافت فعالیت‌ها: {ex.Message}", 500);
+        }
     }
 }

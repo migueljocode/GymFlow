@@ -1,5 +1,3 @@
-namespace GymFlow.Models.DTOs.Requests;
-
 public class UpdateUserRequest
 {
     [MaxLength(50)]
@@ -34,4 +32,6 @@ public class UpdateUserRequest
     public int? EstimatedCaloriesIntake { get; set; }
     
     public bool? IsCompetitive { get; set; }
+    
+    public int? CoachId { get; set; }  // ← اضافه شد
 }

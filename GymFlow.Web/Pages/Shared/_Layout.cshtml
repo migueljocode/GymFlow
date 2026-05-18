@@ -1,4 +1,4 @@
-﻿﻿﻿﻿<!DOCTYPE html>
+﻿﻿<!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="utf-8" />
@@ -7,26 +7,39 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <style>
-        /* reset margins */
+        /* reset margins and paddings */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+        
         html, body {
             height: 100%;
             margin: 0;
             padding: 0;
         }
+        
         body {
             display: flex;
             flex-direction: column;
             background-color: #f8f9fa;
-            padding-top: 0 !important; /* حذف پدینگ اضافی */
         }
+        
+        /* فضای خالی برای navbar ثابت */
+        body.has-navbar {
+            padding-top: 76px;
+        }
+        
         main {
             flex: 1 0 auto;
         }
+        
+        /* اطمینان از اینکه محتوای داخل main فاصله مناسب دارد */
+        body.has-navbar main .container {
+            margin-top: 0;
+        }
+        
         footer {
             flex-shrink: 0;
             background-color: #e9ecef;
@@ -34,17 +47,38 @@
             padding: 1rem 0;
             margin-top: 2rem;
         }
-        /* TopBar چسبنده - بدون فاصله اولیه */
+        
+        /* Navbar ثابت در بالا */
         .top-bar {
-            position: sticky;
+            position: fixed;
             top: 0;
+            left: 0;
+            right: 0;
             z-index: 1000;
             background-color: #343a40;
             width: 100%;
+            margin: 0;
+            padding: 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
+        
+        .top-bar .container {
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+        }
+        
         /* Toast container */
         .toast-container {
             z-index: 1050;
+        }
+        
+        /* کارت‌های آمار */
+        .stats-card {
+            transition: transform 0.2s;
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-5px);
         }
     </style>
 </head>
@@ -54,9 +88,11 @@
         var isCoach = userRole == "Coach";
         var username = Context.Session.GetString("Username") ?? "کاربر";
         var isLoginPage = Context.Request.Path.StartsWithSegments("/Login");
+        var isRegisterPage = Context.Request.Path.StartsWithSegments("/SignUp");
+        var hideNavbar = isLoginPage || isRegisterPage;
     }
 
-    @if (!isLoginPage)
+    @if (!hideNavbar)
     {
         <nav class="navbar navbar-expand-lg navbar-dark top-bar">
             <div class="container">
@@ -99,11 +135,13 @@
         </nav>
     }
 
-    <main class="container mt-4">
-        @RenderBody()
+    <main>
+        <div class="container">
+            @RenderBody()
+        </div>
     </main>
 
-    @if (!isLoginPage)
+    @if (!hideNavbar)
     {
         <footer>
             <div class="container text-center">
@@ -115,7 +153,7 @@
     <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1050;">
         <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="4000" style="min-width: 300px; max-width: 400px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
             <div class="toast-header" style="background-color: #f8f9fa; border-bottom: 2px solid #dee2e6; border-radius: 12px 12px 0 0; padding: 12px 16px;">
-                <strong class="fs-5" id="toast-title" style="font-weight: bold; margin-left: auto;">اطلاعیه</strong>
+                <strong class="me-auto fs-5" id="toast-title" style="font-weight: bold; margin-left: auto;">اطلاعیه</strong>
                 <button type="button" class="btn-close" data-bs-dismiss="toast" style="margin-right: auto;"></button>
             </div>
             <div class="toast-body fs-6" id="toast-message" style="padding: 16px; font-size: 1rem; line-height: 1.6; word-wrap: break-word; white-space: normal; background-color: white; border-radius: 0 0 12px 12px; text-align: right;">
@@ -128,6 +166,14 @@
     <script src="~/js/site.js" asp-append-version="true"></script>
     
     <script>
+        // اضافه کردن کلاس has-navbar به body اگر navbar نمایش داده می‌شود
+        @if (!hideNavbar)
+        {
+            <text>
+            document.body.classList.add('has-navbar');
+            </text>
+        }
+        
         function showToast(message, title = "اطلاعیه", isError = false) {
             var toastElement = document.getElementById('liveToast');
             var toastTitle = document.getElementById('toast-title');
@@ -136,7 +182,6 @@
             toastTitle.textContent = title;
             toastMessage.textContent = message;
             
-            // تنظیم استایل‌ها
             toastTitle.style.fontSize = "1.1rem";
             toastTitle.style.fontWeight = "bold";
             toastMessage.style.fontSize = "1rem";
@@ -161,8 +206,8 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            var messageElem = document.querySelector('[data-toast-message]');
-            var errorElem = document.querySelector('[data-toast-error]');
+            var messageElem = document.getElementById('toastMessage');
+            var errorElem = document.getElementById('toastError');
             if (messageElem && messageElem.value) {
                 showToast(messageElem.value, "موفقیت ✅");
             }
