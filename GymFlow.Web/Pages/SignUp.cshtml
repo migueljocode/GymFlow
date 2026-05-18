@@ -1,0 +1,94 @@
+@page
+@model SignUpModel
+@{
+    ViewData["Title"] = "ثبت‌نام";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white text-center">
+                <h4 class="mb-0">✨ ثبت‌نام در GymFlow</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    <div class="mb-3">
+                        <label class="form-label">نام کاربری</label>
+                        <input type="text" class="form-control" asp-for="Username" required autofocus />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">رمز عبور</label>
+                        <input type="password" class="form-control" asp-for="Password" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">تکرار رمز عبور</label>
+                        <input type="password" class="form-control" asp-for="ConfirmPassword" required />
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">نام</label>
+                            <input type="text" class="form-control" asp-for="FirstName" required />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">نام خانوادگی</label>
+                            <input type="text" class="form-control" asp-for="LastName" required />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">ایمیل (اختیاری)</label>
+                        <input type="email" class="form-control" asp-for="Email" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">نقش</label>
+                        <select class="form-select" asp-for="Role">
+                            <option value="Member">💪 کاربر عادی</option>
+                            <option value="Coach">🔑 مربی</option>
+                        </select>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">✅ ثبت‌نام</button>
+                        <a href="/Login" class="btn btn-link">قبلاً حساب دارید؟ وارد شوید</a>
+                    </div>
+                </form>
+
+                <!-- المنت‌های مخفی برای نمایش Toast -->
+                @if (TempData["Message"] != null)
+                {
+                    <input type="hidden" id="toastMessage" value="@TempData["Message"]" />
+                    <input type="hidden" id="toastTitle" value="موفقیت ✅" />
+                    <input type="hidden" id="toastIsError" value="false" />
+                }
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <input type="hidden" id="toastMessage" value="@TempData["ErrorMessage"]" />
+                    <input type="hidden" id="toastTitle" value="خطا ❌" />
+                    <input type="hidden" id="toastIsError" value="true" />
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var messageElem = document.getElementById('toastMessage');
+            if (messageElem && messageElem.value) {
+                var titleElem = document.getElementById('toastTitle');
+                var isErrorElem = document.getElementById('toastIsError');
+                var title = titleElem ? titleElem.value : "اطلاعیه";
+                var isError = isErrorElem ? isErrorElem.value === 'true' : false;
+                
+                if (typeof showToast === 'function') {
+                    showToast(messageElem.value, title, isError);
+                }
+            }
+        });
+    </script>
+}

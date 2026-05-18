@@ -34,10 +34,42 @@
                     کاربر معمولی: <code>member</code> / <code>member123</code>
                 </div>
 
-                <div class="text-center mt-2">
-                    <small class="text-muted">📝 ثبت‌نام غیرفعال است. لطفاً با اطلاعات بالا وارد شوید.</small>
-                </div>
+               <div class="text-center mt-3">
+                    <a href="/SignUp" class="text-decoration-none">ثبت‌نام نکرده‌اید؟ همین الان ثبت‌نام کنید</a>
+               </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- المنت‌های مخفی برای نمایش Toast -->
+@if (TempData["Message"] != null)
+{
+    <input type="hidden" id="toastMessage" value="@TempData["Message"]" />
+    <input type="hidden" id="toastTitle" value="موفقیت ✅" />
+    <input type="hidden" id="toastIsError" value="false" />
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <input type="hidden" id="toastMessage" value="@TempData["ErrorMessage"]" />
+    <input type="hidden" id="toastTitle" value="خطا ❌" />
+    <input type="hidden" id="toastIsError" value="true" />
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var messageElem = document.getElementById('toastMessage');
+            if (messageElem && messageElem.value) {
+                var titleElem = document.getElementById('toastTitle');
+                var isErrorElem = document.getElementById('toastIsError');
+                var title = titleElem ? titleElem.value : "اطلاعیه";
+                var isError = isErrorElem ? isErrorElem.value === 'true' : false;
+                
+                if (typeof showToast === 'function') {
+                    showToast(messageElem.value, title, isError);
+                }
+            }
+        });
+    </script>
+}

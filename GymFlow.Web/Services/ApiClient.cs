@@ -145,11 +145,12 @@ public class ApiClient
             var response = await client.PostAsync(fullUrl, content);
             var responseJson = await response.Content.ReadAsStringAsync();
             
+            _logger.LogInformation($"Response: {response.StatusCode} - {responseJson}");
+            
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogError($"API returned {response.StatusCode}: {responseJson}");
                 
-                // تلاش برای استخراج پیام خطا از پاسخ استاندارد API
                 try
                 {
                     var errorResponse = JsonSerializer.Deserialize<ApiErrorResponse>(responseJson, new JsonSerializerOptions
@@ -169,6 +170,7 @@ public class ApiClient
                 PropertyNameCaseInsensitive = true
             });
 
+            // اگر پاسخ موفق بود و Data نداشت، باز هم موفق محسوب می‌شود
             if (result != null && result.Success)
             {
                 return (result.Data, null);
