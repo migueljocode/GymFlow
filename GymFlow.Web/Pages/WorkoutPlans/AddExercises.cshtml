@@ -116,7 +116,7 @@
                                             <input type="number" name="ExerciseRest[@ex.Id]" value="@ex.RestSeconds" class="form-control" style="width:100px" min="30" max="180" />
                                          </td>
                                         <td>
-                                            <button type="submit" name="action" value="delete_@ex.Id" class="btn btn-sm btn-danger" onclick="return confirm('حذف شود؟')">🗑️ حذف</button>
+                                            <button type="submit" name="action" value="delete_@ex.Id" class="btn btn-sm btn-danger" onclick="return confirm('حذف شود؟')"><i class="fas fa-trash-alt"></i> حذف</button>
                                          </td>
                                     </tr>
                                 }
@@ -172,7 +172,7 @@
 
         <!-- دکمه اتمام و بازگشت -->
         <div class="text-center mt-4">
-            <button type="submit" name="action" value="finish" class="btn btn-success btn-lg px-5" style="font-size: 18px;">✅ اتمام و بازگشت</button>
+            <button type="submit" name="action" value="finish" class="btn btn-success btn-lg px-5" style="font-size: 18px;"><i class="fas fa-check-circle"></i> اتمام و بازگشت</button>
         </div>
     </form>
 </div>

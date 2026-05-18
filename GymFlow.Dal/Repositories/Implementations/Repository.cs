@@ -1,5 +1,3 @@
-using Bogus.DataSets;
-
 namespace GymFlow.Dal.Repositories.Implementations;
 
 /// <summary>

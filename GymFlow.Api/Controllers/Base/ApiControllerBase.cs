@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
-
 namespace GymFlow.Api.Controllers.Base;
 
 /// <summary>

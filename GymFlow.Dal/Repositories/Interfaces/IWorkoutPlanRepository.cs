@@ -1,5 +1,3 @@
-using GymFlow.Models.Entities;
-
 namespace GymFlow.Dal.Repositories.Interfaces;
 
 /// <summary>

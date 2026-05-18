@@ -1,6 +1,3 @@
-using GymFlow.Models.Base;
-using GymFlow.Models.Enums;
-
 namespace GymFlow.Models.Entities;
 
 public class User : BaseEntity

@@ -1,10 +1,3 @@
-using System.Text.Json;
-using GymFlow.Api.Controllers.Base;
-using GymFlow.Tests.Api.Controllers.TestBase;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Controllers;
-
 namespace GymFlow.Tests.Api.Controllers.Base;
 
 public class ApiControllerBaseTest : ControllerTestFixture

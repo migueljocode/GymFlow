@@ -1,6 +1,3 @@
-using System.Text;
-using GymFlow.Services.Interfaces;
-
 namespace GymFlow.Api.Middleware;
 
 public class BasicAuthMiddleware

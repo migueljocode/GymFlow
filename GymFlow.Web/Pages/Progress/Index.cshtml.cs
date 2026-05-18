@@ -1,6 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
-using GymFlow.Web.Services;
-
 namespace GymFlow.Web.Pages.Progress;
 
 public class IndexModel : BasePageModel
@@ -12,7 +9,7 @@ public class IndexModel : BasePageModel
         _apiClient = apiClient;
     }
     
-    public List<WeightLogDto> WeightHistory { get; set; } = new();
+    public List<ProgressLogResponse> WeightHistory { get; set; } = new();
     public float CurrentWeight { get; set; }
     public float FirstWeight { get; set; }
     public float TotalChange { get; set; }
@@ -38,7 +35,7 @@ public class IndexModel : BasePageModel
             }
         }
         
-        WeightHistory = await _apiClient.GetAsync<List<WeightLogDto>>($"api/progress/user/{targetUserId}") ?? new();
+        WeightHistory = await _apiClient.GetAsync<List<ProgressLogResponse>>($"api/progress/user/{targetUserId}") ?? new();
         
         if (WeightHistory.Any())
         {
@@ -49,12 +46,4 @@ public class IndexModel : BasePageModel
         }
         return Page();
     }
-}
-
-public class WeightLogDto
-{
-    public DateOnly LogDate { get; set; }
-    public float Weight { get; set; }
-    public float? BodyFatPercentage { get; set; }
-    public string? Notes { get; set; }
 }

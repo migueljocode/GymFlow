@@ -1,6 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
-using GymFlow.Web.Services;
-
 namespace GymFlow.Web.Pages.WorkoutPlans;
 
 public class IndexModel : BasePageModel
@@ -12,7 +9,7 @@ public class IndexModel : BasePageModel
         _apiClient = apiClient;
     }
 
-    public List<WorkoutPlanListDto> WorkoutPlans { get; set; } = new();
+    public List<WorkoutPlanListResponse> WorkoutPlans { get; set; } = new();
     public bool IsViewingOwnPlans { get; set; } = true;
     public int? ClientId { get; set; }
 
@@ -36,18 +33,7 @@ public class IndexModel : BasePageModel
         }
 
         IsViewingOwnPlans = isViewingOwn;
-        WorkoutPlans = await _apiClient.GetAsync<List<WorkoutPlanListDto>>($"api/workoutplans/user/{targetUserId}") ?? new();
+        WorkoutPlans = await _apiClient.GetAsync<List<WorkoutPlanListResponse>>($"api/workoutplans/user/{targetUserId}") ?? new();
         return Page();
     }
-}
-
-// DTO مورد استفاده در Index (اگر خارج از این فایل تعریف نشده باشد)
-public class WorkoutPlanListDto
-{
-    public int Id { get; set; }
-    public int Phase { get; set; }
-    public int SessionsPerWeek { get; set; }
-    public DateOnly StartDate { get; set; }
-    public DateOnly? EndDate { get; set; }
-    public bool IsActive { get; set; }
 }

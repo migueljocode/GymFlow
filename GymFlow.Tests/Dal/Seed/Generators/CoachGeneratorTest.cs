@@ -1,9 +1,3 @@
-using Xunit;
-using GymFlow.Dal.Seed.Generators;
-using GymFlow.Dal.Seed.Data;
-using GymFlow.Models.Entities;
-using GymFlow.Models.Enums;
-
 namespace GymFlow.Tests.Dal.Seed.Generators;
 
 public class CoachGeneratorTest

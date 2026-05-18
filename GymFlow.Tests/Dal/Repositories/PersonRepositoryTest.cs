@@ -1,11 +1,3 @@
-using Xunit;
-using Microsoft.EntityFrameworkCore;
-using GymFlow.Dal.Repositories.Implementations;
-using GymFlow.Models.Entities;
-using GymFlow.Models.Enums;
-using GymFlow.Tests.Dal;
-using Moq;
-
 namespace GymFlow.Tests.Dal.Repositories;
 
 public class PersonRepositoryTest : IClassFixture<DbContextFixture>

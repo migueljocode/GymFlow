@@ -1,7 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
-using GymFlow.Web.Services;
-
 namespace GymFlow.Web.Pages;
 
 public class LogoutModel : PageModel

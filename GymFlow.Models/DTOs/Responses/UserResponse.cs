@@ -1,3 +1,6 @@
+namespace GymFlow.Models.DTOs.Responses;
+
+
 public class UserResponse
 {
     public int Id { get; set; }

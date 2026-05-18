@@ -1,10 +1,3 @@
-using Xunit;
-using Microsoft.EntityFrameworkCore;
-using GymFlow.Dal.Context;
-using GymFlow.Dal.Seed.Data;
-using GymFlow.Models.Entities;
-using GymFlow.Models.Enums;
-using GymFlow.Dal.Factories;
 
 namespace GymFlow.Tests.Dal.Seed.Data;
 

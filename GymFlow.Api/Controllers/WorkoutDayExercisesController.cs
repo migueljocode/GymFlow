@@ -1,7 +1,5 @@
-using Microsoft.AspNetCore.Mvc;
-using GymFlow.Dal.Repositories.Interfaces;
-using GymFlow.Models.Entities;
-using GymFlow.Api.Controllers.Base;
+global using GymFlow.Models.DTOs.Requests;
+global using GymFlow.Models.DTOs.Responses;
 
 namespace GymFlow.Api.Controllers;
 
@@ -33,7 +31,6 @@ public class WorkoutDayExercisesController : ApiControllerBase
         if (exercise is null)
             return NotFoundResponse("Exercise", request.ExerciseId);
 
-        // بررسی اینکه آیا این حرکت قبلاً به این روز اضافه شده است
         var existingExercises = await _workoutDayRepository.GetExercisesByDayIdAsync(request.WorkoutDayId);
         if (existingExercises.Any(e => e.ExerciseId == request.ExerciseId))
         {
@@ -81,22 +78,4 @@ public class WorkoutDayExercisesController : ApiControllerBase
         await _workoutDayRepository.DeleteExerciseAsync(wde);
         return Success<object>(null, "Exercise deleted successfully");
     }
-}
-
-public class CreateWorkoutDayExerciseRequest
-{
-    public int WorkoutDayId { get; set; }
-    public int ExerciseId { get; set; }
-    public int Sets { get; set; }
-    public string Reps { get; set; } = string.Empty;
-    public int RestSeconds { get; set; }
-    public string? Notes { get; set; }
-}
-
-public class UpdateWorkoutDayExerciseRequest
-{
-    public int? Sets { get; set; }
-    public string? Reps { get; set; }
-    public int? RestSeconds { get; set; }
-    public string? Notes { get; set; }
 }

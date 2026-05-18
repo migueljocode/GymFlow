@@ -1,11 +1,3 @@
-using Xunit;
-using Microsoft.EntityFrameworkCore;
-using GymFlow.Dal.Context;
-using GymFlow.Dal.Factories;
-using GymFlow.Models.Entities;
-using GymFlow.Models.Enums;
-using GymFlow.Services.Implementations;
-
 namespace GymFlow.Tests.Services;
 
 public class AuthServiceTest : IDisposable

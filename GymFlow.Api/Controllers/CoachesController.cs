@@ -1,9 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
-using GymFlow.Api.Controllers.Base;
-using GymFlow.Dal.Repositories.Interfaces;
-using GymFlow.Models.DTOs.Requests;
-using GymFlow.Models.DTOs.Responses;
-
 namespace GymFlow.Api.Controllers;
 
 [Tags("Coaches")]

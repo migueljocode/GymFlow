@@ -6,7 +6,7 @@
 
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>👥 لیست مشتریان</h2>
+        <h2><i class="fas fa-users"></i> لیست مشتریان</h2>
     </div>
 
     @if (!Model.Clients.Any())
@@ -27,18 +27,18 @@
                         </div>
                         <div class="card-body">
                             <p><strong>هدف تمرینی:</strong> @client.Goal</p>
-                            <p><strong>وزن فعلی:</strong> @client.CurrentWeight kg</p>
+                            <p><strong> وزن فعلی: </strong> @client.CurrentWeight kg</p>
                             <p><strong>تعداد جلسات تکمیل شده:</strong> @client.CompletedSessions</p>
                             <hr />
                             <div class="d-flex gap-2">
                                 <a href="/WorkoutPlans/Index?userId=@client.Id" class="btn btn-outline-primary btn-sm">
-                                    📋 برنامه‌های تمرینی
+                                    <i class="fas fa-clipboard-list"></i> برنامه‌های تمرینی
                                 </a>
                                 <a href="/Progress/Index?userId=@client.Id" class="btn btn-outline-success btn-sm">
-                                    ⚖️ تاریخچه وزن
+                                    <i class="fas fa-weight-scale"></i> تاریخچه وزن
                                 </a>
                                 <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#reportModal_@client.Id">
-                                    📄 گزارش PDF
+                                    <i class="fas fa-file-pdf"></i> گزارش PDF
                                 </button>
                             </div>
                         </div>
@@ -50,20 +50,20 @@
                     <div class="modal-dialog">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h5 class="modal-title">📄 دانلود گزارش برای @client.FullName</h5>
+                                <h5 class="modal-title"><i class="fas fa-file-pdf"></i> دانلود گزارش برای @client.FullName</h5>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                             </div>
                             <div class="modal-body">
                                 <form method="post" asp-page-handler="DownloadProgress" asp-route-userId="@client.Id">
-                                    <button type="submit" class="btn btn-success w-100 mb-2">📊 گزارش پیشرفت وزنی</button>
+                                    <button type="submit" class="btn btn-success w-100 mb-2"><i class="fas fa-chart-line"></i> یا <i class="fas fa-chart-simple"></i> گزارش پیشرفت وزنی</button>
                                 </form>
                                 <form method="post" asp-page-handler="DownloadCertificate" asp-route-userId="@client.Id">
-                                    <button type="submit" class="btn btn-warning w-100 mb-2">🏆 گواهی دستاوردها</button>
+                                    <button type="submit" class="btn btn-warning w-100 mb-2"><i class="fas fa-trophy"></i> گواهی دستاوردها</button>
                                 </form>
                                 <form method="post" asp-page-handler="DownloadWeeklySummary" asp-route-userId="@client.Id">
                                     <div class="input-group mb-3">
                                         <input type="date" name="weekStart" class="form-control" required />
-                                        <button type="submit" class="btn btn-info">📅 خلاصه هفتگی</button>
+                                        <button type="submit" class="btn btn-info"><i class="fas fa-calendar-day"></i> خلاصه هفتگی</button>
                                     </div>
                                 </form>
                             </div>

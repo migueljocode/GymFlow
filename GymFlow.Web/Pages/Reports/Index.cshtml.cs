@@ -1,6 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
-using GymFlow.Web.Services;
-
 namespace GymFlow.Web.Pages.Reports;
 
 public class IndexModel : BasePageModel
@@ -14,7 +11,7 @@ public class IndexModel : BasePageModel
     
     public int ActivePlanId { get; set; }
     public int CurrentUserId { get; set; }
-    public List<ClientSummaryDto> Clients { get; set; } = new();
+    public List<ClientInfoResponse> Clients { get; set; } = new();
     public int SelectedClientId { get; set; }
     
     public async Task<IActionResult> OnGetAsync(int? clientId)
@@ -26,7 +23,7 @@ public class IndexModel : BasePageModel
 
         if (IsCoach)
         {
-            Clients = await _apiClient.GetAsync<List<ClientSummaryDto>>($"api/coaches/{userId}/clients") ?? new();
+            Clients = await _apiClient.GetAsync<List<ClientInfoResponse>>($"api/coaches/{userId}/clients") ?? new();
             if (clientId.HasValue && Clients.Any(c => c.Id == clientId.Value))
                 SelectedClientId = clientId.Value;
             else if (Clients.Any())
@@ -34,13 +31,13 @@ public class IndexModel : BasePageModel
 
             if (SelectedClientId > 0)
             {
-                var activePlan = await _apiClient.GetAsync<ActivePlanDto>($"api/workoutplans/user/{SelectedClientId}/active");
+                var activePlan = await _apiClient.GetAsync<ActivePlanResponse>($"api/workoutplans/user/{SelectedClientId}/active");
                 ActivePlanId = activePlan?.Id ?? 0;
             }
         }
         else
         {
-            var activePlan = await _apiClient.GetAsync<ActivePlanDto>($"api/workoutplans/user/{userId}/active");
+            var activePlan = await _apiClient.GetAsync<ActivePlanResponse>($"api/workoutplans/user/{userId}/active");
             ActivePlanId = activePlan?.Id ?? 0;
         }
         return Page();
@@ -74,10 +71,4 @@ public class IndexModel : BasePageModel
         if (pdfBytes == null) return NotFound();
         return File(pdfBytes, "application/pdf", $"WeeklySummary_User_{userId}.pdf");
     }
-}
-
-public class ClientSummaryDto
-{
-    public int Id { get; set; }
-    public string FullName { get; set; } = "";
 }

@@ -1,11 +1,3 @@
-using GymFlow.Tests.Web.Pages.TestBase;
-using GymFlow.Web.Pages;
-using GymFlow.Web.Services;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using Moq;
-
 namespace GymFlow.Tests.Web.Pages;
 
 public class LogoutPageTest : PageModelTestFixture

@@ -1,5 +1,3 @@
-using GymFlow.Models.Entities;
-
 namespace GymFlow.Services.Interfaces;
 
 public interface IAuthService

@@ -1,6 +1,3 @@
-using GymFlow.Models.Interfaces;
-using Microsoft.EntityFrameworkCore.Query;
-
 namespace GymFlow.Models.Entities;
 
 public class Person : BaseEntity, IAuthenticable

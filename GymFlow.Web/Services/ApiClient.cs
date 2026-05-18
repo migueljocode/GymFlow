@@ -1,6 +1,3 @@
-using System.Text;
-using System.Text.Json;
-
 namespace GymFlow.Web.Services;
 
 public class ApiClient
@@ -170,7 +167,6 @@ public class ApiClient
                 PropertyNameCaseInsensitive = true
             });
 
-            // اگر پاسخ موفق بود و Data نداشت، باز هم موفق محسوب می‌شود
             if (result != null && result.Success)
             {
                 return (result.Data, null);
@@ -252,29 +248,17 @@ public class ApiClient
             return null;
         }
     }
-}
 
-// ========== کلاس‌های پاسخ ==========
-
-public class ApiResponse<T>
-{
-    public bool Success { get; set; }
-    public string? Message { get; set; }
-    public T? Data { get; set; }
-    public DateTime Timestamp { get; set; }
-}
-
-public class ApiErrorResponse
-{
-    public bool Success { get; set; }
-    public string? Error { get; set; }
-    public List<string>? Errors { get; set; }
-    public DateTime Timestamp { get; set; }
-}
-
-public class LoginResponseData
-{
-    public int Id { get; set; }
-    public string Username { get; set; } = "";
-    public string Role { get; set; } = "";
+    public virtual async Task<bool> IsUserCoachAsync(int userId)
+    {
+        try
+        {
+            var response = await GetAsync<object>($"api/coaches/user/{userId}");
+            return response != null;
+        }
+        catch
+        {
+            return false;
+        }
+    }
 }

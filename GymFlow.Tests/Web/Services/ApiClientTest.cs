@@ -1,15 +1,5 @@
 #nullable disable
 
-using System.Net;
-using System.Text;
-using System.Text.Json;
-using GymFlow.Web.Services;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using Moq;
-using Moq.Protected;
-
 namespace GymFlow.Tests.Web.Services;
 
 /// <summary>

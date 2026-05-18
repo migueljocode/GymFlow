@@ -1,8 +1,3 @@
-using System.Text.Json;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Controllers;
-
 namespace GymFlow.Tests.Api.Controllers.TestBase;
 
 /// <summary>

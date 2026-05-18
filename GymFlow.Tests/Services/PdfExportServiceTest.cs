@@ -1,10 +1,3 @@
-using Xunit;
-using Moq;
-using GymFlow.Dal.Repositories.Interfaces;
-using GymFlow.Models.Entities;
-using GymFlow.Models.Enums;
-using GymFlow.Services.Implementations;
-
 namespace GymFlow.Tests.Services;
 
 public class PdfExportServiceTest

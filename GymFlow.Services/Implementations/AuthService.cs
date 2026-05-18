@@ -1,8 +1,3 @@
-using GymFlow.Dal.Context;
-using GymFlow.Models.Entities;
-using GymFlow.Services.Interfaces;
-using Microsoft.EntityFrameworkCore;
-
 namespace GymFlow.Services.Implementations;
 
 public class AuthService : IAuthService

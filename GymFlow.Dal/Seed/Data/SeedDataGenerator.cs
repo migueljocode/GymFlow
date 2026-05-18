@@ -1,6 +1,3 @@
-using GymFlow.Models.Entities;
-using GymFlow.Models.Enums;
-using Bogus;
 using Person = GymFlow.Models.Entities.Person;
 
 namespace GymFlow.Dal.Seed.Data;

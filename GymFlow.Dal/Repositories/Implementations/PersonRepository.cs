@@ -1,6 +1,3 @@
-using System.Security.Cryptography.X509Certificates;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using SQLitePCL;
 using Person = GymFlow.Models.Entities.Person;
 
 namespace GymFlow.Dal.Repositories.Implementations;

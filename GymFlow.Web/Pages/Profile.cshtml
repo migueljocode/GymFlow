@@ -1,13 +1,13 @@
 @page
 @model ProfileModel
 @{
-    ViewData["Title"] = Model.IsCoach ? "پروفایل مربی" : "پروفایل من";
+    ViewData["Title"] = Model.IsUserCoach ? "پروفایل مربی" : "پروفایل من";
 }
 
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>@(Model.IsCoach ? "👤 پروفایل مربی" : "👤 پروفایل من")</h2>
-        <a href="/" class="btn btn-secondary">بازگشت به داشبورد</a>
+        <h2><i class="fas fa-user"></i> @(Model.IsUserCoach ? "پروفایل مربی" : "پروفایل من")</h2>
+        <a href="/" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> بازگشت به داشبورد</a>
     </div>
 
     <div class="row justify-content-center">
@@ -17,9 +17,9 @@
                     <h5 class="mb-0">ویرایش اطلاعات</h5>
                 </div>
                 <div class="card-body">
-                    <form method="post">
+                    <form method="post" id="profileForm">
                         <!-- اطلاعات شخصی (مشترک) -->
-                        <h5 class="border-bottom pb-2 mb-3">📋 اطلاعات شخصی</h5>
+                        <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-clipboard-list"></i> اطلاعات شخصی</h5>
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label class="form-label">نام</label>
@@ -41,15 +41,15 @@
                             </div>
                         </div>
 
-                        @if (Model.IsCoach)
+                        @if (Model.IsUserCoach)
                         {
                             <!-- اطلاعات حرفه‌ای (فقط مربی) -->
-                            <h5 class="border-bottom pb-2 mb-3 mt-4">💼 اطلاعات حرفه‌ای</h5>
+                            <h5 class="border-bottom pb-2 mb-3 mt-4"><i class="fas fa-briefcase"></i> اطلاعات حرفه‌ای</h5>
                             <div class="row mb-3">
                                 <div class="col-md-6">
                                     <label class="form-label">تخصص</label>
                                     <input type="text" class="form-control" asp-for="Specialization" required />
-                                    <small class="text-muted">مثلاً بدنسازی، فیتنس، پاورلیفتینگ، یوگا، تغذیه، کاهش وزن</small>
+                                    <small class="text-muted">مثلاً بدنسازی، فیتنس، پاورلیفتینگ</small>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">سال‌های تجربه</label>
@@ -60,7 +60,7 @@
                         else
                         {
                             <!-- اطلاعات بدنسازی (فقط کاربر عادی) -->
-                            <h5 class="border-bottom pb-2 mb-3 mt-4">💪 اطلاعات تناسب اندام</h5>
+                            <h5 class="border-bottom pb-2 mb-3 mt-4"><i class="fas fa-dumbbell"></i> اطلاعات تناسب اندام</h5>
                             <div class="row mb-3">
                                 <div class="col-md-6">
                                     <label class="form-label">هدف تمرینی</label>
@@ -108,7 +108,7 @@
                             <!-- انتخاب مربی -->
                             <div class="row mb-3">
                                 <div class="col-md-12">
-                                    <label class="form-label">👨‍🏫 مربی</label>
+                                    <label class="form-label"><i class="fas fa-chalkboard-user"></i> مربی</label>
                                     <select class="form-select" asp-for="SelectedCoachId">
                                         <option value="">-- بدون مربی --</option>
                                         @foreach (var coach in Model.CoachesList)
@@ -122,7 +122,7 @@
                         }
 
                         <!-- اطلاعات فقط خواندنی -->
-                        <h5 class="border-bottom pb-2 mb-3 mt-4">ℹ️ اطلاعات حساب</h5>
+                        <h5 class="border-bottom pb-2 mb-3 mt-4"><i class="fas fa-info-circle"></i> اطلاعات حساب</h5>
                         <div class="row mb-3">
                             <div class="col-md-4">
                                 <label class="form-label">نام کاربری</label>
@@ -130,7 +130,7 @@
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">نقش</label>
-                                <input type="text" class="form-control" value="@(Model.IsCoach ? "مربی" : "کاربر عادی")" readonly disabled />
+                                <input type="text" class="form-control" value="@(Model.IsUserCoach ? "مربی" : "کاربر عادی")" readonly disabled />
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">تاریخ عضویت</label>
@@ -139,7 +139,7 @@
                         </div>
 
                         <hr />
-                        <button type="submit" class="btn btn-primary w-100">💾 ذخیره تغییرات</button>
+                        <button type="submit" class="btn btn-primary w-100"><i class="fas fa-save"></i> ذخیره تغییرات</button>
                     </form>
                 </div>
             </div>
@@ -151,13 +151,13 @@
 @if (TempData["Message"] != null)
 {
     <input type="hidden" id="toastMessage" value="@TempData["Message"]" />
-    <input type="hidden" id="toastTitle" value="موفقیت ✅" />
+    <input type="hidden" id="toastTitle" value="موفقیت" />
     <input type="hidden" id="toastIsError" value="false" />
 }
 @if (TempData["ErrorMessage"] != null)
 {
     <input type="hidden" id="toastMessage" value="@TempData["ErrorMessage"]" />
-    <input type="hidden" id="toastTitle" value="خطا ❌" />
+    <input type="hidden" id="toastTitle" value="خطا" />
     <input type="hidden" id="toastIsError" value="true" />
 }
 
@@ -170,7 +170,6 @@
                 var isErrorElem = document.getElementById('toastIsError');
                 var title = titleElem ? titleElem.value : "اطلاعیه";
                 var isError = isErrorElem ? isErrorElem.value === 'true' : false;
-                
                 if (typeof showToast === 'function') {
                     showToast(messageElem.value, title, isError);
                 }

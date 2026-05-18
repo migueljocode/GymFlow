@@ -1,17 +1,5 @@
 #nullable disable
 
-using System.Text.Json;
-using GymFlow.Tests.Web.Pages.TestBase;
-using GymFlow.Web.Pages.Workout;
-using GymFlow.Web.Services;
-using GymFlow.Models.DTOs.Requests;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using Moq;
-using Microsoft.AspNetCore.Mvc.RazorPages;
-
 namespace GymFlow.Tests.Web.Pages.Workout;
 
 // ================== Stub ApiClient با قابلیت پرتاب Exception ==================
@@ -161,7 +149,7 @@ public class LogPageTest : PageModelTestFixture
         var result = await _pageModel.OnPostAsync();
 
         Assert.IsType<PageResult>(result);
-        Assert.Equal($"✅ تمرین برای تاریخ {_pageModel.ActualDate} با موفقیت ثبت شد! 🔥", _pageModel.Message);
+        Assert.Equal($"✅ تمرین برای تاریخ {_pageModel.ActualDate} با موفقیت ثبت شد! ", _pageModel.Message);
         Assert.Null(_pageModel.ErrorMessage);
     }
 

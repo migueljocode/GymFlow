@@ -1,6 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-using GymFlow.Dal.Context;
-
 namespace GymFlow.Dal.Seed.Data;
 
 public class DatabaseSeeder

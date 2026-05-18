@@ -1,8 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
-using GymFlow.Web.Services;
-using GymFlow.Models.DTOs.Requests;
-
 namespace GymFlow.Web.Pages.Progress;
 
 public class AddModel : PageModel
@@ -64,18 +59,11 @@ public class AddModel : PageModel
         
         if (result != null)
         {
-            TempData["Message"] = $"✅ وزن {Weight} کیلوگرم با موفقیت ثبت شد! 📊";
+            TempData["Message"] = $"✅ وزن {Weight} کیلوگرم با موفقیت ثبت شد!";
             return RedirectToPage("/Progress/Index");
         }
         
         TempData["ErrorMessage"] = errorMessage ?? "❌ خطا در ثبت وزن. لطفاً دوباره تلاش کنید.";
         return RedirectToPage();
     }
-}
-
-public class ProgressLogResponse
-{
-    public int Id { get; set; }
-    public DateOnly LogDate { get; set; }
-    public float Weight { get; set; }
 }

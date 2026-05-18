@@ -1,9 +1,3 @@
-using GymFlow.Dal.Repositories.Interfaces;
-using GymFlow.Models.DTOs.Responses;
-using GymFlow.Models.Entities;
-using GymFlow.Models.Enums;
-using GymFlow.Services.Interfaces;
-
 namespace GymFlow.Services.Implementations;
 
 public class WeightPredictionService : IWeightPredictionService
@@ -154,15 +148,15 @@ public class WeightPredictionService : IWeightPredictionService
     private string GetRecommendationMessage(float avgWeeklyChange, Goal? goal)
     {
         if (avgWeeklyChange < -0.3f)
-            return "Great progress! You're losing weight at a healthy rate. Keep up the consistency! 💪";
+            return "Great progress! You're losing weight at a healthy rate. Keep up the consistency! ";
         if (avgWeeklyChange < -0.1f)
-            return "You're on the right track! Progress is steady and sustainable. 🎯";
+            return "You're on the right track! Progress is steady and sustainable. ";
         if (avgWeeklyChange > 0.3f && goal == Goal.FatLoss)
             return "Your weight is trending upward. Consider reviewing your nutrition and workout intensity. 📈";
         if (avgWeeklyChange > 0.1f && goal == Goal.MuscleGain)
-            return "Good progress! Gaining weight steadily. Make sure it's muscle, not fat. 💪";
+            return "Good progress! Gaining weight steadily. Make sure it's muscle, not fat. ";
         
-        return "You're maintaining well! To see more progress, try increasing workout intensity or adjusting calories. 🔥";
+        return "You're maintaining well! To see more progress, try increasing workout intensity or adjusting calories. ";
     }
     
     private string GenerateRecommendation(WeightTrendAnalysis analysis, Goal? goal)

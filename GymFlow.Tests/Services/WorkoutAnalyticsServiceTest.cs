@@ -1,11 +1,3 @@
-using Xunit;
-using Moq;
-using GymFlow.Dal.Repositories.Interfaces;
-using GymFlow.Models.Entities;
-using GymFlow.Models.Enums;
-using GymFlow.Services.Implementations;
-using GymFlow.Services.Models;
-
 namespace GymFlow.Tests.Services;
 
 public class WorkoutAnalyticsServiceTest

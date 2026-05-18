@@ -1,6 +1,3 @@
-using GymFlow.Models.Entities;
-using GymFlow.Models.Enums;
-
 namespace GymFlow.Api.Helpers;
 
 public static class UserHelper

@@ -1,5 +1,3 @@
-using GymFlow.Services.Models;
-
 namespace GymFlow.Services.Interfaces;
 
 public interface IWorkoutAnalyticsService

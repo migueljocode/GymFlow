@@ -1,9 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using GymFlow.Dal.Context;
-using GymFlow.Dal.Factories;
-using GymFlow.Dal.Seed.Data;
-
-namespace GymFlow.Tests.Dal;
+﻿namespace GymFlow.Tests.Dal;
 
 /// <summary>
 /// Fixture for providing a fresh in-memory database for each test

@@ -1,7 +1,4 @@
-﻿using GymFlow.Tests.Web.Pages.TestBase;
-using GymFlow.Web.Pages;
-
-namespace GymFlow.Tests.Web.Pages;
+﻿namespace GymFlow.Tests.Web.Pages;
 
 public class PrivacyPageTest : PageModelTestFixture
 {

@@ -54,21 +54,13 @@
 else
 {
     <div class="container">
-        @* @if (Model.IsCoach)
-        {
-            <div class="mb-3">
-                <a href="/WorkoutPlans/Index?userId=@Model.ClientId" class="btn btn-secondary">← بازگشت به لیست برنامه‌های مشتری</a>
-            </div>
-        } *@
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2>📋 برنامه فاز @Model.Plan.Phase</h2>
+            <h2><i class="fas fa-clipboard-list"></i> برنامه فاز @Model.Plan.Phase</h2>
             <div>
                 <form method="post" asp-page-handler="DownloadPdf" asp-route-planId="@Model.Plan.Id" style="display:inline">
-                    <button type="submit" class="btn btn-danger">
-                        📄 دانلود PDF
-                    </button>
+                    <button type="submit" class="btn btn-danger"><i class="fas fa-download"></i> دانلود PDF</button>
                 </form>
-                <a href="@(Model.IsCoach ? $"/WorkoutPlans/Index?userId={Model.ClientId}" : "/WorkoutPlans")" class="btn btn-secondary ms-2">بازگشت</a>
+                <a href="@(Model.IsCoach ? $"/WorkoutPlans/Index?userId={Model.ClientId}" : "/WorkoutPlans")" class="btn btn-secondary ms-2"><i class="fas fa-arrow-left"></i> بازگشت</a>
             </div>
         </div>
 
@@ -103,7 +95,7 @@ else
                         <h6 class="text-muted">وضعیت</h6>
                         @if (Model.Plan.IsActive)
                         {
-                            <h3 class="text-success">فعال 🔥</h3>
+                            <h3 class="text-success">فعال <i class="fas fa-fire"></i></h3>
                         }
                         else
                         {
@@ -118,7 +110,7 @@ else
             <div class="col-md-12">
                 <div class="card shadow-sm">
                     <div class="card-header bg-info text-white">
-                        <h5 class="mb-0">📊 پیشرفت برنامه</h5>
+                        <h5 class="mb-0"><i class="fas fa-chart-line"></i> پیشرفت برنامه</h5>
                     </div>
                     <div class="card-body">
                         <div class="progress mb-3" style="height: 25px;">
@@ -141,17 +133,17 @@ else
             <div class="card mb-4 shadow-sm">
                 <div class="card-header bg-primary text-white">
                     <div class="d-flex justify-content-between align-items-center">
-                        <h4 class="mb-0">📅 @GetPersianDayName(day.DayOfWeek)</h4>
+                        <h4 class="mb-0"><i class="fas fa-calendar-day"></i> @GetPersianDayName(day.DayOfWeek)</h4>
                         <span class="badge bg-light text-dark">@GetIntensityName(day.Intensity)</span>
                     </div>
                 </div>
                 <div class="card-body">
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <p><strong>🎯 عضلات هدف:</strong> @GetMuscleGroupName(day.TargetMuscles)</p>
+                            <p><strong><i class="fas fa-bullseye"></i> عضلات هدف:</strong> @GetMuscleGroupName(day.TargetMuscles)</p>
                         </div>
                         <div class="col-md-6">
-                            <p><strong>⏱️ مدت زمان:</strong> @day.DurationMinutes دقیقه</p>
+                            <p><strong><i class="fas fa-clock"></i> مدت زمان:</strong> @day.DurationMinutes دقیقه</p>
                         </div>
                     </div>
                     
@@ -177,7 +169,7 @@ else
                                         foreach (var ex in day.Exercises)
                                         {
                                             <tr>
-                                                <td>@index</td>
+                                                <td>@index@*(i++)*@
                                                 <td><strong>@ex.ExerciseName</strong></td>
                                                 <td>@ex.MuscleGroup</td>
                                                 <td>@ex.Sets</td>
@@ -206,25 +198,24 @@ else
                         </div>
                     }
                     
-                    @* مربی می‌تواند حرکات را ویرایش کند  *@
                     @if (Model.IsCoach)   
                     {
                         <div class="text-center mt-3">
                             <a href="/WorkoutPlans/AddExercises?workoutDayId=@day.Id&workoutPlanId=@Model.Plan.Id&dayOfWeek=@day.DayOfWeek&userId=@Model.ClientId"
-   class="btn btn-sm btn-outline-primary">🏋️ اضافه کردن/ویرایش حرکات</a>
+                               class="btn btn-sm btn-outline-primary"><i class="fas fa-pen"></i> اضافه کردن/ویرایش حرکات</a>
                         </div>
                     }
                 </div>
             </div>
         }
         
-    @if (Model.IsMember)
-    {
-        <div class="text-center mt-4 mb-5">
-            <a href="/Workout/Log" class="btn btn-success btn-lg">
-                ✅ ثبت تمرین امروز
-            </a>
-        </div>
-    }
+        @if (Model.IsMember)
+        {
+            <div class="text-center mt-4 mb-5">
+                <a href="/Workout/Log" class="btn btn-success btn-lg">
+                    <i class="fas fa-check-circle"></i> ثبت تمرین امروز
+                </a>
+            </div>
+        }
     </div>
 }

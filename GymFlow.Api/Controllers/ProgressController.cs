@@ -1,11 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
-using GymFlow.Dal.Repositories.Interfaces;
-using GymFlow.Models.DTOs.Requests;
-using GymFlow.Models.DTOs.Responses;
-using GymFlow.Models.Entities;
-using GymFlow.Api.Controllers.Base;
-using GymFlow.Api.Helpers;
-
 namespace GymFlow.Api.Controllers;
 
 /// <summary>
@@ -119,7 +111,7 @@ public class ProgressController : ApiControllerBase
             AverageSessionDuration = sessionsList.Any() ? sessionsList.Average(s => s.ActualDurationMinutes) : 0,
             PredictedWeightNextWeek = predictedNextWeek,
             PredictedWeightNextMonth = predictedNextMonth,
-            Achievement = sessionsThisWeek >= 3 ? "Excellent consistency this week! 🔥" : "Keep pushing! 💪",
+            Achievement = sessionsThisWeek >= 3 ? "Excellent consistency this week! " : "Keep pushing! ",
             WeightHistory = weightHistory
         };
         

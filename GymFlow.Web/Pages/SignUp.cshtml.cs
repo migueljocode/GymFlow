@@ -1,7 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
-using GymFlow.Web.Services;
-
 namespace GymFlow.Web.Pages;
 
 public class SignUpModel : PageModel
@@ -32,7 +28,7 @@ public class SignUpModel : PageModel
     public string? Email { get; set; }
 
     [BindProperty]
-    public string Role { get; set; } = "Member";
+    public string Role { get; set; } = "Member"; // همیشه Member
 
     public async Task<IActionResult> OnPostAsync()
     {
@@ -61,7 +57,7 @@ public class SignUpModel : PageModel
             return Page();
         }
 
-        // ارسال درخواست ثبت‌نام به API
+        // همیشه نقش Member را ارسال کن (امنیت)
         var request = new
         {
             Username = Username,
@@ -69,18 +65,14 @@ public class SignUpModel : PageModel
             FirstName = FirstName,
             LastName = LastName,
             Email = Email ?? "",
-            Role = Role
+            Role = "Member"  // فقط Member مجاز است
         };
 
         var (result, errorMessage) = await _apiClient.PostWithErrorAsync<object>("api/auth/register", request);
 
-        // دیباگ - خروجی را در کنسول ببینید
-        Console.WriteLine($"Register result: {result}, ErrorMessage: {errorMessage}");
-
-        // اگر خطایی وجود نداشت (یعنی ثبت‌نام موفق بود)
-        if (string.IsNullOrEmpty(errorMessage))
+        if (errorMessage == null)
         {
-            TempData["Message"] = $"✅ ثبت‌نام با موفقیت انجام شد! اکنون می‌توانید وارد شوید.";
+            TempData["Message"] = "✅ ثبت‌نام با موفقیت انجام شد! اکنون می‌توانید وارد شوید.";
             return RedirectToPage("/Login");
         }
 

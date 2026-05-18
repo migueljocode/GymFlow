@@ -1,9 +1,3 @@
-using Xunit;
-using GymFlow.Dal.Seed.Data;
-using GymFlow.Models.Entities;
-using GymFlow.Models.Enums;
-using Person = GymFlow.Models.Entities.Person;
-
 namespace GymFlow.Tests.Dal.Seed.Data;
 
 public class SeedDataGeneratorTest

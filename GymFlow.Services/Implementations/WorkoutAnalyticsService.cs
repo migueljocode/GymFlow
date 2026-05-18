@@ -1,7 +1,3 @@
-using GymFlow.Dal.Repositories.Interfaces;
-using GymFlow.Services.Interfaces;
-using GymFlow.Services.Models;
-
 namespace GymFlow.Services.Implementations;
 
 public class WorkoutAnalyticsService : IWorkoutAnalyticsService
@@ -119,7 +115,7 @@ public class WorkoutAnalyticsService : IWorkoutAnalyticsService
                 Name = "Getting Started", 
                 Description = "Completed 10 workouts", 
                 EarnedAt = DateTime.UtcNow, 
-                Icon = "🎯" 
+                Icon = "" 
             });
         }
         
@@ -130,7 +126,7 @@ public class WorkoutAnalyticsService : IWorkoutAnalyticsService
                 Name = "Dedicated Athlete", 
                 Description = "Completed 50 workouts", 
                 EarnedAt = DateTime.UtcNow, 
-                Icon = "🔥" 
+                Icon = "" 
             });
         }
         
@@ -141,7 +137,7 @@ public class WorkoutAnalyticsService : IWorkoutAnalyticsService
                 Name = "Consistency King", 
                 Description = "7-day workout streak", 
                 EarnedAt = DateTime.UtcNow, 
-                Icon = "👑" 
+                Icon = "" 
             });
         }
         
@@ -152,7 +148,7 @@ public class WorkoutAnalyticsService : IWorkoutAnalyticsService
                 Name = "Unstoppable", 
                 Description = "30-day workout streak", 
                 EarnedAt = DateTime.UtcNow, 
-                Icon = "⚡" 
+                Icon = "" 
             });
         }
         

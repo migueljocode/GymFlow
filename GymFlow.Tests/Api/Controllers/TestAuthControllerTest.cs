@@ -1,11 +1,3 @@
-using GymFlow.Api.Controllers;
-using GymFlow.Models.Entities;
-using GymFlow.Services.Interfaces;
-using GymFlow.Tests.Api.Controllers.TestBase;
-using Microsoft.AspNetCore.Mvc;
-using Moq;
-using System.Text.Json;
-
 namespace GymFlow.Tests.Api.Controllers;
 
 public class TestAuthControllerTest : ControllerTestFixture

@@ -1,12 +1,3 @@
-using Xunit;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using GymFlow.Dal.Context;
-using GymFlow.Dal.Factories;
-using GymFlow.Dal.Seed.Data;
-using GymFlow.Dal.Seed.Extensions;
-using GymFlow.Models.Entities;
-
 namespace GymFlow.Tests.Dal.Seed.Extensions;
 
 public class DatabaseSeedExtensionsTest : IDisposable

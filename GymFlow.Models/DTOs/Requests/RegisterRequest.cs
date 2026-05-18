@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace GymFlow.Models.DTOs.Requests;
 
 public class RegisterRequest

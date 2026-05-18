@@ -2,81 +2,298 @@
 @model SignUpModel
 @{
     ViewData["Title"] = "ثبت‌نام";
+    Layout = null;
 }
 
-<div class="row justify-content-center">
-    <div class="col-md-5">
-        <div class="card shadow-sm">
-            <div class="card-header bg-primary text-white text-center">
-                <h4 class="mb-0">✨ ثبت‌نام در GymFlow</h4>
-            </div>
-            <div class="card-body">
-                <form method="post">
-                    <div class="mb-3">
-                        <label class="form-label">نام کاربری</label>
-                        <input type="text" class="form-control" asp-for="Username" required autofocus />
-                    </div>
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - GymFlow</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .signup-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            width: 440px;
+            max-width: 100%;
+            padding: 1.8rem;
+            transition: transform 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .signup-card:hover { transform: translateY(-3px); }
+        
+        .signup-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .signup-header i {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .signup-header h4 {
+            margin: 0;
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 1.3rem;
+        }
+        
+        .form-group { margin-bottom: 0.9rem; }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.3rem;
+            color: #334155;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .form-group label i {
+            margin-left: 0.3rem;
+            font-size: 0.8rem;
+            color: #4f46e5;
+        }
+        
+        .form-control, .form-select {
+            width: 100%;
+            padding: 0.6rem 0.8rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+            background: white;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+        
+        .row { display: flex; gap: 1rem; }
+        .col { flex: 1; }
+        
+        .btn-signup {
+            width: 100%;
+            padding: 0.65rem;
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 0.8rem;
+        }
+        
+        .btn-signup:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3);
+        }
+        
+        .login-link {
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 0.8rem;
+        }
+        
+        .login-link a { color: #4f46e5; text-decoration: none; }
+        .login-link a:hover { text-decoration: underline; }
+        
+        hr { margin: 1rem 0; border-color: #e2e8f0; }
+        
+        @@media (max-width: 480px) {
+            .signup-card { padding: 1.2rem; }
+            .row { flex-direction: column; gap: 0; }
+        }
 
-                    <div class="mb-3">
-                        <label class="form-label">رمز عبور</label>
+        /* Toast شیشه‌ای */
+        .toast-container .toast {
+            min-width: 320px;
+            max-width: 380px;
+            border-radius: 20px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            direction: rtl;
+        }
+        .toast-container .toast-success {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        .toast-container .toast-error {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        .toast-container .toast-info {
+            background: rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        .toast-container .toast-header {
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px 20px 0 0;
+        }
+        .toast-container .toast-body {
+            padding: 14px 16px;
+            font-size: 0.9rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 0 0 20px 20px;
+        }
+        .toast-container .toast-header .btn-close {
+            margin: 0;
+            order: -1;
+            filter: brightness(0) invert(1);
+            opacity: 0.7;
+        }
+        .toast-container .toast-header .btn-close:hover { opacity: 1; }
+    </style>
+</head>
+<body>
+    <div class="signup-card">
+        <div class="signup-header">
+            <i class="fas fa-user-plus"></i>
+            <h4>ثبت‌نام</h4>
+        </div>
+        
+        <form method="post" id="signupForm">
+            <div class="row">
+                <div class="col">
+                    <div class="form-group">
+                        <label><i class="fas fa-user"></i> نام</label>
+                        <input type="text" class="form-control" asp-for="FirstName" required />
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label><i class="fas fa-user"></i> نام خانوادگی</label>
+                        <input type="text" class="form-control" asp-for="LastName" required />
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label><i class="fas fa-user-circle"></i> نام کاربری</label>
+                <input type="text" class="form-control" asp-for="Username" required />
+            </div>
+            
+            <div class="row">
+                <div class="col">
+                    <div class="form-group">
+                        <label><i class="fas fa-lock"></i> رمز عبور</label>
                         <input type="password" class="form-control" asp-for="Password" required />
                     </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">تکرار رمز عبور</label>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label><i class="fas fa-check-circle"></i> تکرار</label>
                         <input type="password" class="form-control" asp-for="ConfirmPassword" required />
                     </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">نام</label>
-                            <input type="text" class="form-control" asp-for="FirstName" required />
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">نام خانوادگی</label>
-                            <input type="text" class="form-control" asp-for="LastName" required />
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">ایمیل (اختیاری)</label>
-                        <input type="email" class="form-control" asp-for="Email" />
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">نقش</label>
-                        <select class="form-select" asp-for="Role">
-                            <option value="Member">💪 کاربر عادی</option>
-                            <option value="Coach">🔑 مربی</option>
-                        </select>
-                    </div>
-
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary">✅ ثبت‌نام</button>
-                        <a href="/Login" class="btn btn-link">قبلاً حساب دارید؟ وارد شوید</a>
-                    </div>
-                </form>
-
-                <!-- المنت‌های مخفی برای نمایش Toast -->
-                @if (TempData["Message"] != null)
-                {
-                    <input type="hidden" id="toastMessage" value="@TempData["Message"]" />
-                    <input type="hidden" id="toastTitle" value="موفقیت ✅" />
-                    <input type="hidden" id="toastIsError" value="false" />
-                }
-                @if (TempData["ErrorMessage"] != null)
-                {
-                    <input type="hidden" id="toastMessage" value="@TempData["ErrorMessage"]" />
-                    <input type="hidden" id="toastTitle" value="خطا ❌" />
-                    <input type="hidden" id="toastIsError" value="true" />
-                }
+                </div>
             </div>
+            
+            <div class="form-group">
+                <label><i class="fas fa-envelope"></i> ایمیل (اختیاری)</label>
+                <input type="email" class="form-control" asp-for="Email" />
+            </div>
+            
+            <div class="form-group">
+                <label><i class="fas fa-tag"></i> نقش</label>
+                <select class="form-select" asp-for="Role">
+                    <option value="Member">کاربر عادی</option>
+                    @* <option value="Coach">مربی</option> *@
+                </select>
+            </div>
+            
+            <button type="submit" class="btn-signup">
+                <i class="fas fa-check-circle"></i> ثبت‌نام
+            </button>
+        </form>
+        
+        <hr />
+        
+        <div class="login-link">
+            <a href="/Login"><i class="fas fa-arrow-left"></i> قبلاً حساب دارید؟ وارد شوید</a>
         </div>
     </div>
-</div>
 
-@section Scripts {
+    <!-- المنت‌های مخفی برای نمایش Toast -->
+    @if (TempData["Message"] != null)
+    {
+        <input type="hidden" id="toastMessage" value="@TempData["Message"]" />
+        <input type="hidden" id="toastTitle" value="موفقیت" />
+        <input type="hidden" id="toastIsError" value="false" />
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <input type="hidden" id="toastMessage" value="@TempData["ErrorMessage"]" />
+        <input type="hidden" id="toastTitle" value="خطا" />
+        <input type="hidden" id="toastIsError" value="true" />
+    }
+
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1050;">
+        <div id="liveToast" class="toast toast-info" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="4000">
+            <div class="toast-header">
+                <strong class="me-auto" id="toast-title">اطلاعیه</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body" id="toast-message">پیام</div>
+        </div>
+    </div>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        function showToast(message, title = "اطلاعیه", isError = false) {
+            var toastElement = document.getElementById('liveToast');
+            if (!toastElement) return;
+            var toastTitle = document.getElementById('toast-title');
+            var toastMessage = document.getElementById('toast-message');
+            
+            toastElement.classList.remove('toast-success', 'toast-error', 'toast-info');
+            
+            if (isError) {
+                toastElement.classList.add('toast-error');
+                toastTitle.textContent = "❌ خطا";
+            } else if (title === "موفقیت") {
+                toastElement.classList.add('toast-success');
+                toastTitle.textContent = "✅ موفقیت";
+            } else {
+                toastElement.classList.add('toast-info');
+                toastTitle.textContent = title;
+            }
+            
+            toastMessage.textContent = message;
+            
+            var toast = new bootstrap.Toast(toastElement, { autohide: true, delay: 4000 });
+            toast.show();
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             var messageElem = document.getElementById('toastMessage');
             if (messageElem && messageElem.value) {
@@ -84,11 +301,9 @@
                 var isErrorElem = document.getElementById('toastIsError');
                 var title = titleElem ? titleElem.value : "اطلاعیه";
                 var isError = isErrorElem ? isErrorElem.value === 'true' : false;
-                
-                if (typeof showToast === 'function') {
-                    showToast(messageElem.value, title, isError);
-                }
+                showToast(messageElem.value, title, isError);
             }
         });
     </script>
-}
+</body>
+</html>

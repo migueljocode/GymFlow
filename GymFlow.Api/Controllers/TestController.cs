@@ -1,11 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
-using GymFlow.Dal.Repositories.Interfaces;
-using GymFlow.Api.Controllers.Base;
-using GymFlow.Api.Helpers;
-using GymFlow.Dal.Context;
-using Microsoft.EntityFrameworkCore;
-using Bogus;
-
 namespace GymFlow.Api.Controllers;
 
 /// <summary>

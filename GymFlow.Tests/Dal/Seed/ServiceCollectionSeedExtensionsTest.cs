@@ -1,8 +1,3 @@
-using Xunit;
-using Microsoft.Extensions.DependencyInjection;
-using GymFlow.Dal.Seed.Data;
-using GymFlow.Dal.Seed.Extensions;
-
 namespace GymFlow.Tests.Dal.Seed.Extensions;
 
 public class ServiceCollectionSeedExtensionsTest

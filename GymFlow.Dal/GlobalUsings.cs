@@ -10,10 +10,12 @@ global using System.Linq.Expressions;
 global using GymFlow.Models.Entities;
 global using GymFlow.Models.Base;
 global using GymFlow.Models.Enums;
+global using GymFlow.Models.Exceptions;
+
+global using GymFlow.Dal.Factories;
 global using GymFlow.Dal.Context;
 global using GymFlow.Dal.Repositories.Interfaces;
 global using GymFlow.Dal.Repositories.Implementations;
-global using GymFlow.Dal.Factories;
 global using GymFlow.Dal.Seed.Constants;
 global using GymFlow.Dal.Seed.Data;
 global using GymFlow.Dal.Seed.Extensions;

@@ -1,5 +1,3 @@
-using GymFlow.Models.Exceptions;
-
 namespace GymFlow.Dal.Repositories.Implementations;
 
 /// <summary>

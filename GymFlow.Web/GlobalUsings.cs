@@ -1,0 +1,10 @@
+global using Microsoft.AspNetCore.Mvc;
+global using Microsoft.AspNetCore.Mvc.RazorPages;
+global using Microsoft.AspNetCore.Mvc.Rendering;
+global using System.Text;
+global using System.Text.Json;
+global using System.Diagnostics;
+global using GymFlow.Web.Services;
+global using GymFlow.Models.DTOs.Requests;
+global using GymFlow.Models.DTOs.Responses;
+global using GymFlow.Models.Enums;

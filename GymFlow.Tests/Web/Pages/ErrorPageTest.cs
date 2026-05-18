@@ -1,10 +1,3 @@
-using System.Diagnostics;
-using GymFlow.Tests.Web.Pages.TestBase;
-using GymFlow.Web.Pages;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.RazorPages;
-using Xunit;
-
 namespace GymFlow.Tests.Web.Pages;
 
 public class ErrorPageTest : PageModelTestFixture

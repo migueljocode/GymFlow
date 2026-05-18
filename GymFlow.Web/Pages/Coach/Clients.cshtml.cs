@@ -1,8 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
-using GymFlow.Web.Services;
-using System.Text.Json;
-
 namespace GymFlow.Web.Pages.Coach;
 
 public class ClientsModel : BasePageModel
@@ -14,7 +9,7 @@ public class ClientsModel : BasePageModel
         _apiClient = apiClient;
     }
 
-    public List<ClientInfoDto> Clients { get; set; } = new();
+    public List<ClientInfoResponse> Clients { get; set; } = new();
 
     public async Task<IActionResult> OnGetAsync()
     {
@@ -24,7 +19,6 @@ public class ClientsModel : BasePageModel
         if (!int.TryParse(HttpContext.Session.GetString("UserId"), out var coachId))
             return RedirectToPage("/Login");
 
-        // دریافت داده از API به صورت Raw
         var rawJson = await GetRawApiResponseAsync($"api/coaches/{coachId}/clients");
         
         if (!string.IsNullOrEmpty(rawJson))
@@ -32,12 +26,11 @@ public class ClientsModel : BasePageModel
             using JsonDocument doc = JsonDocument.Parse(rawJson);
             var root = doc.RootElement;
             
-            // بررسی ساختار پاسخ: { success: true, data: [...] }
             if (root.TryGetProperty("data", out var dataArray) && dataArray.ValueKind == JsonValueKind.Array)
             {
                 foreach (var item in dataArray.EnumerateArray())
                 {
-                    var dto = new ClientInfoDto
+                    var dto = new ClientInfoResponse
                     {
                         Id = item.TryGetProperty("id", out var idProp) ? idProp.GetInt32() : 0,
                         FullName = item.TryGetProperty("fullName", out var nameProp) ? nameProp.GetString() ?? "Unknown" : "Unknown",
@@ -58,10 +51,9 @@ public class ClientsModel : BasePageModel
         try
         {
             using var client = new HttpClient();
-            var baseUrl = "http://localhost:5291/"; // از تنظیمات بگیرید
+            var baseUrl = "http://localhost:5291/";
             var fullUrl = $"{baseUrl}{url}";
             
-            // اضافه کردن توکن احراز هویت
             var token = HttpContext.Session.GetString("AuthToken");
             if (!string.IsNullOrEmpty(token))
             {
@@ -99,13 +91,4 @@ public class ClientsModel : BasePageModel
         if (pdfBytes == null) return NotFound();
         return File(pdfBytes, "application/pdf", $"WeeklySummary_User_{userId}.pdf");
     }
-}
-
-public class ClientInfoDto
-{
-    public int Id { get; set; }
-    public string FullName { get; set; } = string.Empty;
-    public string Goal { get; set; } = string.Empty;
-    public float CurrentWeight { get; set; }
-    public int CompletedSessions { get; set; }
 }

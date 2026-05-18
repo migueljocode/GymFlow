@@ -11,11 +11,11 @@
             <h2>خوش آمدید، @Model.Username</h2>
             @if (Model.IsCoach)
             {
-                <span class="badge bg-danger fs-6">🔑 مربی</span>
+                <span class="badge bg-danger fs-6"><i class="fas fa-key"></i> مربی</span>
             }
             else
             {
-                <span class="badge bg-info fs-6">💪 کاربر عادی</span>
+                <span class="badge bg-info fs-6"><i class="fas fa-dumbbell"></i> کاربر عادی</span>
             }
         </div>
     </div>
@@ -27,7 +27,7 @@
             {
                 <div class="card shadow-sm mb-4">
                     <div class="card-header bg-primary text-white">
-                        <h4 class="mb-0">📊 خلاصه وضعیت مربی</h4>
+                        <h4 class="mb-0"><i class="fas fa-chart-line"></i> خلاصه وضعیت مربی</h4>
                     </div>
                     <div class="card-body">
                         @if (Model.CoachStats != null)
@@ -78,7 +78,7 @@
             {
                 <div class="card shadow-sm mb-4">
                     <div class="card-header bg-primary text-white">
-                        <h4 class="mb-0">📊 خلاصه وضعیت</h4>
+                        <h4 class="mb-0"><i class="fas fa-chart-line"></i> خلاصه وضعیت</h4>
                     </div>
                     <div class="card-body">
                         @if (Model.Stats != null)
@@ -88,7 +88,7 @@
                                     <div class="card bg-success text-white stats-card">
                                         <div class="card-body">
                                             <h3>@Model.Stats.TotalWorkouts</h3>
-                                            <p class="mb-0">تمرین کل</p>
+                                            <p class="mb-0"><i class="fas fa-dumbbell"></i>  تمرین کل</p>
                                         </div>
                                     </div>
                                 </div>
@@ -96,7 +96,7 @@
                                     <div class="card bg-info text-white stats-card">
                                         <div class="card-body">
                                             <h3>@Model.Stats.CurrentStreak</h3>
-                                            <p class="mb-0">روز متوالی</p>
+                                            <p class="mb-0"><i class="fas fa-fire"></i>  روز متوالی</p>
                                         </div>
                                     </div>
                                 </div>
@@ -104,7 +104,7 @@
                                     <div class="card bg-warning text-white stats-card">
                                         <div class="card-body">
                                             <h3>@Model.Stats.ConsistencyScore%</h3>
-                                            <p class="mb-0">تعهد به تمرین</p>
+                                            <p class="mb-0"><i class="fas fa-chart-line"></i>  تعهد به تمرین</p>
                                         </div>
                                     </div>
                                 </div>
@@ -112,7 +112,7 @@
                                     <div class="card bg-danger text-white stats-card">
                                         <div class="card-body">
                                             <h3>@Model.Stats.CurrentWeight.ToString("F1") kg</h3>
-                                            <p class="mb-0">وزن فعلی</p>
+                                            <p class="mb-0"><i class="fas fa-weight-scale"></i> وزن فعلی</p>
                                         </div>
                                     </div>
                                 </div>
@@ -138,7 +138,7 @@
                 
                 <div class="card shadow-sm mb-4">
                     <div class="card-header bg-primary text-white">
-                        <h4 class="mb-0">📈 روند وزنی</h4>
+                        <h4 class="mb-0"><i class="fas fa-chart-simple"></i> روند وزنی</h4>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
@@ -178,7 +178,7 @@
                             </table>
                         </div>
                         <div class="alert alert-info mt-2">
-                            <strong>📊 خلاصه کلی:</strong><br />
+                            <strong><i class="fas fa-chart-line"></i> خلاصه کلی:</strong><br />
                             از <strong>@firstWeight.ToString("F1") kg</strong> به <strong>@lastWeight.ToString("F1") kg</strong><br />
                             <span class="@changeClass">
                                 تغییر کل: @changeSign@(totalChange.ToString("F1")) kg
@@ -191,7 +191,7 @@
             {
                 <div class="card shadow-sm mb-4">
                     <div class="card-header bg-primary text-white">
-                        <h4 class="mb-0">📈 روند وزنی</h4>
+                        <h4 class="mb-0"><i class="fas fa-chart-simple"></i> روند وزنی</h4>
                     </div>
                     <div class="card-body">
                         <div class="alert alert-info text-center">
@@ -208,26 +208,37 @@
             <!-- ========== کارت فعالیت‌های اخیر ========== -->
             <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">🔄 فعالیت‌های اخیر</h4>
+                    <h4 class="mb-0"><i class="fas fa-rotate-right"></i> فعالیت‌های اخیر</h4>
                 </div>
                 <div class="card-body" style="max-height: 400px; overflow-y: auto;">
                     @if (Model.RecentActivities != null && Model.RecentActivities.Any())
                     {
-                        @foreach (var activity in Model.RecentActivities)
+                       @foreach (var activity in Model.RecentActivities)
                         {
                             <div class="d-flex mb-3 align-items-start border-bottom pb-2">
                                 <div class="me-3">
-                                    <span class="badge bg-secondary p-2 fs-5">@activity.Icon</span>
+                                    @if (activity.Type == "workout")
+                                    {
+                                        <span class="badge bg-success p-3" style="margin-top: 8px; margin-left: 20px; margin-right: -5px;"><i class="fas fa-dumbbell fa-lg"></i></span>
+                                    }
+                                    else if (activity.Type == "weight")
+                                    {
+                                        <span class="badge bg-info p-3" style="margin-top: 8px; margin-left: 20px; margin-right: -5px;"><i class="fas fa-weight-scale fa-lg"></i></span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary p-3" style="margin-top: 8px; margin-left: 20px; margin-right: -5px;"><i class="fas fa-bell fa-lg"></i></span>
+                                    }
                                 </div>
-                                <div>
-                                    <h6 class="mb-0">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">
                                         @activity.Title
                                         @if (!string.IsNullOrEmpty(activity.ClientName))
                                         {
-                                            <span class="text-muted small">- @activity.ClientName</span>
+                                            <span class="text-muted small"> - @activity.ClientName</span>
                                         }
                                     </h6>
-                                    <small class="text-muted">@activity.Description</small><br />
+                                    <small class="text-muted d-block">@activity.Description</small>
                                     <small class="text-muted">@activity.Timestamp.ToString("yyyy/MM/dd HH:mm")</small>
                                 </div>
                             </div>
@@ -253,21 +264,21 @@
             {
                 <div class="card shadow-sm mb-4">
                     <div class="card-header bg-success text-white">
-                        <h4 class="mb-0">🎯 برنامه امروز</h4>
+                        <h4 class="mb-0"><i class="fas fa-calendar-day"></i> برنامه امروز</h4>
                     </div>
                     <div class="card-body text-center">
                         <h5 class="text-primary mb-3">@(Model.TodayWorkout?.DayOfWeekPersian ?? DateTime.Now.ToString("dddd", new System.Globalization.CultureInfo("fa-IR")))</h5>
                         @if (Model.TodayWorkout != null)
                         {
-                            <p><strong>🎯 عضلات هدف:</strong> @Model.TodayWorkout.TargetMuscles</p>
-                            <p><strong>⏱️ مدت زمان:</strong> @Model.TodayWorkout.DurationMinutes دقیقه</p>
-                            <p><strong>⚡ شدت:</strong> @Model.TodayWorkout.Intensity</p>
-                            <a href="/Workout/Log" class="btn btn-success w-100 mt-2">✅ ثبت تمرین امروز</a>
+                            <p><strong><i class="fas fa-bullseye"></i> عضلات هدف:</strong> @Model.TodayWorkout.TargetMuscles</p>
+                            <p><strong><i class="fas fa-clock"></i> مدت زمان:</strong> @Model.TodayWorkout.DurationMinutes دقیقه</p>
+                            <p><strong><i class="fas fa-bolt"></i> شدت:</strong> @Model.TodayWorkout.Intensity</p>
+                            <a href="/Workout/Log" class="btn btn-success w-100 mt-2"><i class="fas fa-check-circle"></i> ثبت تمرین امروز</a>
                         }
                         else
                         {
                             <div class="text-center">
-                                <p class="text-muted">🎉 امروز تمرین برنامه‌ریزی نشده!</p>
+                                <p class="text-muted"><i class="fas fa-party-horn"></i> امروز تمرین برنامه‌ریزی نشده!</p>
                                 <small>از برنامه تمرینی خود لذت ببرید و استراحت کنید</small>
                                 <hr />
                                 <p class="text-muted small">@(string.IsNullOrEmpty(Model.ActivePlanName) ? "برنامه فعالی ندارید" : $"برنامه فعال: {Model.ActivePlanName}")</p>
@@ -283,7 +294,7 @@
             {
                 <div class="card shadow-sm mb-4">
                     <div class="card-header bg-warning text-white">
-                        <h4 class="mb-0">🏆 دستاوردها</h4>
+                        <h4 class="mb-0"><i class="fas fa-trophy"></i> دستاوردها</h4>
                     </div>
                     <div class="card-body" style="max-height: 300px; overflow-y: auto;">
                         @if (Model.Achievements != null && Model.Achievements.Any())
@@ -306,7 +317,7 @@
                         else
                         {
                             <div class="text-center">
-                                <p>🌟 هنوز دستاوردی ندارید</p>
+                                <p><i class="fas fa-star"></i> هنوز دستاوردی ندارید</p>
                                 <small class="text-muted">با ادامه تمرینات، دستاوردهای جدید کسب کنید!</small>
                             </div>
                         }
@@ -317,21 +328,21 @@
             <!-- ========== کارت لینک‌های سریع ========== -->
             <div class="card shadow-sm">
                 <div class="card-header bg-info text-white">
-                    <h4 class="mb-0">⚡ لینک‌های سریع</h4>
+                    <h4 class="mb-0"><i class="fas fa-bolt"></i> لینک‌های سریع</h4>
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
                         @if (Model.IsCoach)
                         {
-                            <a href="/Coach/Clients" class="btn btn-outline-primary">👥 مشاهده مشتریان</a>
-                            <a href="/Reports" class="btn btn-outline-primary">📄 دانلود گزارش PDF</a>
+                            <a href="/Coach/Clients" class="btn btn-outline-primary"><i class="fas fa-users"></i> مشاهده مشتریان</a>
+                            <a href="/Reports" class="btn btn-outline-primary"><i class="fas fa-file-pdf"></i> دانلود گزارش PDF</a>
                         }
                         else
                         {
-                            <a href="/Workout/Log" class="btn btn-outline-primary">📝 ثبت تمرین جدید</a>
-                            <a href="/Progress/Add" class="btn btn-outline-primary">⚖️ ثبت وزن جدید</a>
-                            <a href="/Reports" class="btn btn-outline-primary">📄 دانلود گزارش PDF</a>
-                            <a href="/WorkoutPlans" class="btn btn-outline-primary">📋 مشاهده برنامه‌های تمرینی</a>
+                            <a href="/Workout/Log" class="btn btn-outline-primary"><i class="fas fa-dumbbell"></i> ثبت تمرین جدید</a>
+                            <a href="/Progress/Add" class="btn btn-outline-primary"><i class="fas fa-weight-scale"></i> ثبت وزن جدید</a>
+                            <a href="/Reports" class="btn btn-outline-primary"><i class="fas fa-file-pdf"></i> دانلود گزارش PDF</a>
+                            <a href="/WorkoutPlans" class="btn btn-outline-primary"><i class="fas fa-clipboard-list"></i> مشاهده برنامه‌های تمرینی</a>
                         }
                     </div>
                 </div>

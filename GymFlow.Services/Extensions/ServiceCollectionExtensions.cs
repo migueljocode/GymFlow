@@ -1,7 +1,3 @@
-using Microsoft.Extensions.DependencyInjection;
-using GymFlow.Services.Interfaces;
-using GymFlow.Services.Implementations;
-
 namespace GymFlow.Services.Extensions;
 
 public static class ServiceCollectionExtensions

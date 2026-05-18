@@ -1,4 +1,3 @@
-using GymFlow.Models.Entities;
 using Person = GymFlow.Models.Entities.Person;
 
 namespace GymFlow.Dal.Seed.Data;

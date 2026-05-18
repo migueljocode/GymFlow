@@ -2,62 +2,255 @@
 @model LoginModel
 @{
     ViewData["Title"] = "ورود";
+    Layout = null;
 }
 
-<div class="row justify-content-center">
-    <div class="col-md-4">
-        <div class="card shadow-sm mt-5">
-            <div class="card-header bg-primary text-white text-center">
-                <h4 class="mb-0">🔐 ورود به GymFlow</h4>
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - GymFlow</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .login-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            width: 380px;
+            max-width: 100%;
+            padding: 2rem;
+            transition: transform 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .login-card:hover {
+            transform: translateY(-3px);
+        }
+        
+        .login-header {
+            text-align: center;
+            margin-bottom: 1.8rem;
+        }
+        
+        .login-header i {
+            font-size: 3rem;
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        
+        .login-header h4 {
+            margin: 0;
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 1.4rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.4rem;
+            color: #334155;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .form-group label i {
+            margin-left: 0.4rem;
+            font-size: 0.85rem;
+            color: #4f46e5;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.7rem 0.9rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            background: white;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+        
+        .btn-login {
+            width: 100%;
+            padding: 0.7rem;
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 0.5rem;
+        }
+        
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3);
+        }
+        
+        .btn-login:active {
+            transform: translateY(0);
+        }
+        
+        .btn-login i {
+            margin-left: 0.5rem;
+        }
+        
+        .test-users {
+            background: #f1f5f9;
+            border-radius: 12px;
+            padding: 0.8rem;
+            margin-top: 1.2rem;
+            text-align: center;
+            font-size: 0.75rem;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .test-users strong {
+            color: #4f46e5;
+            font-size: 0.8rem;
+        }
+        
+        .test-users code {
+            background: #e2e8f0;
+            padding: 0.15rem 0.4rem;
+            border-radius: 6px;
+            font-size: 0.7rem;
+        }
+        
+        .register-link {
+            text-align: center;
+            margin-top: 1.2rem;
+            font-size: 0.8rem;
+        }
+        
+        .register-link a {
+            color: #4f46e5;
+            text-decoration: none;
+        }
+        
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <div class="login-header">
+            <i class="fas fa-dumbbell"></i>
+            <h4>ورود</h4>
+        </div>
+        
+        <form method="post" id="loginForm">
+            <div class="form-group">
+                <label><i class="fas fa-user"></i> نام کاربری</label>
+                <input type="text" class="form-control" id="Username" name="Username" required autofocus />
             </div>
-            <div class="card-body">
-                <form method="post">
-                    <div class="mb-3">
-                        <label class="form-label">نام کاربری</label>
-                        <input type="text" class="form-control" asp-for="Username" required autofocus />
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">رمز عبور</label>
-                        <input type="password" class="form-control" asp-for="Password" required />
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100">ورود</button>
-                </form>
-
-                @if (!string.IsNullOrEmpty(Model.ErrorMessage))
-                {
-                    <div class="alert alert-danger mt-3">@Model.ErrorMessage</div>
-                }
-
-                <div class="alert alert-info mt-3 text-center">
-                    <strong>🔧 کاربران تست:</strong><br />
-                    مربی: <code>coach</code> / <code>coach123</code><br />
-                    کاربر معمولی: <code>member</code> / <code>member123</code>
-                </div>
-
-               <div class="text-center mt-3">
-                    <a href="/SignUp" class="text-decoration-none">ثبت‌نام نکرده‌اید؟ همین الان ثبت‌نام کنید</a>
-               </div>
+            
+            <div class="form-group">
+                <label><i class="fas fa-lock"></i> رمز عبور</label>
+                <input type="password" class="form-control" id="Password" name="Password" required />
             </div>
+            
+            <button type="submit" class="btn-login">
+                <i class="fas fa-sign-in-alt"></i> ورود
+            </button>
+        </form>
+
+        <div class="test-users">
+            <strong><i class="fas fa-users"></i> کاربران تست</strong><br />
+            <span>مربی: <code>coach</code> / <code>coach123</code></span><br />
+            <span>کاربر: <code>member</code> / <code>member123</code></span>
+        </div>
+
+        <div class="register-link">
+            <a href="/SignUp"><i class="fas fa-user-plus"></i> ثبت‌نام</a>
         </div>
     </div>
-</div>
 
-<!-- المنت‌های مخفی برای نمایش Toast -->
-@if (TempData["Message"] != null)
-{
-    <input type="hidden" id="toastMessage" value="@TempData["Message"]" />
-    <input type="hidden" id="toastTitle" value="موفقیت ✅" />
-    <input type="hidden" id="toastIsError" value="false" />
-}
-@if (TempData["ErrorMessage"] != null)
-{
-    <input type="hidden" id="toastMessage" value="@TempData["ErrorMessage"]" />
-    <input type="hidden" id="toastTitle" value="خطا ❌" />
-    <input type="hidden" id="toastIsError" value="true" />
-}
+    <!-- المنت‌های مخفی برای نمایش Toast -->
+    @if (TempData["Message"] != null)
+    {
+        <input type="hidden" id="toastMessage" value="@TempData["Message"]" />
+        <input type="hidden" id="toastTitle" value="موفقیت" />
+        <input type="hidden" id="toastIsError" value="false" />
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <input type="hidden" id="toastMessage" value="@TempData["ErrorMessage"]" />
+        <input type="hidden" id="toastTitle" value="خطا" />
+        <input type="hidden" id="toastIsError" value="true" />
+    }
 
-@section Scripts {
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        function showToast(message, title = "اطلاعیه", isError = false) {
+            var toastElement = document.getElementById('liveToast');
+            
+            if (!toastElement) {
+                console.log("Toast element not found, message:", message);
+                alert(message);
+                return;
+            }
+            
+            var toastTitle = document.getElementById('toast-title');
+            var toastMessage = document.getElementById('toast-message');
+            
+            toastElement.classList.remove('toast-success', 'toast-error', 'toast-info', 'hiding');
+            
+            if (isError) {
+                toastElement.classList.add('toast-error');
+                if (toastTitle) toastTitle.textContent = "خطا";
+            } else if (title === "موفقیت") {
+                toastElement.classList.add('toast-success');
+                if (toastTitle) toastTitle.textContent = "موفقیت";
+            } else {
+                toastElement.classList.add('toast-info');
+                if (toastTitle) toastTitle.textContent = title;
+            }
+            
+            if (toastMessage) toastMessage.textContent = message;
+            
+            var toast = new bootstrap.Toast(toastElement, { autohide: true, delay: 4000 });
+            
+            toastElement.addEventListener('hide.bs.toast', function() {
+                toastElement.classList.add('hiding');
+            });
+            
+            toastElement.addEventListener('hidden.bs.toast', function() {
+                toastElement.classList.remove('hiding');
+            });
+            
+            toast.show();
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             var messageElem = document.getElementById('toastMessage');
             if (messageElem && messageElem.value) {
@@ -65,11 +258,24 @@
                 var isErrorElem = document.getElementById('toastIsError');
                 var title = titleElem ? titleElem.value : "اطلاعیه";
                 var isError = isErrorElem ? isErrorElem.value === 'true' : false;
-                
-                if (typeof showToast === 'function') {
-                    showToast(messageElem.value, title, isError);
-                }
+                showToast(messageElem.value, title, isError);
+            }
+        });
+
+        // نمایش خطاهای اعتبارسنجی سمت کلاینت در Toast
+        document.getElementById('loginForm')?.addEventListener('submit', function(e) {
+            var usernameInput = document.getElementById('Username');
+            var passwordInput = document.getElementById('Password');
+            
+            var username = usernameInput ? usernameInput.value : '';
+            var password = passwordInput ? passwordInput.value : '';
+            
+            if (!username || !password) {
+                e.preventDefault();
+                showToast("لطفاً نام کاربری و رمز عبور را وارد کنید", "خطا", true);
+                return false;
             }
         });
     </script>
-}
+</body>
+</html>

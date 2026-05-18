@@ -1,13 +1,3 @@
-using GymFlow.Api.Controllers;
-using GymFlow.Dal.Repositories.Interfaces;
-using GymFlow.Models.DTOs.Responses;
-using GymFlow.Models.Entities;
-using GymFlow.Models.Enums;
-using GymFlow.Tests.Api.Controllers.TestBase;
-using Microsoft.AspNetCore.Mvc;
-using Moq;
-using System.Text.Json;
-
 namespace GymFlow.Tests.Api.Controllers;
 
 public class PredictionsControllerTest : ControllerTestFixture
@@ -140,7 +130,7 @@ public class PredictionsControllerTest : ControllerTestFixture
         Assert.True(response.Data.PredictedWeight30Days < response.Data.PredictedWeight7Days);
         Assert.True(response.Data.PredictedWeight90Days < response.Data.PredictedWeight30Days);
         
-        Assert.Equal("You're on track! Keep up the good work 💪", response.Data.Message);
+        Assert.Equal("You're on track! Keep up the good work ", response.Data.Message);
     }
 
     [Fact]

@@ -1,7 +1,3 @@
-using GymFlow.Api.Helpers;
-using GymFlow.Models.Entities;
-using GymFlow.Models.Enums;
-
 namespace GymFlow.Tests.Api.Helpers;
 
 public class UserHelperTest

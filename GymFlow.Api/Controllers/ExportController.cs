@@ -1,7 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
-using GymFlow.Services.Interfaces;
-using GymFlow.Api.Controllers.Base;
-
 namespace GymFlow.Api.Controllers;
 
 [Tags("Export")]

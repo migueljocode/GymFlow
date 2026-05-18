@@ -8,7 +8,7 @@
     @if (Model.IsCoach && Model.ClientId.HasValue)
     {
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="mb-0">📊 تاریخچه وزن</h2>
+            <h2 class="mb-0"><i class="fas fa-chart-line"></i> تاریخچه وزن</h2>
             <a href="/Coach/Clients" class="btn btn-secondary">← بازگشت به لیست مشتریان</a>
         </div>
     }
@@ -16,10 +16,10 @@
     {
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div></div>
-            <h2 class="mb-0">📊 تاریخچه وزن</h2>
+            <h2 class="mb-0"><i class="fas fa-chart-line"></i> تاریخچه وزن</h2>
             @if (!Model.IsCoach)
             {
-                <a href="/Progress/Add" class="btn btn-primary">+ ثبت وزن جدید</a>
+                <a href="/Progress/Add" class="btn btn-primary"><i class="fas fa-plus"></i> ثبت وزن جدید</a>
             }
             else
             {
@@ -52,9 +52,9 @@
                                 <thead class="table-dark">
                                     <tr>
                                         <th>تاریخ</th>
-                                        <th>وزن (kg)</th>
-                                        <th>درصد چربی</th>
-                                        <th>تغییر نسبت به قبلی</th>
+                                        <th><i class="fas fa-weight-scale"></i> وزن (kg)</th>
+                                        <th><i class="fas fa-percent"></i> درصد چربی</th>
+                                        <th><i class="fas fa-chart-line"></i> تغییر نسبت به قبلی</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -84,7 +84,7 @@
                             </table>
                         </div>
                         <div class="alert alert-info mt-3">
-                            <strong>📊 خلاصه کلی:</strong><br />
+                            <strong><i class="fas fa-chart-line"></i> خلاصه کلی:</strong><br />
                             از <strong>@Model.FirstWeight.ToString("F1") kg</strong> به <strong>@Model.CurrentWeight.ToString("F1") kg</strong><br />
                             <span class="@(Model.TotalChange < 0 ? "text-success" : "text-danger")">
                                 تغییر کل: @(Model.TotalChange > 0 ? "+" : "")@Model.TotalChange.ToString("F1") kg

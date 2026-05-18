@@ -1,14 +1,3 @@
-using GymFlow.Api.Controllers;
-using GymFlow.Dal.Repositories.Interfaces;
-using GymFlow.Models.DTOs.Requests;
-using GymFlow.Models.DTOs.Responses;
-using GymFlow.Models.Entities;
-using GymFlow.Models.Enums;
-using GymFlow.Tests.Api.Controllers.TestBase;
-using Microsoft.AspNetCore.Mvc;
-using Moq;
-using System.Text.Json;
-
 namespace GymFlow.Tests.Api.Controllers;
 
 public class WorkoutSessionsControllerTest : ControllerTestFixture

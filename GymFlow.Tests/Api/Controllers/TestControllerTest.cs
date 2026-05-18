@@ -1,14 +1,3 @@
-using GymFlow.Api.Controllers;
-using GymFlow.Dal.Context;
-using GymFlow.Dal.Repositories.Interfaces;
-using GymFlow.Models.Entities;
-using GymFlow.Models.Enums;
-using GymFlow.Tests.Api.Controllers.TestBase;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Moq;
-using System.Text.Json;
-
 namespace GymFlow.Tests.Api.Controllers;
 
 public class TestControllerTest : ControllerTestFixture, IDisposable

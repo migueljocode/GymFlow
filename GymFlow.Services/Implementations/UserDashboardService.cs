@@ -1,8 +1,3 @@
-using GymFlow.Dal.Repositories.Interfaces;
-using GymFlow.Models.DTOs.Responses;
-using GymFlow.Services.Interfaces;
-using GymFlow.Services.Models;
-
 namespace GymFlow.Services.Implementations;
 
 public class UserDashboardService : IUserDashboardService
@@ -144,7 +139,7 @@ public class UserDashboardService : IUserDashboardService
                 Title = $"Workout Completed - {session.WorkoutDay?.DayOfWeek}",
                 Description = $"Duration: {session.ActualDurationMinutes} minutes. {session.Feeling ?? "Great session!"}",
                 Timestamp = session.CreatedAt,
-                Icon = "💪"
+                Icon = ""
             });
         }
         
@@ -157,7 +152,7 @@ public class UserDashboardService : IUserDashboardService
                 Title = "Weight Logged",
                 Description = $"Weight: {log.Weight} kg. Body Fat: {log.BodyFatPercentage?.ToString("F1") ?? "N/A"}%",
                 Timestamp = log.CreatedAt,
-                Icon = "⚖️"
+                Icon = " "
             });
         }
         

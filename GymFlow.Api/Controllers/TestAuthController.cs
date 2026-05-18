@@ -1,7 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
-using GymFlow.Api.Controllers.Base;
-using GymFlow.Services.Interfaces;
-
 namespace GymFlow.Api.Controllers;
 
 [Tags("Test")]

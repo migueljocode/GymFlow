@@ -1,6 +1,3 @@
-using Xunit;
-using GymFlow.Dal.Seed.Data;
-
 namespace GymFlow.Tests.Dal.Seed.Data;
 
 public class SeedProfilesTest

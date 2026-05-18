@@ -1,9 +1,3 @@
-using GymFlow.Api.Controllers;
-using GymFlow.Services.Interfaces;
-using GymFlow.Tests.Api.Controllers.TestBase;
-using Microsoft.AspNetCore.Mvc;
-using Moq;
-
 namespace GymFlow.Tests.Api.Controllers;
 
 public class ExportControllerTest : ControllerTestFixture

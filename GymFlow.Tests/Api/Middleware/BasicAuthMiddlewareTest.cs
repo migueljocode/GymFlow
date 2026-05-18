@@ -1,10 +1,3 @@
-using System.Text;
-using GymFlow.Api.Middleware;
-using GymFlow.Models.Entities;
-using GymFlow.Services.Interfaces;
-using Microsoft.AspNetCore.Http;
-using Moq;
-
 namespace GymFlow.Tests.Api.Middleware;
 
 public class BasicAuthMiddlewareTest

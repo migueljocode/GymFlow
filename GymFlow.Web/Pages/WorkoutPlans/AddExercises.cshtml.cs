@@ -1,12 +1,6 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using GymFlow.Web.Services;
-using Microsoft.Extensions.Primitives;
-
 namespace GymFlow.Web.Pages.WorkoutPlans;
 
-public class AddExercisesModel : BasePageModel  // ← تغییر ارث‌بری
+public class AddExercisesModel : BasePageModel
 {
     private readonly ApiClient _apiClient;
     
@@ -25,7 +19,7 @@ public class AddExercisesModel : BasePageModel  // ← تغییر ارث‌بر�
     public string DayOfWeek { get; set; } = string.Empty;
     
     [BindProperty]
-    public int ClientId { get; set; }  // ← اضافه شد (id مشتری جاری)
+    public int ClientId { get; set; }
     
     [BindProperty]
     public int TargetMuscles { get; set; }
@@ -55,12 +49,11 @@ public class AddExercisesModel : BasePageModel  // ← تغییر ارث‌بر�
     public string? NewNotes { get; set; }
     
     public List<SelectListItem> ExerciseList { get; set; } = new();
-    public List<WorkoutExerciseItem> ExistingExercises { get; set; } = new();
+    public List<WorkoutExerciseItemResponse> ExistingExercises { get; set; } = new();
     
     public async Task<IActionResult> OnGetAsync(int workoutDayId, int workoutPlanId, string dayOfWeek)
     {
         var userIdParam = Request.Query["userId"].ToString();
-        Console.WriteLine($"[DEBUG] userId from Request.Query: {userIdParam}");
 
         if (!IsCoach)
             return RedirectToPage("/Login");
@@ -72,8 +65,6 @@ public class AddExercisesModel : BasePageModel  // ← تغییر ارث‌بر�
         WorkoutPlanId = workoutPlanId;
         DayOfWeek = dayOfWeek;
         ClientId = userId;
-
-        Console.WriteLine($"[DEBUG] ClientId set to: {ClientId}");
 
         await LoadDataAsync();
         return Page();
@@ -111,7 +102,6 @@ public class AddExercisesModel : BasePageModel  // ← تغییر ارث‌بر�
                 }
             }
             
-            Console.WriteLine($"[DEBUG] Redirecting: WorkoutPlanId={WorkoutPlanId}, ClientId={ClientId}");
             return RedirectToPage("/WorkoutPlans/Details", new { id = WorkoutPlanId, userId = ClientId });
         }
         else if (action == "add")
@@ -180,7 +170,7 @@ public class AddExercisesModel : BasePageModel  // ← تغییر ارث‌بر�
     {
         try
         {
-            var exercises = await _apiClient.GetAsync<List<ExerciseItem>>("api/exercises");
+            var exercises = await _apiClient.GetAsync<List<ExerciseItemResponse>>("api/exercises");
             if (exercises != null)
             {
                 ExerciseList = exercises.Select(e => new SelectListItem
@@ -190,7 +180,7 @@ public class AddExercisesModel : BasePageModel  // ← تغییر ارث‌بر�
                 }).ToList();
             }
             
-            var plan = await _apiClient.GetAsync<WorkoutPlanDetails>($"api/workoutplans/{WorkoutPlanId}/details");
+            var plan = await _apiClient.GetAsync<WorkoutPlanDetailsResponse>($"api/workoutplans/{WorkoutPlanId}/details");
             if (plan != null && plan.WorkoutDays != null)
             {
                 var targetDay = plan.WorkoutDays.FirstOrDefault(d => d.Id == WorkoutDayId);
@@ -203,7 +193,7 @@ public class AddExercisesModel : BasePageModel  // ← تغییر ارث‌بر�
                     
                     if (targetDay.Exercises != null && targetDay.Exercises.Any())
                     {
-                        ExistingExercises = targetDay.Exercises.Select(e => new WorkoutExerciseItem
+                        ExistingExercises = targetDay.Exercises.Select(e => new WorkoutExerciseItemResponse
                         {
                             Id = e.Id,
                             ExerciseName = e.ExerciseName,
@@ -221,47 +211,4 @@ public class AddExercisesModel : BasePageModel  // ← تغییر ارث‌بر�
             Console.WriteLine($"Error loading data: {ex.Message}");
         }
     }
-}
-
-public class ExerciseItem
-{
-    public int Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string MuscleGroup { get; set; } = string.Empty;
-}
-
-public class WorkoutPlanDetails
-{
-    public int Id { get; set; }
-    public List<WorkoutDayDetail> WorkoutDays { get; set; } = new();
-}
-
-public class WorkoutDayDetail
-{
-    public int Id { get; set; }
-    public int TargetMuscles { get; set; }
-    public int Intensity { get; set; }
-    public int DurationMinutes { get; set; }
-    public string? Notes { get; set; }
-    public List<ExerciseInDay> Exercises { get; set; } = new();
-}
-
-public class ExerciseInDay
-{
-    public int Id { get; set; }
-    public string ExerciseName { get; set; } = string.Empty;
-    public int Sets { get; set; }
-    public string Reps { get; set; } = string.Empty;
-    public int RestSeconds { get; set; }
-    public string? Notes { get; set; }
-}
-
-public class WorkoutExerciseItem
-{
-    public int Id { get; set; }
-    public string ExerciseName { get; set; } = string.Empty;
-    public int Sets { get; set; }
-    public string Reps { get; set; } = string.Empty;
-    public int RestSeconds { get; set; }
-    public string? Notes { get; set; }
 }

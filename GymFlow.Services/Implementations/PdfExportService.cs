@@ -1,10 +1,3 @@
-using QuestPDF.Fluent;
-using QuestPDF.Helpers;
-using QuestPDF.Infrastructure;
-using GymFlow.Dal.Repositories.Interfaces;
-using GymFlow.Services.Interfaces;
-using GymFlow.Models.Entities;
-
 namespace GymFlow.Services.Implementations;
 
 public class PdfExportService : IPdfExportService

@@ -1,12 +1,6 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
-using GymFlow.Web.Services;
-using GymFlow.Models.DTOs.Requests;
-using GymFlow.Models.Enums;
-
 namespace GymFlow.Web.Pages.WorkoutPlans;
 
-public class CreateModel : BasePageModel  // ← تغییر ارث‌بری
+public class CreateModel : BasePageModel
 {
     private readonly ApiClient _apiClient;
     
@@ -16,7 +10,7 @@ public class CreateModel : BasePageModel  // ← تغییر ارث‌بری
     }
     
     [BindProperty]
-    public int ClientId { get; set; }  // ← اضافه شد
+    public int ClientId { get; set; }
     
     [BindProperty]
     public int Phase { get; set; } = 1;
@@ -59,7 +53,7 @@ public class CreateModel : BasePageModel  // ← تغییر ارث‌بری
 
         ClientId = userId.Value;
 
-        var existingPlans = await _apiClient.GetAsync<List<WorkoutPlanInfoDto>>($"api/workoutplans/user/{ClientId}");
+        var existingPlans = await _apiClient.GetAsync<List<WorkoutPlanListResponse>>($"api/workoutplans/user/{ClientId}");
         if (existingPlans != null && existingPlans.Any())
         {
             Phase = existingPlans.Max(p => p.Phase) + 1;
@@ -89,7 +83,7 @@ public class CreateModel : BasePageModel  // ← تغییر ارث‌بری
             return Page();
         }
         
-        var existingPlans = await _apiClient.GetAsync<List<WorkoutPlanInfoDto>>($"api/workoutplans/user/{ClientId}");
+        var existingPlans = await _apiClient.GetAsync<List<WorkoutPlanListResponse>>($"api/workoutplans/user/{ClientId}");
         if (existingPlans != null && existingPlans.Any(p => p.Phase == Phase))
         {
             ErrorMessage = $"فاز {Phase} قبلاً ایجاد شده است!";
@@ -112,7 +106,7 @@ public class CreateModel : BasePageModel  // ← تغییر ارث‌بری
             Notes = Notes
         };
         
-        var plan = await _apiClient.PostAsync<WorkoutPlanCreatedDto>("api/workoutplans", request);
+        var plan = await _apiClient.PostAsync<WorkoutPlanResponse>($"api/workoutplans", request);
         
         if (plan == null || plan.Id == 0)
         {
@@ -135,7 +129,7 @@ public class CreateModel : BasePageModel  // ← تغییر ارث‌بری
             await _apiClient.PostAsync<object>("api/workoutdays", dayRequest);
         }
         
-        var firstWorkoutDay = await _apiClient.GetAsync<List<WorkoutDayDto>>($"api/workoutdays/plan/{plan.Id}");
+        var firstWorkoutDay = await _apiClient.GetAsync<List<WorkoutDayResponse>>($"api/workoutdays/plan/{plan.Id}");
         if (firstWorkoutDay != null && firstWorkoutDay.Any())
         {
             return RedirectToPage("/WorkoutPlans/AddExercises", new { 
@@ -148,23 +142,4 @@ public class CreateModel : BasePageModel  // ← تغییر ارث‌بری
         
         return RedirectToPage("/WorkoutPlans/Index", new { userId = ClientId });
     }
-}
-
-public class WorkoutPlanInfoDto
-{
-    public int Id { get; set; }
-    public int Phase { get; set; }
-    public bool IsActive { get; set; }
-}
-
-public class WorkoutPlanCreatedDto
-{
-    public int Id { get; set; }
-    public int Phase { get; set; }
-}
-
-public class WorkoutDayDto
-{
-    public int Id { get; set; }
-    public DayOfWeek DayOfWeek { get; set; }
 }

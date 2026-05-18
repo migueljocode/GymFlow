@@ -1,6 +1,3 @@
-using GymFlow.Models.DTOs.Responses;
-using GymFlow.Services.Models;
-
 namespace GymFlow.Services.Interfaces;
 
 /// <summary>

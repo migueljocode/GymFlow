@@ -4,19 +4,27 @@
     ViewData["Title"] = "گزارش‌ها";
 }
 
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@{
+    var requestToken = Antiforgery.GetAndStoreTokens(HttpContext).RequestToken;
+}
+
 <div class="container">
-    <h2 class="mb-4">📑 دانلود گزارش‌ها</h2>
+    <h2 class="mb-4"><i class="fas fa-file-pdf"></i> دانلود گزارش‌ها</h2>
+
+    <!-- ذخیره توکن در یک فیلد مخفی برای جاوااسکریپت -->
+    <input type="hidden" id="requestVerificationToken" value="@requestToken" />
 
     @if (Model.IsCoach)
     {
         <div class="card mb-4">
             <div class="card-header bg-info text-white">
-                <h5 class="mb-0">انتخاب مشتری</h5>
+                <h5 class="mb-0"><i class="fas fa-users"></i> انتخاب مشتری</h5>
             </div>
             <div class="card-body">
                 @if (Model.Clients.Any())
                 {
-                    <select id="clientSelect" class="form-select" onchange="location.href='?clientId='+this.value">
+                    <select id="clientSelect" class="form-select w-auto" style="max-width: 300px;" onchange="location.href='?clientId='+this.value">
                         <option value="">-- انتخاب کنید --</option>
                         @foreach (var client in Model.Clients)
                         {
@@ -37,18 +45,22 @@
         if (Model.ActivePlanId > 0 || !Model.IsCoach)
         {
             <div class="row">
+                <!-- برنامه تمرینی -->
                 <div class="col-md-6 mb-4">
-                    <div class="card shadow-sm h-100">
+                    <div class="card shadow-sm h-100 d-flex flex-column">
                         <div class="card-header bg-primary text-white">
-                            <h5 class="mb-0">📋 برنامه تمرینی</h5>
+                            <h5 class="mb-0"><i class="fas fa-clipboard-list"></i> برنامه تمرینی</h5>
                         </div>
-                        <div class="card-body">
+                        <div class="card-body flex-grow-1">
                             <p>دانلود برنامه تمرینی فعال به صورت PDF</p>
+                        </div>
+                        <div class="card-footer bg-transparent border-0 text-end pb-3">
                             @if (Model.ActivePlanId > 0)
                             {
                                 <form method="post" asp-page-handler="DownloadWorkoutPlan" asp-route-planId="@Model.ActivePlanId" asp-route-userId="@(Model.IsCoach ? Model.SelectedClientId : Model.CurrentUserId)">
+                                    @Html.AntiForgeryToken()
                                     <button type="submit" class="btn btn-primary">
-                                        📄 دانلود برنامه تمرینی
+                                        <i class="fas fa-download"></i> دانلود برنامه
                                     </button>
                                 </form>
                             }
@@ -60,49 +72,63 @@
                     </div>
                 </div>
 
+                <!-- گزارش پیشرفت -->
                 <div class="col-md-6 mb-4">
-                    <div class="card shadow-sm h-100">
+                    <div class="card shadow-sm h-100 d-flex flex-column">
                         <div class="card-header bg-success text-white">
-                            <h5 class="mb-0">📊 گزارش پیشرفت</h5>
+                            <h5 class="mb-0"><i class="fas fa-chart-line"></i> گزارش پیشرفت</h5>
                         </div>
-                        <div class="card-body">
+                        <div class="card-body flex-grow-1">
                             <p>دانلود گزارش کامل پیشرفت وزنی</p>
+                        </div>
+                        <div class="card-footer bg-transparent border-0 text-end pb-3">
                             <form method="post" asp-page-handler="DownloadProgress" asp-route-userId="@(Model.IsCoach ? Model.SelectedClientId : Model.CurrentUserId)">
+                                @Html.AntiForgeryToken()
                                 <button type="submit" class="btn btn-success">
-                                    📄 دانلود گزارش پیشرفت
+                                    <i class="fas fa-download"></i> دانلود گزارش
                                 </button>
                             </form>
                         </div>
                     </div>
                 </div>
 
+                <!-- خلاصه هفتگی (با دکمه و تاریخ در یک خط) -->
                 <div class="col-md-6 mb-4">
-                    <div class="card shadow-sm h-100">
+                    <div class="card shadow-sm h-100 d-flex flex-column">
                         <div class="card-header bg-warning text-white">
-                            <h5 class="mb-0">📅 خلاصه هفتگی</h5>
+                            <h5 class="mb-0"><i class="fas fa-calendar-week"></i> خلاصه هفتگی</h5>
                         </div>
-                        <div class="card-body">
+                        <div class="card-body flex-grow-1">
                             <p>دانلود خلاصه تمرینات این هفته</p>
-                            <div class="input-group mb-3">
-                                <input type="date" id="weekStart" class="form-control" />
-                                <button type="button" class="btn btn-warning" onclick="downloadWeeklySummary()">
-                                    📄 دانلود خلاصه هفتگی
-                                </button>
+                            <div class="d-flex gap-2 align-items-end mt-2">
+                                <div class="flex-grow-1">
+                                    <label class="form-label small mb-1">تاریخ شروع هفته</label>
+                                    <input type="date" id="weekStart" class="form-control" />
+                                </div>
+                                <div>
+                                    <button type="button" class="btn btn-warning" onclick="downloadWeeklySummary()" style="white-space: nowrap;">
+                                        <i class="fas fa-download"></i> دانلود خلاصه
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- گواهی دستاوردها (دکمه پایین سمت راست) -->
                 <div class="col-md-6 mb-4">
-                    <div class="card shadow-sm h-100">
+                    <div class="card shadow-sm h-100 d-flex flex-column">
                         <div class="card-header bg-danger text-white">
-                            <h5 class="mb-0">🏆 گواهی دستاوردها</h5>
+                            <h5 class="mb-0"><i class="fas fa-trophy"></i> گواهی دستاوردها</h5>
                         </div>
-                        <div class="card-body">
+                        <div class="card-body flex-grow-1">
                             <p>دانلود گواهی افتخار دستاوردهای شما</p>
+                        </div>
+                        <div class="card-footer bg-transparent border-0 text-end pb-3">
                             <form method="post" asp-page-handler="DownloadCertificate" asp-route-userId="@(Model.IsCoach ? Model.SelectedClientId : Model.CurrentUserId)">
+                                @Html.AntiForgeryToken()
                                 <button type="submit" class="btn btn-danger">
-                                    🏆 دانلود گواهی
+                                    <i class="fas fa-download"></i> دانلود گواهی
                                 </button>
                             </form>
                         </div>
@@ -123,6 +149,24 @@
 
 @section Scripts {
     <script>
+        // تابع محاسبه شروع هفته (شنبه) به فرمت yyyy-mm-dd
+        function getStartOfWeek(date = new Date()) {
+            const day = date.getDay(); // 0 = یکشنبه, 6 = شنبه
+            const diffToSaturday = (day === 6) ? 0 : (day + 1) % 7;
+            const saturday = new Date(date);
+            saturday.setDate(date.getDate() - diffToSaturday);
+            const year = saturday.getFullYear();
+            const month = String(saturday.getMonth() + 1).padStart(2, '0');
+            const dayOfMonth = String(saturday.getDate()).padStart(2, '0');
+            return `${year}-${month}-${dayOfMonth}`;
+        }
+
+        // مقداردهی پیش‌فرض فیلد تاریخ
+        const weekStartInput = document.getElementById('weekStart');
+        if (weekStartInput) {
+            weekStartInput.value = getStartOfWeek();
+        }
+
         function downloadWeeklySummary() {
             const weekStart = document.getElementById('weekStart').value;
             if (!weekStart) {
@@ -130,9 +174,23 @@
                 return;
             }
             const userId = '@(Model.IsCoach ? Model.SelectedClientId : Model.CurrentUserId)';
+            const token = document.getElementById('requestVerificationToken')?.value;
+            if (!token) {
+                alert('خطا در دریافت توکن امنیتی');
+                return;
+            }
+
             const form = document.createElement('form');
             form.method = 'post';
-            form.action = `/Reports?handler=DownloadWeeklySummary&userId=${userId}&weekStart=${weekStart}`;
+            form.action = `/Reports?handler=DownloadWeeklySummary&userId=${encodeURIComponent(userId)}&weekStart=${encodeURIComponent(weekStart)}`;
+
+            // اضافه کردن توکن ضد جعل
+            const tokenInput = document.createElement('input');
+            tokenInput.type = 'hidden';
+            tokenInput.name = '__RequestVerificationToken';
+            tokenInput.value = token;
+            form.appendChild(tokenInput);
+
             document.body.appendChild(form);
             form.submit();
         }

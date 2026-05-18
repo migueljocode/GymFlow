@@ -1,7 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using GymFlow.Models.Entities;
-
 namespace GymFlow.Dal.Configurations;
 
 public class UserConfiguration : BaseConfiguration<User>

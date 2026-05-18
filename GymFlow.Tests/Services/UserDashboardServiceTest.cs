@@ -1,13 +1,3 @@
-using Xunit;
-using Moq;
-using GymFlow.Dal.Repositories.Interfaces;
-using GymFlow.Models.Entities;
-using GymFlow.Models.Enums;
-using GymFlow.Models.DTOs.Responses;
-using GymFlow.Services.Implementations;
-using GymFlow.Services.Interfaces;
-using GymFlow.Services.Models;
-
 namespace GymFlow.Tests.Services;
 
 public class UserDashboardServiceTest
@@ -137,8 +127,8 @@ public class UserDashboardServiceTest
     {
         return new List<Achievement>
         {
-            new Achievement { Name = "First Workout", Description = "Completed first workout", Icon = "🎯" },
-            new Achievement { Name = "5 Workouts", Description = "Completed 5 workouts", Icon = "🌟" }
+            new Achievement { Name = "First Workout", Description = "Completed first workout", Icon = "" },
+            new Achievement { Name = "5 Workouts", Description = "Completed 5 workouts", Icon = "" }
         };
     }
 

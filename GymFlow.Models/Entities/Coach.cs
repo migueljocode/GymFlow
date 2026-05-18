@@ -1,5 +1,3 @@
-using GymFlow.Models.Base;
-
 namespace GymFlow.Models.Entities;
 
 public class Coach : BaseEntity

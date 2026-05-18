@@ -1,14 +1,5 @@
 #nullable disable
 
-using GymFlow.Tests.Web.Pages.TestBase;
-using GymFlow.Web.Pages.WorkoutPlans;
-using GymFlow.Web.Services;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using Moq;
-
 namespace GymFlow.Tests.Web.Pages.WorkoutPlans;
 
 public class DetailsPageTest : PageModelTestFixture

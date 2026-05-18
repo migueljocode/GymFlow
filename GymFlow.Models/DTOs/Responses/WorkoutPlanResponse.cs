@@ -1,5 +1,3 @@
-using GymFlow.Models.Enums;
-
 namespace GymFlow.Models.DTOs.Responses;
 
 public class WorkoutPlanResponse

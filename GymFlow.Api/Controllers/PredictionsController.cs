@@ -1,9 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
-using GymFlow.Dal.Repositories.Interfaces;
-using GymFlow.Models.DTOs.Responses;
-using GymFlow.Api.Controllers.Base;
-using GymFlow.Api.Helpers;
-
 namespace GymFlow.Api.Controllers;
 
 [Tags("Predictions")]
@@ -63,10 +57,10 @@ public class PredictionsController : ApiControllerBase
             response.PredictedWeight90Days = currentWeight + (float)avgWeeklyChange * 12;
             
             response.Message = avgWeeklyChange < -0.1f 
-                ? "You're on track! Keep up the good work 💪" 
+                ? "You're on track! Keep up the good work " 
                 : avgWeeklyChange > 0.1f 
-                    ? "Your weight is trending upward. Consider reviewing your nutrition plan 📈" 
-                    : "You're maintaining well! Consistent effort pays off 🎯";
+                    ? "Your weight is trending upward. Consider reviewing your nutrition plan " 
+                    : "You're maintaining well! Consistent effort pays off ";
         }
         else
         {

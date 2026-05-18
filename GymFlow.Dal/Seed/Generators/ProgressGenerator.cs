@@ -91,11 +91,11 @@ public class ProgressGenerator
         var daysUntilTarget = ((int)workoutDay.DayOfWeek - (int)currentDate.DayOfWeek + 7) % 7;
         currentDate = currentDate.AddDays(daysUntilTarget);
         
-        var feelings = new[] { "Energetic! 💪 Did PR on bench", "Good session, felt strong", 
-                               "Tired today, went lighter", "Great pump! 🔥", 
+        var feelings = new[] { "Energetic!  Did PR on bench", "Good session, felt strong", 
+                               "Tired today, went lighter", "Great pump! ", 
                                "Knee slightly sore, skipped squats", "Amazing energy!",
-                               "Decent workout, need more sleep", "Personal best on deadlift! 🏆",
-                               "Felt weak, took a deload day", "Crushed it! ⚡" };
+                               "Decent workout, need more sleep", "Personal best on deadlift! ",
+                               "Felt weak, took a deload day", "Crushed it! " };
         
         while (currentDate <= endDate)
         {

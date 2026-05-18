@@ -1,11 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
-using GymFlow.Api.Controllers.Base;
-using GymFlow.Services.Interfaces;
-using GymFlow.Models.DTOs.Requests;
-using GymFlow.Models.Entities;
-using GymFlow.Dal.Repositories.Interfaces;
-using GymFlow.Models.Enums;
-
 namespace GymFlow.Api.Controllers;
 
 [Tags("Authentication")]
@@ -81,6 +73,10 @@ public class AuthController : ApiControllerBase
         if (request.Password.Length < 6)
             return Error("Password must be at least 6 characters");
 
+        // فقط اجازه ثبت‌نام Member را بده
+        if (request.Role != "Member")
+            return Error("Only member registration is allowed", 403);
+
         // بررسی تکراری نبودن نام کاربری
         var existingPerson = await _personRepository.GetByUsernameAsync(request.Username);
         if (existingPerson != null)
@@ -101,38 +97,14 @@ public class AuthController : ApiControllerBase
 
         var createdPerson = await _personRepository.AddAsync(person);
 
-        if (request.Role == "Coach")
+        // ایجاد User (Member)
+        var user = new User
         {
-            // ایجاد Coach
-            var coach = new Coach
-            {
-                PersonId = createdPerson.Id,
-                Specialization = "General",
-                YearsOfExperience = 0,
-                CreatedAt = DateTime.UtcNow
-            };
-            await _coachRepository.AddAsync(coach);
-            
-            // همچنین برای مربی یک User ایجاد کن (برای ورود به سیستم)
-            var user = new User
-            {
-                PersonId = createdPerson.Id,
-                Goal = Goal.Fitness,
-                CreatedAt = DateTime.UtcNow
-            };
-            await _userRepository.AddAsync(user);
-        }
-        else
-        {
-            // ایجاد User (Member)
-            var user = new User
-            {
-                PersonId = createdPerson.Id,
-                Goal = Goal.Fitness,
-                CreatedAt = DateTime.UtcNow
-            };
-            await _userRepository.AddAsync(user);
-        }
+            PersonId = createdPerson.Id,
+            Goal = Goal.Fitness,
+            CreatedAt = DateTime.UtcNow
+        };
+        await _userRepository.AddAsync(user);
 
         return Success<object>(null, "Registration successful");
     }

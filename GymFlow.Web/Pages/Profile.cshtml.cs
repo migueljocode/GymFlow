@@ -1,8 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
-using GymFlow.Web.Services;
-using GymFlow.Models.Enums;
-
 namespace GymFlow.Web.Pages;
 
 public class ProfileModel : BasePageModel
@@ -14,7 +9,8 @@ public class ProfileModel : BasePageModel
         _apiClient = apiClient;
     }
 
-    // ========== فیلدهای مشترک ==========
+    public bool IsUserCoach { get; set; } = false;
+
     [BindProperty]
     public string FirstName { get; set; } = string.Empty;
 
@@ -27,14 +23,12 @@ public class ProfileModel : BasePageModel
     [BindProperty]
     public string? Phone { get; set; }
 
-    // ========== فیلدهای مخصوص مربی ==========
     [BindProperty]
     public string Specialization { get; set; } = string.Empty;
 
     [BindProperty]
     public int YearsOfExperience { get; set; }
 
-    // ========== فیلدهای مخصوص کاربر عادی ==========
     [BindProperty]
     public Goal Goal { get; set; }
 
@@ -56,41 +50,40 @@ public class ProfileModel : BasePageModel
     [BindProperty]
     public int? SelectedCoachId { get; set; }
 
-    // ========== لیست مربیان برای کاربر عادی ==========
-    public List<CoachListItemDto> CoachesList { get; set; } = new();
-
-    // ========== اطلاعات فقط خواندنی ==========
     public string Username { get; set; } = string.Empty;
     public string CreatedAt { get; set; } = string.Empty;
-
-    public string? Message { get; set; }
-    public string? ErrorMessage { get; set; }
+    public List<CoachListItemResponse> CoachesList { get; set; } = new();
 
     public async Task<IActionResult> OnGetAsync()
     {
-        if (!IsMember && !IsCoach) return RedirectToPage("/Login");
+        var userRole = HttpContext.Session.GetString("UserRole");
+        if (string.IsNullOrEmpty(userRole))
+            return RedirectToPage("/Login");
 
-        // بارگذاری لیست مربیان برای کاربر عادی
-        if (IsMember)
+        IsUserCoach = userRole == "Coach";
+
+        if (IsUserCoach)
         {
-            CoachesList = await _apiClient.GetAsync<List<CoachListItemDto>>("api/coaches/list") ?? new();
+            await LoadCoachProfileAsync();
         }
-
-        await LoadProfileAsync();
+        else
+        {
+            await LoadMemberProfileAsync();
+            CoachesList = await _apiClient.GetAsync<List<CoachListItemResponse>>("api/coaches/list") ?? new();
+        }
+        
         return Page();
     }
 
     public async Task<IActionResult> OnPostAsync()
     {
-        if (!IsMember && !IsCoach) return RedirectToPage("/Login");
+        var userRole = HttpContext.Session.GetString("UserRole");
+        if (string.IsNullOrEmpty(userRole))
+            return RedirectToPage("/Login");
 
-        // حذف خطاهای فیلدهای غیرمرتبط با نقش کاربر
-        if (IsMember)
-        {
-            ModelState.Remove("Specialization");
-            ModelState.Remove("YearsOfExperience");
-        }
-        if (IsCoach)
+        IsUserCoach = userRole == "Coach";
+
+        if (IsUserCoach)
         {
             ModelState.Remove("Goal");
             ModelState.Remove("Weight");
@@ -100,169 +93,127 @@ public class ProfileModel : BasePageModel
             ModelState.Remove("IsCompetitive");
             ModelState.Remove("SelectedCoachId");
         }
+        else
+        {
+            ModelState.Remove("Specialization");
+            ModelState.Remove("YearsOfExperience");
+        }
 
         if (!ModelState.IsValid)
         {
-            var errors = ModelState.Values
-                .SelectMany(v => v.Errors)
-                .Select(e => e.ErrorMessage)
-                .ToList();
+            var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
             TempData["ErrorMessage"] = $"لطفاً اطلاعات را به درستی وارد کنید: {string.Join(" | ", errors)}";
             return Page();
         }
 
         bool success;
-        if (IsCoach)
+        if (IsUserCoach)
         {
-            var updateData = new
+            var updateData = new UpdateCoachProfileRequest
             {
-                FirstName,
-                LastName,
-                Email,
-                Phone,
-                Specialization,
-                YearsOfExperience
+                FirstName = FirstName,
+                LastName = LastName,
+                Email = Email,
+                Phone = Phone,
+                Specialization = Specialization,
+                YearsOfExperience = YearsOfExperience
             };
             success = await _apiClient.PutAsync("api/coaches/me", updateData);
+            if (success)
+            {
+                TempData["Message"] = "اطلاعات پروفایل مربی با موفقیت به‌روز شد.";
+                await LoadCoachProfileAsync();
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "خطا در به‌روزرسانی پروفایل مربی.";
+            }
         }
         else
         {
             var userId = GetCurrentUserIdFromSession();
             if (userId == null) return RedirectToPage("/Login");
 
-            var coachIdToSend = SelectedCoachId == 0 ? null : SelectedCoachId;
-            
-            Console.WriteLine($"[DEBUG] OnPostAsync - SelectedCoachId: {SelectedCoachId}");
-
-            var updateData = new
+            var updateData = new UpdateUserProfileRequest
             {
-                FirstName,
-                LastName,
-                Email,
-                Phone,
-                Goal,
-                Weight,
-                Height,
-                BodyType,
-                EstimatedCaloriesIntake,
-                IsCompetitive,
+                FirstName = FirstName,
+                LastName = LastName,
+                Email = Email,
+                Phone = Phone,
+                Goal = Goal,
+                Weight = Weight,
+                Height = Height,
+                BodyType = BodyType,
+                EstimatedCaloriesIntake = EstimatedCaloriesIntake,
+                IsCompetitive = IsCompetitive,
                 CoachId = SelectedCoachId
             };
-
-            var json = System.Text.Json.JsonSerializer.Serialize(updateData);
-            Console.WriteLine($"[DEBUG] Sending update data: {json}");
-
-            
             success = await _apiClient.PutAsync($"api/users/{userId}", updateData);
-        }
-
-        if (success)
-        {
-            TempData["Message"] = "اطلاعات پروفایل با موفقیت به‌روز شد.";
-            await LoadProfileAsync(); // بارگذاری مجدد مقادیر جدید
-        }
-        else
-        {
-            TempData["ErrorMessage"] = "خطا در به‌روزرسانی پروفایل. لطفاً دوباره تلاش کنید.";
+            
+            if (success)
+            {
+                TempData["Message"] = "اطلاعات پروفایل با موفقیت به‌روز شد.";
+                await LoadMemberProfileAsync();
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "خطا در به‌روزرسانی پروفایل.";
+            }
         }
 
         return Page();
     }
 
-    private async Task LoadProfileAsync()
+    private async Task LoadCoachProfileAsync()
     {
-        if (IsCoach)
+        var profile = await _apiClient.GetAsync<CoachProfileResponse>("api/coaches/me");
+        if (profile != null)
         {
-            var profile = await _apiClient.GetAsync<CoachProfileDto>("api/coaches/me");
-            if (profile != null)
-            {
-                FirstName = profile.FirstName;
-                LastName = profile.LastName;
-                Email = profile.Email;
-                Phone = profile.Phone;
-                Specialization = profile.Specialization;
-                YearsOfExperience = profile.YearsOfExperience;
-                Username = profile.Username;
-                CreatedAt = profile.CreatedAt.ToString("yyyy/MM/dd");
-            }
-            else
-            {
-                TempData["ErrorMessage"] = "خطا در دریافت اطلاعات پروفایل مربی.";
-            }
+            FirstName = profile.FirstName;
+            LastName = profile.LastName;
+            Email = profile.Email;
+            Phone = profile.Phone;
+            Specialization = profile.Specialization;
+            YearsOfExperience = profile.YearsOfExperience;
+            Username = profile.Username;
+            CreatedAt = profile.CreatedAt.ToString("yyyy/MM/dd");
         }
         else
         {
-            var userId = GetCurrentUserIdFromSession();
-            if (userId == null) return;
+            TempData["ErrorMessage"] = "خطا در دریافت اطلاعات پروفایل مربی.";
+        }
+    }
 
-            var profile = await _apiClient.GetAsync<UserProfileDto>($"api/users/{userId}");
-            if (profile != null)
-            {
-                FirstName = profile.FirstName;
-                LastName = profile.LastName;
-                Email = profile.Email;
-                Phone = profile.Phone;
-                Goal = profile.Goal;
-                Weight = profile.Weight;
-                Height = profile.Height;
-                BodyType = profile.BodyType;
-                EstimatedCaloriesIntake = profile.EstimatedCaloriesIntake;
-                IsCompetitive = profile.IsCompetitive;
-                SelectedCoachId = profile.CoachId;
-                Username = profile.Username;
-                CreatedAt = profile.CreatedAt.ToString("yyyy/MM/dd");
+    private async Task LoadMemberProfileAsync()
+    {
+        var userId = GetCurrentUserIdFromSession();
+        if (userId == null) return;
 
-                Console.WriteLine($"[DEBUG] LoadProfileAsync - CoachId from API: {profile.CoachId}");
-            }
-            else
-            {
-                TempData["ErrorMessage"] = "خطا در دریافت اطلاعات پروفایل کاربر.";
-            }
+        var profile = await _apiClient.GetAsync<UserProfileResponse>($"api/users/{userId}");
+        if (profile != null)
+        {
+            FirstName = profile.FirstName;
+            LastName = profile.LastName;
+            Email = profile.Email;
+            Phone = profile.Phone;
+            Goal = profile.Goal;
+            Weight = profile.Weight;
+            Height = profile.Height;
+            BodyType = profile.BodyType;
+            EstimatedCaloriesIntake = profile.EstimatedCaloriesIntake;
+            IsCompetitive = profile.IsCompetitive;
+            SelectedCoachId = profile.CoachId;
+            Username = profile.Username;
+            CreatedAt = profile.CreatedAt.ToString("yyyy/MM/dd");
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "خطا در دریافت اطلاعات پروفایل کاربر.";
         }
     }
 
     private int? GetCurrentUserIdFromSession()
     {
-        if (int.TryParse(HttpContext.Session.GetString("UserId"), out var userId))
-            return userId;
-        return null;
+        return int.TryParse(HttpContext.Session.GetString("UserId"), out var userId) ? userId : null;
     }
-}
-
-// ========== DTOها ==========
-
-public class CoachProfileDto
-{
-    public string FirstName { get; set; } = string.Empty;
-    public string LastName { get; set; } = string.Empty;
-    public string? Email { get; set; }
-    public string? Phone { get; set; }
-    public string Specialization { get; set; } = string.Empty;
-    public int YearsOfExperience { get; set; }
-    public string Username { get; set; } = string.Empty;
-    public DateTime CreatedAt { get; set; }
-}
-
-public class UserProfileDto
-{
-    public string FirstName { get; set; } = string.Empty;
-    public string LastName { get; set; } = string.Empty;
-    public string? Email { get; set; }
-    public string? Phone { get; set; }
-    public Goal Goal { get; set; }
-    public float? Weight { get; set; }
-    public float? Height { get; set; }
-    public BodyType? BodyType { get; set; }
-    public int? EstimatedCaloriesIntake { get; set; }
-    public bool IsCompetitive { get; set; }
-    public string Username { get; set; } = string.Empty;
-    public DateTime CreatedAt { get; set; }
-    public int? CoachId { get; set; }  // فیلد مربی
-}
-
-public class CoachListItemDto
-{
-    public int Id { get; set; }
-    public string FullName { get; set; } = string.Empty;
-    public string Specialization { get; set; } = string.Empty;
 }

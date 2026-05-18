@@ -1,10 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
-using GymFlow.Dal.Repositories.Interfaces;
-using GymFlow.Models.DTOs.Responses;
-using GymFlow.Api.Controllers.Base;
-using GymFlow.Api.Helpers;
-using GymFlow.Models.Entities;
-
 namespace GymFlow.Api.Controllers;
 
 [Tags("Statistics")]
@@ -199,16 +192,16 @@ public class StatisticsController : ApiControllerBase
         var achievements = new List<object>();
         
         if (totalWorkouts >= 10)
-            achievements.Add(new { Name = "Getting Started", Description = "Completed 10 workouts", Icon = "🎯" });
+            achievements.Add(new { Name = "Getting Started", Description = "Completed 10 workouts", Icon = "" });
         if (totalWorkouts >= 50)
-            achievements.Add(new { Name = "Dedicated Athlete", Description = "Completed 50 workouts", Icon = "🔥" });
+            achievements.Add(new { Name = "Dedicated Athlete", Description = "Completed 50 workouts", Icon = "" });
         if (streak >= 7)
-            achievements.Add(new { Name = "Consistency King", Description = "7-day workout streak", Icon = "👑" });
+            achievements.Add(new { Name = "Consistency King", Description = "7-day workout streak", Icon = "" });
         if (streak >= 30)
-            achievements.Add(new { Name = "Unstoppable", Description = "30-day workout streak", Icon = "⚡" });
+            achievements.Add(new { Name = "Unstoppable", Description = "30-day workout streak", Icon = "" });
         
         if (!achievements.Any())
-            achievements.Add(new { Name = "First Step", Description = "Complete your first workout", Icon = "🌟" });
+            achievements.Add(new { Name = "First Step", Description = "Complete your first workout", Icon = "" });
         
         return Success(achievements);
     }
@@ -320,7 +313,7 @@ public class StatisticsController : ApiControllerBase
                         Title = "تمرین جدید",
                         Description = $"{latestSession.ActualDurationMinutes} دقیقه - {latestSession.Feeling ?? "بدون توضیح"}",
                         Timestamp = latestSession.CreatedAt,
-                        Icon = "💪"
+                        Icon = ""
                     });
                 }
                 
@@ -335,7 +328,7 @@ public class StatisticsController : ApiControllerBase
                         Title = "وزن جدید",
                         Description = $"وزن: {latestLog.Weight} کیلوگرم",
                         Timestamp = latestLog.CreatedAt,
-                        Icon = "⚖️"
+                        Icon = " "
                     });
                 }
             }

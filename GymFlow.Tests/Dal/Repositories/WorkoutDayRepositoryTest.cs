@@ -1,9 +1,3 @@
-using Xunit;
-using Microsoft.EntityFrameworkCore;
-using GymFlow.Dal.Repositories.Implementations;
-using GymFlow.Models.Entities;
-using GymFlow.Models.Enums;
-
 namespace GymFlow.Tests.Dal.Repositories;
 
 public class WorkoutDayRepositoryTest : IClassFixture<DbContextFixture>

@@ -1,7 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
-using GymFlow.Web.Services;
-using GymFlow.Models.DTOs.Requests;
-
 namespace GymFlow.Web.Pages.Workout;
 
 public class LogModel : BasePageModel
@@ -40,7 +36,7 @@ public class LogModel : BasePageModel
         }
         
         var dayOfWeek = ActualDate.DayOfWeek;
-        var activePlan = await _apiClient.GetAsync<ActivePlanDto>($"api/workoutplans/user/{userId}/active");
+        var activePlan = await _apiClient.GetAsync<ActivePlanResponse>($"api/workoutplans/user/{userId}/active");
         
         if (activePlan == null || activePlan.Id == 0)
         {
@@ -48,7 +44,7 @@ public class LogModel : BasePageModel
             return RedirectToPage();
         }
         
-        var workoutDays = await _apiClient.GetAsync<List<WorkoutDayDto>>($"api/workoutdays/plan/{activePlan.Id}");
+        var workoutDays = await _apiClient.GetAsync<List<WorkoutDayResponse>>($"api/workoutdays/plan/{activePlan.Id}");
         var targetDay = workoutDays?.FirstOrDefault(wd => wd.DayOfWeek == dayOfWeek);
         
         if (targetDay == null)
@@ -65,12 +61,11 @@ public class LogModel : BasePageModel
             Feeling = Feeling
         };
         
-        // استفاده از نام متد صحیح با مشخص کردن نوع صریح
         var (result, errorMessage) = await _apiClient.PostWithErrorAsync<object>("api/workoutsessions/log", request);
         
         if (result != null)
         {
-            TempData["Message"] = $"✅ تمرین برای تاریخ {ActualDate.ToString("yyyy/MM/dd")} با موفقیت ثبت شد! 🔥";
+            TempData["Message"] = $"✅ تمرین برای تاریخ {ActualDate.ToString("yyyy/MM/dd")} با موفقیت ثبت شد! ";
         }
         else
         {
@@ -94,18 +89,4 @@ public class LogModel : BasePageModel
             _ => day.ToString()
         };
     }
-}
-
-// DTOهای مورد نیاز
-public class ActivePlanDto
-{
-    public int Id { get; set; }
-    public int Phase { get; set; }
-    public bool IsActive { get; set; }
-}
-
-public class WorkoutDayDto
-{
-    public int Id { get; set; }
-    public DayOfWeek DayOfWeek { get; set; }
 }

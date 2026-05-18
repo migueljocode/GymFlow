@@ -1,10 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
-using GymFlow.Dal.Repositories.Interfaces;
-using GymFlow.Models.DTOs.Requests;
-using GymFlow.Models.DTOs.Responses;
-using GymFlow.Models.Entities;
-using GymFlow.Api.Controllers.Base;
-
 namespace GymFlow.Api.Controllers;
 
 [Tags("Workout Days")]

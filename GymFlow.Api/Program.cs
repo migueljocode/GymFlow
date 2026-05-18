@@ -1,12 +1,3 @@
-using GymFlow.Dal.Context;
-using GymFlow.Models.Entities;
-using GymFlow.Models.Enums;
-using GymFlow.Services.Extensions;
-using GymFlow.Services.Interfaces;
-using GymFlow.Services.Implementations;
-using GymFlow.Api.Middleware;
-using Microsoft.EntityFrameworkCore;
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Register Controllers

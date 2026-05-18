@@ -1,7 +1,3 @@
-using Xunit;
-using GymFlow.Dal.Seed.Constants;
-using GymFlow.Models.Enums;
-
 namespace GymFlow.Tests.Dal.Seed.Constants;
 
 public class ExerciseLibraryTest

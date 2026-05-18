@@ -1,15 +1,5 @@
 #nullable disable
 
-using GymFlow.Tests.Web.Pages.TestBase;
-using GymFlow.Web.Pages.Progress;
-using GymFlow.Web.Services;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using Moq;
-
 namespace GymFlow.Tests.Web.Pages.Progress;
 
 public class IndexPageTest : PageModelTestFixture

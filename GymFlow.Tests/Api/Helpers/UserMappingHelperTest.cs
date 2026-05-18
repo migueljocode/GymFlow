@@ -1,9 +1,3 @@
-using GymFlow.Api.Helpers;
-using GymFlow.Models.DTOs.Requests;
-using GymFlow.Models.DTOs.Responses;
-using GymFlow.Models.Entities;
-using GymFlow.Models.Enums;
-
 namespace GymFlow.Tests.Api.Helpers;
 
 public class UserMappingHelperTest
