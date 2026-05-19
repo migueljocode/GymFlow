@@ -26,21 +26,21 @@ public class DetailsPageTest : PageModelTestFixture
     {
         // Arrange
         var planId = 5;
-        var planDetails = new WorkoutPlanDetailsDto
+        var planDetails = new WorkoutPlanDetailsResponse
         {
             Id = planId,
             Phase = 2,
             SessionsPerWeek = 3,
             StartDate = DateOnly.FromDateTime(DateTime.UtcNow),
             IsActive = true,
-            WorkoutDays = new List<WorkoutDayDetailsDto>
+            WorkoutDays = new List<WorkoutDayDetailResponse>
             {
                 new() { Id = 1, DayOfWeek = DayOfWeek.Monday, DurationMinutes = 60 },
                 new() { Id = 2, DayOfWeek = DayOfWeek.Wednesday, DurationMinutes = 60 },
                 new() { Id = 3, DayOfWeek = DayOfWeek.Friday, DurationMinutes = 60 }
             }
         };
-        _mockApiClient.Setup(c => c.GetAsync<WorkoutPlanDetailsDto>($"api/workoutplans/{planId}/details"))
+        _mockApiClient.Setup(c => c.GetAsync<WorkoutPlanDetailsResponse>($"api/workoutplans/{planId}/details"))
             .ReturnsAsync(planDetails);
 
         // Act
@@ -60,13 +60,13 @@ public class DetailsPageTest : PageModelTestFixture
     {
         // Arrange
         var planId = 5;
-        var planDetails = new WorkoutPlanDetailsDto
+        var planDetails = new WorkoutPlanDetailsResponse
         {
             Id = planId,
             Phase = 1,
-            WorkoutDays = new List<WorkoutDayDetailsDto>() // Empty
+            WorkoutDays = new List<WorkoutDayDetailResponse>() // Empty
         };
-        _mockApiClient.Setup(c => c.GetAsync<WorkoutPlanDetailsDto>($"api/workoutplans/{planId}/details"))
+        _mockApiClient.Setup(c => c.GetAsync<WorkoutPlanDetailsResponse>($"api/workoutplans/{planId}/details"))
             .ReturnsAsync(planDetails);
 
         // Act
@@ -83,8 +83,8 @@ public class DetailsPageTest : PageModelTestFixture
     {
         // Arrange
         var planId = 99;
-        _mockApiClient.Setup(c => c.GetAsync<WorkoutPlanDetailsDto>($"api/workoutplans/{planId}/details"))
-            .ReturnsAsync((WorkoutPlanDetailsDto)null);
+        _mockApiClient.Setup(c => c.GetAsync<WorkoutPlanDetailsResponse>($"api/workoutplans/{planId}/details"))
+            .ReturnsAsync((WorkoutPlanDetailsResponse)null);
 
         // Act
         await _pageModel.OnGetAsync(planId);

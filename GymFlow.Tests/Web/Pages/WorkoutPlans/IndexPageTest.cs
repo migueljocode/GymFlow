@@ -1,4 +1,5 @@
 #nullable disable
+using IndexModel = GymFlow.Web.Pages.WorkoutPlans.IndexModel;
 
 namespace GymFlow.Tests.Web.Pages.WorkoutPlans;
 
@@ -32,8 +33,8 @@ public class IndexPageTest : PageModelTestFixture
     public async Task OnGetAsync_WhenUserLoggedIn_NoPlans_ReturnsEmptyList()
     {
         SetAuthenticatedUser(_pageModel, userId: 1, username: "testuser");
-        _mockApiClient.Setup(c => c.GetAsync<List<WorkoutPlanListDto>>(It.IsAny<string>()))
-            .ReturnsAsync((List<WorkoutPlanListDto>)null);
+        _mockApiClient.Setup(c => c.GetAsync<List<WorkoutPlanListResponse>>(It.IsAny<string>()))
+            .ReturnsAsync((List<WorkoutPlanListResponse>)null);
 
         var result = await _pageModel.OnGetAsync();
         Assert.IsType<PageResult>(result);
@@ -45,12 +46,12 @@ public class IndexPageTest : PageModelTestFixture
     public async Task OnGetAsync_WhenUserLoggedIn_HasPlans_ReturnsList()
     {
         SetAuthenticatedUser(_pageModel, userId: 1, username: "testuser");
-        var plans = new List<WorkoutPlanListDto>
+        var plans = new List<WorkoutPlanListResponse>
         {
             new() { Id = 1, Phase = 1, SessionsPerWeek = 3, StartDate = DateOnly.FromDateTime(DateTime.UtcNow), IsActive = true },
             new() { Id = 2, Phase = 2, SessionsPerWeek = 4, StartDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-30)), IsActive = false }
         };
-        _mockApiClient.Setup(c => c.GetAsync<List<WorkoutPlanListDto>>(It.IsAny<string>()))
+        _mockApiClient.Setup(c => c.GetAsync<List<WorkoutPlanListResponse>>(It.IsAny<string>()))
             .ReturnsAsync(plans);
 
         var result = await _pageModel.OnGetAsync();

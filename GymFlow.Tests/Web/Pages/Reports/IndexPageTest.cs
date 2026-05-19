@@ -1,4 +1,5 @@
 #nullable disable
+using IndexModel = GymFlow.Web.Pages.Reports.IndexModel;
 
 namespace GymFlow.Tests.Web.Pages.Reports;
 

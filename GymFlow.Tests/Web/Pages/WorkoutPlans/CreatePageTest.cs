@@ -39,8 +39,8 @@ public class CreatePageTest : PageModelTestFixture
     {
         // Arrange
         SetAuthenticatedUser(_pageModel, 1, "testuser");
-        _mockApiClient.Setup(c => c.GetAsync<List<WorkoutPlanInfoDto>>("api/workoutplans/user/1"))
-            .ReturnsAsync((List<WorkoutPlanInfoDto>)null);
+        _mockApiClient.Setup(c => c.GetAsync<List<WorkoutPlanListResponse>>("api/workoutplans/user/1"))
+            .ReturnsAsync((List<WorkoutPlanListResponse>)null);
 
         // Act
         await _pageModel.OnGetAsync();
@@ -54,13 +54,13 @@ public class CreatePageTest : PageModelTestFixture
     {
         // Arrange
         SetAuthenticatedUser(_pageModel, 1, "testuser");
-        var existingPlans = new List<WorkoutPlanInfoDto>
+        var existingPlans = new List<WorkoutPlanListResponse>
         {
             new() { Id = 1, Phase = 1, IsActive = false },
             new() { Id = 2, Phase = 2, IsActive = true },
             new() { Id = 3, Phase = 3, IsActive = false }
         };
-        _mockApiClient.Setup(c => c.GetAsync<List<WorkoutPlanInfoDto>>("api/workoutplans/user/1"))
+        _mockApiClient.Setup(c => c.GetAsync<List<WorkoutPlanListResponse>>("api/workoutplans/user/1"))
             .ReturnsAsync(existingPlans);
 
         // Act
@@ -127,12 +127,12 @@ public class CreatePageTest : PageModelTestFixture
         _pageModel.Phase = 2;
         _pageModel.SelectedDays = new List<int> { 6 };
 
-        var existingPlans = new List<WorkoutPlanInfoDto>
+        var existingPlans = new List<WorkoutPlanListResponse>
         {
             new() { Id = 1, Phase = 1, IsActive = false },
             new() { Id = 2, Phase = 2, IsActive = true }
         };
-        _mockApiClient.Setup(c => c.GetAsync<List<WorkoutPlanInfoDto>>("api/workoutplans/user/1"))
+        _mockApiClient.Setup(c => c.GetAsync<List<WorkoutPlanListResponse>>("api/workoutplans/user/1"))
             .ReturnsAsync(existingPlans);
 
         // Act
@@ -158,12 +158,12 @@ public class CreatePageTest : PageModelTestFixture
         _pageModel.StartDate = DateOnly.FromDateTime(DateTime.UtcNow);
         _pageModel.SelectedDays = new List<int> { 6, 0, 1 }; // شنبه، یکشنبه، دوشنبه
 
-        var existingPlans = new List<WorkoutPlanInfoDto>(); // هیچ برنامه قبلی
-        _mockApiClient.Setup(c => c.GetAsync<List<WorkoutPlanInfoDto>>("api/workoutplans/user/1"))
+        var existingPlans = new List<WorkoutPlanListResponse>(); // هیچ برنامه قبلی
+        _mockApiClient.Setup(c => c.GetAsync<List<WorkoutPlanListResponse>>("api/workoutplans/user/1"))
             .ReturnsAsync(existingPlans);
 
-        var createdPlan = new WorkoutPlanCreatedDto { Id = 5, Phase = 1 };
-        _mockApiClient.Setup(c => c.PostAsync<WorkoutPlanCreatedDto>("api/workoutplans", It.IsAny<CreateWorkoutPlanRequest>()))
+        var createdPlan = new WorkoutPlanResponse { Id = 5, Phase = 1 };
+        _mockApiClient.Setup(c => c.PostAsync<WorkoutPlanResponse>("api/workoutplans", It.IsAny<CreateWorkoutPlanRequest>()))
             .ReturnsAsync(createdPlan);
 
         // موک کردن غیرفعال کردن برنامه فعال (وجود ندارد)
@@ -174,11 +174,11 @@ public class CreatePageTest : PageModelTestFixture
         _mockApiClient.Setup(c => c.PostAsync<object>("api/workoutdays", It.IsAny<object>()))
             .ReturnsAsync(new { });
 
-        var workoutDays = new List<WorkoutDayDto>
+        var workoutDays = new List<WorkoutDayResponse>
         {
             new() { Id = 10, DayOfWeek = DayOfWeek.Saturday }
         };
-        _mockApiClient.Setup(c => c.GetAsync<List<WorkoutDayDto>>($"api/workoutdays/plan/{createdPlan.Id}"))
+        _mockApiClient.Setup(c => c.GetAsync<List<WorkoutDayResponse>>($"api/workoutdays/plan/{createdPlan.Id}"))
             .ReturnsAsync(workoutDays);
 
         // Act
@@ -203,30 +203,30 @@ public class CreatePageTest : PageModelTestFixture
         _pageModel.Phase = 2;
         _pageModel.SelectedDays = new List<int> { 6 };
 
-        var existingPlans = new List<WorkoutPlanInfoDto>
+        var existingPlans = new List<WorkoutPlanListResponse>
         {
             new() { Id = 10, Phase = 1, IsActive = true }
         };
-        _mockApiClient.Setup(c => c.GetAsync<List<WorkoutPlanInfoDto>>("api/workoutplans/user/1"))
+        _mockApiClient.Setup(c => c.GetAsync<List<WorkoutPlanListResponse>>("api/workoutplans/user/1"))
             .ReturnsAsync(existingPlans);
 
-        var createdPlan = new WorkoutPlanCreatedDto { Id = 15, Phase = 2 };
-        _mockApiClient.Setup(c => c.PostAsync<WorkoutPlanCreatedDto>("api/workoutplans", It.IsAny<CreateWorkoutPlanRequest>()))
+        var createdPlan = new WorkoutPlanResponse { Id = 15, Phase = 2 };
+        _mockApiClient.Setup(c => c.PostAsync<WorkoutPlanResponse>("api/workoutplans", It.IsAny<CreateWorkoutPlanRequest>()))
             .ReturnsAsync(createdPlan);
 
         _mockApiClient.Setup(c => c.PostAsync<object>($"api/workoutplans/10/deactivate", It.IsAny<object>()))
             .ReturnsAsync(new { });
         _mockApiClient.Setup(c => c.PostAsync<object>("api/workoutdays", It.IsAny<object>()))
             .ReturnsAsync(new { });
-        _mockApiClient.Setup(c => c.GetAsync<List<WorkoutDayDto>>($"api/workoutdays/plan/{createdPlan.Id}"))
-            .ReturnsAsync(new List<WorkoutDayDto>());
+        _mockApiClient.Setup(c => c.GetAsync<List<WorkoutDayResponse>>($"api/workoutdays/plan/{createdPlan.Id}"))
+            .ReturnsAsync(new List<WorkoutDayResponse>());
 
         // Act
         var result = await _pageModel.OnPostAsync();
 
         // Assert
         _mockApiClient.Verify(c => c.PostAsync<object>("api/workoutplans/10/deactivate", It.IsAny<object>()), Times.Once);
-        _mockApiClient.Verify(c => c.PostAsync<WorkoutPlanCreatedDto>("api/workoutplans", It.Is<CreateWorkoutPlanRequest>(req => req.UserId == 1 && req.Phase == 2)), Times.Once);
+        _mockApiClient.Verify(c => c.PostAsync<WorkoutPlanResponse>("api/workoutplans", It.Is<CreateWorkoutPlanRequest>(req => req.UserId == 1 && req.Phase == 2)), Times.Once);
         var redirectResult = Assert.IsType<RedirectToPageResult>(result);
         Assert.Equal("/WorkoutPlans/Details", redirectResult.PageName);
         Assert.Equal(15, redirectResult.RouteValues["id"]);
@@ -240,10 +240,10 @@ public class CreatePageTest : PageModelTestFixture
         _pageModel.Phase = 1;
         _pageModel.SelectedDays = new List<int> { 6 };
 
-        _mockApiClient.Setup(c => c.GetAsync<List<WorkoutPlanInfoDto>>("api/workoutplans/user/1"))
-            .ReturnsAsync(new List<WorkoutPlanInfoDto>());
-        _mockApiClient.Setup(c => c.PostAsync<WorkoutPlanCreatedDto>("api/workoutplans", It.IsAny<CreateWorkoutPlanRequest>()))
-            .ReturnsAsync((WorkoutPlanCreatedDto)null);
+        _mockApiClient.Setup(c => c.GetAsync<List<WorkoutPlanListResponse>>("api/workoutplans/user/1"))
+            .ReturnsAsync(new List<WorkoutPlanListResponse>());
+        _mockApiClient.Setup(c => c.PostAsync<WorkoutPlanResponse>("api/workoutplans", It.IsAny<CreateWorkoutPlanRequest>()))
+            .ReturnsAsync((WorkoutPlanResponse)null);
 
         // Act
         var result = await _pageModel.OnPostAsync();

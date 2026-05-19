@@ -29,15 +29,15 @@ public class AddExercisesPageTest : PageModelTestFixture
         var workoutPlanId = 20;
         var dayOfWeek = "Monday";
 
-        var exercises = new List<ExerciseItem>
+        var exercises = new List<ExerciseItemResponse>
         {
             new() { Id = 1, Name = "Bench Press", MuscleGroup = "Chest" },
             new() { Id = 2, Name = "Squat", MuscleGroup = "Legs" }
         };
-        var planDetails = new WorkoutPlanDetails
+        var planDetails = new WorkoutPlanDetailsResponse
         {
             Id = workoutPlanId,
-            WorkoutDays = new List<WorkoutDayDetail>
+            WorkoutDays = new List<WorkoutDayDetailResponse>
             {
                 new()
                 {
@@ -46,7 +46,7 @@ public class AddExercisesPageTest : PageModelTestFixture
                     Intensity = 1,
                     DurationMinutes = 60,
                     Notes = "Test notes",
-                    Exercises = new List<ExerciseInDay>
+                    Exercises = new List<ExerciseInDayResponse>
                     {
                         new() { Id = 100, ExerciseName = "Push-up", Sets = 3, Reps = "10,10,8", RestSeconds = 60, Notes = "Warmup" }
                     }
@@ -54,9 +54,9 @@ public class AddExercisesPageTest : PageModelTestFixture
             }
         };
 
-        _mockApiClient.Setup(c => c.GetAsync<List<ExerciseItem>>("api/exercises"))
+        _mockApiClient.Setup(c => c.GetAsync<List<ExerciseItemResponse>>("api/exercises"))
             .ReturnsAsync(exercises);
-        _mockApiClient.Setup(c => c.GetAsync<WorkoutPlanDetails>($"api/workoutplans/{workoutPlanId}/details"))
+        _mockApiClient.Setup(c => c.GetAsync<WorkoutPlanDetailsResponse>($"api/workoutplans/{workoutPlanId}/details"))
             .ReturnsAsync(planDetails);
 
         // Act
@@ -83,10 +83,10 @@ public class AddExercisesPageTest : PageModelTestFixture
     [Fact]
     public async Task OnGetAsync_WhenApiReturnsNull_HandlesGracefully()
     {
-        _mockApiClient.Setup(c => c.GetAsync<List<ExerciseItem>>("api/exercises"))
-            .ReturnsAsync((List<ExerciseItem>)null);
-        _mockApiClient.Setup(c => c.GetAsync<WorkoutPlanDetails>("api/workoutplans/1/details"))
-            .ReturnsAsync((WorkoutPlanDetails)null);
+        _mockApiClient.Setup(c => c.GetAsync<List<ExerciseItemResponse>>("api/exercises"))
+            .ReturnsAsync((List<ExerciseItemResponse>)null);
+        _mockApiClient.Setup(c => c.GetAsync<WorkoutPlanDetailsResponse>("api/workoutplans/1/details"))
+            .ReturnsAsync((WorkoutPlanDetailsResponse)null);
 
         var result = await _pageModel.OnGetAsync(1, 1, "Monday");
 

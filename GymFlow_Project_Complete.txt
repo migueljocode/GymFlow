@@ -1,0 +1,51 @@
+#!/bin/bash
+
+OUTPUT_FILE="GymFlow_Project_Complete.txt"
+PROJECT_ROOT="."
+
+# پوشه‌هایی که باید حذف شوند
+EXCLUDE_DIRS=("bin" "obj" ".vscode" ".idea" "Migrations" "wwwroot/lib" "node_modules" ".git" "GymFlow.db" ".vs" "TestResults")
+
+# پسوندهایی که باید جمع‌آوری شوند
+INCLUDE_EXTENSIONS=("*.cs" "*.cshtml" "*.razor" "*.js" "*.css" "*.json" "*.xml" "*.config" ".csproj" ".sln")
+
+echo "📂 شروع جمع‌آوری پروژه GymFlow..."
+
+# پاک کردن فایل قبلی
+> "$OUTPUT_FILE"
+
+# ساخت الگوی find برای پوشه‌های حذف
+EXCLUDE_PATTERN=""
+for dir in "${EXCLUDE_DIRS[@]}"; do
+    EXCLUDE_PATTERN="$EXCLUDE_PATTERN -path \"*/$dir/*\" -prune -o"
+done
+
+# جمع‌آوری فایل‌ها
+for ext in "${INCLUDE_EXTENSIONS[@]}"; do
+    echo "🔍 جستجوی فایل‌های $ext ..."
+    
+    find "$PROJECT_ROOT" -type f -name "$ext" \
+        \( -path "*/bin/*" -prune -o \
+           -path "*/obj/*" -prune -o \
+           -path "*/.vscode/*" -prune -o \
+           -path "*/.idea/*" -prune -o \
+           -path "*/Migrations/*" -prune -o \
+           -path "*/wwwroot/lib/*" -prune -o \
+           -path "*/node_modules/*" -prune -o \
+           -path "*/.git/*" -prune -o \
+           -path "*/TestResults/*" -prune -o \
+           -type f -print \) 2>/dev/null | while read -r file; do
+        
+        echo "📄 ========== $file ==========" >> "$OUTPUT_FILE"
+        cat "$file" >> "$OUTPUT_FILE"
+        echo -e "\n\n" >> "$OUTPUT_FILE"
+    done
+done
+
+# اضافه کردن ساختار پوشه‌ها
+echo "📁 اضافه کردن ساختار پوشه‌ها..." >> "$OUTPUT_FILE"
+echo "========== PROJECT STRUCTURE ==========" >> "$OUTPUT_FILE"
+tree -L 3 -I "bin|obj|.vscode|.idea|Migrations|wwwroot/lib|node_modules|.git|TestResults" >> "$OUTPUT_FILE" 2>/dev/null || find . -type d -not -path "*/bin/*" -not -path "*/obj/*" -not -path "*/.vscode/*" -not -path "*/.idea/*" -not -path "*/Migrations/*" -not -path "*/wwwroot/lib/*" | head -100 >> "$OUTPUT_FILE"
+
+echo "✅ پروژه در فایل $OUTPUT_FILE ذخیره شد."
+echo "📊 حجم فایل: $(du -h $OUTPUT_FILE | cut -f1)"

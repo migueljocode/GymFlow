@@ -1,4 +1,6 @@
 #nullable disable
+using IndexModel = GymFlow.Web.Pages.Progress.IndexModel;
+using WeightLogDto = GymFlow.Models.DTOs.Responses.ProgressLogResponse;
 
 namespace GymFlow.Tests.Web.Pages.Progress;
 
