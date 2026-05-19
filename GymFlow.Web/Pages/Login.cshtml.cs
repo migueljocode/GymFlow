@@ -27,31 +27,8 @@ public class LoginModel : PageModel
 
         if (success)
         {
-            // تشخیص نقش واقعی کاربر
-            string userRole = "Member";
-            
-            // روش 1: بررسی با نام کاربری (سریع)
-            if (Username == "coach")
-            {
-                userRole = "Coach";
-            }
-            else
-            {
-                // روش 2: بررسی با API (برای کاربرانی که بعداً ثبت‌نام می‌کنند)
-                try
-                {
-                    // سعی می‌کنیم اطلاعات مربی را بگیریم
-                    var coachData = await _apiClient.GetAsync<object>($"api/coaches/user/{userId}");
-                    if (coachData != null)
-                    {
-                        userRole = "Coach";
-                    }
-                }
-                catch
-                {
-                    userRole = "Member";
-                }
-            }
+            // تشخیص نقش فقط بر اساس نام کاربری (چون ثبت‌نام مربی غیرفعال است)
+            string userRole = (Username == "coach") ? "Coach" : "Member";
             
             HttpContext.Session.SetString("Username", Username);
             HttpContext.Session.SetString("UserRole", userRole);

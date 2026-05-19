@@ -533,3 +533,30 @@ a:hover {
 .loading {
     animation: pulse 1.5s ease-in-out infinite;
 }
+
+.modal .input-group {
+    direction: ltr;
+}
+.modal .btn-close {
+    margin: 0;
+}
+
+.dropdown-toggle::after {
+    margin-right: 0.5rem;
+    margin-left: 0;
+    vertical-align: middle;
+}
+
+/* اصلاح موقعیت فلش dropdown در RTL */
+.dropdown-toggle::after {
+    margin-right: 0.5rem;
+    margin-left: 0;
+    vertical-align: middle;
+}
+
+/* برای select های بومی (مثل انتخاب تیپ بدنی) نیز اگر مشکل داشت */
+select {
+    background-position: left 0.75rem center !important;
+    padding-left: 2rem !important;
+    padding-right: 0.75rem !important;
+}

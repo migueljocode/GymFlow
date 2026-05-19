@@ -8,6 +8,11 @@
     @if (Model.IsCoach && !Model.IsViewingOwnPlans)
     {
         <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <a href="/WorkoutPlans/Create?userId=@Model.ClientId" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> برنامه جدید
+                </a>
+            </div>
             <h2 class="mb-0"><i class="fas fa-clipboard-list"></i> برنامه‌های تمرینی مشتری</h2>
             <a href="/Coach/Clients" class="btn btn-secondary">← بازگشت به لیست مشتریان</a>
         </div>
@@ -17,9 +22,11 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div></div>
             <h2 class="mb-0"><i class="fas fa-clipboard-list"></i> برنامه‌های تمرینی من</h2>
-            @if (Model.IsCoach && Model.IsViewingOwnPlans)
+            @if (Model.IsCoach)
             {
-                <a href="/WorkoutPlans/Create" class="btn btn-primary"><i class="fas fa-plus"></i> برنامه جدید</a>
+                <a href="/WorkoutPlans/Create?userId=@Model.ClientId" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> برنامه جدید
+                </a>
             }
             else
             {

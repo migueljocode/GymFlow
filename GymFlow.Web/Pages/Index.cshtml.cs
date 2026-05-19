@@ -105,17 +105,17 @@ public class IndexModel : PageModel
         var totalWorkouts = sessions?.Count ?? 0;
 
         if (totalWorkouts >= 1)
-            Achievements.Add(new AchievementResponse { Name = "اولین تمرین", Description = "اولین جلسه تمرینی خود را ثبت کردی!", Icon = "fa fa-star" });
+            Achievements.Add(new AchievementResponse { Name = "اولین تمرین", Description = "اولین جلسه تمرینی خود را ثبت کردی!", Icon = "fas fa-star" });
         if (totalWorkouts >= 5)
-            Achievements.Add(new AchievementResponse { Name = "پایداری", Description = "5 جلسه تمرین کامل شد!", Icon = "fa fa-fire" });
+            Achievements.Add(new AchievementResponse { Name = "پایداری", Description = "5 جلسه تمرین کامل شد!", Icon = "fas fa-fire" });
         if (totalWorkouts >= 10)
-            Achievements.Add(new AchievementResponse { Name = "شروع قدرتمند", Description = "10 جلسه تمرین کامل شد!", Icon = "fa fa-bolt" });
+            Achievements.Add(new AchievementResponse { Name = "شروع قدرتمند", Description = "10 جلسه تمرین کامل شد!", Icon = "fas fa-bolt" });
         if (totalWorkouts >= 25)
-            Achievements.Add(new AchievementResponse { Name = "متعهد به تمرین", Description = "25 جلسه تمرین - عالی!", Icon = "fa fa-trophy" });
+            Achievements.Add(new AchievementResponse { Name = "متعهد به تمرین", Description = "25 جلسه تمرین - عالی!", Icon = "fas fa-trophy" });
         if (totalWorkouts >= 50)
-            Achievements.Add(new AchievementResponse { Name = "ورزشکار حرفه‌ای", Description = "50 جلسه تمرین - فوق‌العاده!", Icon = "fa fa-crown" });
+            Achievements.Add(new AchievementResponse { Name = "ورزشکار حرفه‌ای", Description = "50 جلسه تمرین - فوق‌العاده!", Icon = "fas fa-crown" });
         if (totalWorkouts >= 100)
-            Achievements.Add(new AchievementResponse { Name = "اسطوره", Description = "100 جلسه تمرین! شما یک افسانه هستید!", Icon = "fa fa-gem" });
+            Achievements.Add(new AchievementResponse { Name = "اسطوره", Description = "100 جلسه تمرین! شما یک افسانه هستید!", Icon = "fas fa-gem" });
     }
 
     private async Task LoadRecentActivitiesAsync(int userId)
