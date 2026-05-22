@@ -1,5 +1,5 @@
 #!/bin/bash
-
+# This script is for generating complete solution codes in one .txt file for sending to AI and analyze better.
 OUTPUT_FILE="GymFlow_Project_Complete.txt"
 PROJECT_ROOT="."
 
