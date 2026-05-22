@@ -14,7 +14,7 @@ public class AuthController : ApiControllerBase
         ICoachRepository coachRepository,
         IPersonRepository personRepository,
         IUserRepository userRepository
-    )
+    ) // ← ۴ پارامتر
     {
         _authService = authService;
         _coachRepository = coachRepository; 

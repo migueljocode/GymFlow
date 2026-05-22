@@ -4,7 +4,7 @@ OUTPUT_FILE="GymFlow_Project_Complete.txt"
 PROJECT_ROOT="."
 
 # پوشه‌هایی که باید حذف شوند
-EXCLUDE_DIRS=("bin" "obj" ".vscode" ".idea" "Migrations" "wwwroot/lib" "node_modules" ".git" "GymFlow.db" ".vs" "TestResults")
+EXCLUDE_DIRS=("bin" "obj" ".vscode" ".idea" "Migrations" "wwwroot/lib" "node_modules" ".git" "GymFlow.db" ".vs" "TestResults" ".git")
 
 # پسوندهایی که باید جمع‌آوری شوند
 INCLUDE_EXTENSIONS=("*.cs" "*.cshtml" "*.razor" "*.js" "*.css" "*.json" "*.xml" "*.config" ".csproj" ".sln")

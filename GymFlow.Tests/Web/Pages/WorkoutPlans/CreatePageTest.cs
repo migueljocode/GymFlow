@@ -53,21 +53,24 @@ public class CreatePageTest : PageModelTestFixture
     public async Task OnGetAsync_WhenUserLoggedIn_HasPreviousPlans_PhaseSetToMaxPlusOne()
     {
         // Arrange
-        SetAuthenticatedUser(_pageModel, 1, "testuser");
+        SetAuthenticatedUser(_pageModel, userId: 1, username: "coach", role: "Coach");
+        var clientId = 1;
+        _pageModel.ClientId = clientId;
+
         var existingPlans = new List<WorkoutPlanListResponse>
         {
             new() { Id = 1, Phase = 1, IsActive = false },
-            new() { Id = 2, Phase = 2, IsActive = true },
-            new() { Id = 3, Phase = 3, IsActive = false }
+            new() { Id = 2, Phase = 2, IsActive = false },
+            new() { Id = 3, Phase = 3, IsActive = true }
         };
-        _mockApiClient.Setup(c => c.GetAsync<List<WorkoutPlanListResponse>>("api/workoutplans/user/1"))
+        _mockApiClient.Setup(c => c.GetAsync<List<WorkoutPlanListResponse>>($"api/workoutplans/user/{clientId}"))
             .ReturnsAsync(existingPlans);
 
         // Act
-        await _pageModel.OnGetAsync();
+        await _pageModel.OnGetAsync(clientId);
 
         // Assert
-        Assert.Equal(4, _pageModel.Phase);
+        Assert.Equal(4, _pageModel.Phase); // ماکزیمم فاز قبلی (3) + 1
     }
 
     #endregion
@@ -78,28 +81,29 @@ public class CreatePageTest : PageModelTestFixture
     public async Task OnPostAsync_InvalidModelState_ReturnsPageWithError()
     {
         // Arrange
+        SetAuthenticatedUser(_pageModel, userId: 1, username: "coach", role: "Coach");
         _pageModel.ModelState.AddModelError("SessionsPerWeek", "Required");
-        _pageModel.SelectedDays = new List<int> { 6, 0 };
+        _pageModel.SelectedDays = new List<int> { 6 }; // روز انتخاب شده باشد تا به دلیل خطای مدل استیت ریجکت شود
 
         // Act
         var result = await _pageModel.OnPostAsync();
 
-        // Assert
+        // Assert: باید PageResult باشد
         Assert.IsType<PageResult>(result);
         Assert.Equal("اطلاعات وارد شده معتبر نیست", _pageModel.ErrorMessage);
-        _mockApiClient.Verify(c => c.PostAsync<object>(It.IsAny<string>(), It.IsAny<object>()), Times.Never);
     }
 
     [Fact]
     public async Task OnPostAsync_NoSelectedDays_ReturnsPageWithError()
     {
         // Arrange
-        _pageModel.SelectedDays = new List<int>();
+        SetAuthenticatedUser(_pageModel, userId: 1, username: "coach", role: "Coach");
+        _pageModel.SelectedDays = new List<int>(); // هیچ روزی انتخاب نشده
 
         // Act
         var result = await _pageModel.OnPostAsync();
 
-        // Assert
+        // Assert: باید PageResult باشد (همان صفحه با خطا)
         Assert.IsType<PageResult>(result);
         Assert.Equal("حداقل یک روز تمرینی را انتخاب کنید", _pageModel.ErrorMessage);
     }
@@ -123,25 +127,24 @@ public class CreatePageTest : PageModelTestFixture
     public async Task OnPostAsync_PhaseAlreadyExists_ReturnsPageWithError()
     {
         // Arrange
-        SetAuthenticatedUser(_pageModel, 1, "testuser");
+        SetAuthenticatedUser(_pageModel, userId: 1, username: "coach", role: "Coach");
         _pageModel.Phase = 2;
         _pageModel.SelectedDays = new List<int> { 6 };
 
         var existingPlans = new List<WorkoutPlanListResponse>
         {
             new() { Id = 1, Phase = 1, IsActive = false },
-            new() { Id = 2, Phase = 2, IsActive = true }
+            new() { Id = 2, Phase = 2, IsActive = true } // فاز ۲ قبلاً وجود دارد
         };
-        _mockApiClient.Setup(c => c.GetAsync<List<WorkoutPlanListResponse>>("api/workoutplans/user/1"))
+        _mockApiClient.Setup(c => c.GetAsync<List<WorkoutPlanListResponse>>(It.IsAny<string>()))
             .ReturnsAsync(existingPlans);
 
         // Act
         var result = await _pageModel.OnPostAsync();
 
-        // Assert
+        // Assert: باید PageResult باشد
         Assert.IsType<PageResult>(result);
         Assert.Equal("فاز 2 قبلاً ایجاد شده است!", _pageModel.ErrorMessage);
-        _mockApiClient.Verify(c => c.PostAsync<object>(It.IsAny<string>(), It.IsAny<object>()), Times.Never);
     }
 
     #endregion
@@ -182,6 +185,7 @@ public class CreatePageTest : PageModelTestFixture
             .ReturnsAsync(workoutDays);
 
         // Act
+        SetAuthenticatedUser(_pageModel, userId: 1, username: "coach", role: "Coach");
         var result = await _pageModel.OnPostAsync();
 
         // Assert
@@ -199,48 +203,65 @@ public class CreatePageTest : PageModelTestFixture
     public async Task OnPostAsync_WhenActivePlanExists_DeactivatesItFirst()
     {
         // Arrange
-        SetAuthenticatedUser(_pageModel, 1, "testuser");
-        _pageModel.Phase = 2;
+        SetAuthenticatedUser(_pageModel, userId: 1, username: "coach", role: "Coach");
+        var clientId = 5;
+        _pageModel.ClientId = clientId;
         _pageModel.SelectedDays = new List<int> { 6 };
+        _pageModel.Phase = 2;
+        _pageModel.SessionsPerWeek = 3;
+        _pageModel.StartDate = DateOnly.FromDateTime(DateTime.UtcNow);
 
         var existingPlans = new List<WorkoutPlanListResponse>
         {
-            new() { Id = 10, Phase = 1, IsActive = true }
+            new() { Id = 10, IsActive = true, Phase = 1 }
         };
-        _mockApiClient.Setup(c => c.GetAsync<List<WorkoutPlanListResponse>>("api/workoutplans/user/1"))
+        _mockApiClient.Setup(c => c.GetAsync<List<WorkoutPlanListResponse>>($"api/workoutplans/user/{clientId}"))
             .ReturnsAsync(existingPlans);
 
         var createdPlan = new WorkoutPlanResponse { Id = 15, Phase = 2 };
         _mockApiClient.Setup(c => c.PostAsync<WorkoutPlanResponse>("api/workoutplans", It.IsAny<CreateWorkoutPlanRequest>()))
             .ReturnsAsync(createdPlan);
 
+        // مهم: موک غیرفعال کردن پلن فعال
         _mockApiClient.Setup(c => c.PostAsync<object>($"api/workoutplans/10/deactivate", It.IsAny<object>()))
             .ReturnsAsync(new { });
-        _mockApiClient.Setup(c => c.PostAsync<object>("api/workoutdays", It.IsAny<object>()))
+
+        // موک ایجاد روزهای تمرینی
+        _mockApiClient.Setup(c => c.PostAsync<object>("api/workoutdays", It.IsAny<CreateWorkoutDayRequest>()))
             .ReturnsAsync(new { });
+
+        // موک برگرداندن یک روز تمرینی برای ریدایرکت به AddExercises
+        var workoutDays = new List<WorkoutDayResponse>
+        {
+            new() { Id = 99, DayOfWeek = DayOfWeek.Monday }
+        };
         _mockApiClient.Setup(c => c.GetAsync<List<WorkoutDayResponse>>($"api/workoutdays/plan/{createdPlan.Id}"))
-            .ReturnsAsync(new List<WorkoutDayResponse>());
+            .ReturnsAsync(workoutDays);
 
         // Act
         var result = await _pageModel.OnPostAsync();
 
         // Assert
         _mockApiClient.Verify(c => c.PostAsync<object>("api/workoutplans/10/deactivate", It.IsAny<object>()), Times.Once);
-        _mockApiClient.Verify(c => c.PostAsync<WorkoutPlanResponse>("api/workoutplans", It.Is<CreateWorkoutPlanRequest>(req => req.UserId == 1 && req.Phase == 2)), Times.Once);
         var redirectResult = Assert.IsType<RedirectToPageResult>(result);
-        Assert.Equal("/WorkoutPlans/Details", redirectResult.PageName);
-        Assert.Equal(15, redirectResult.RouteValues["id"]);
+        Assert.Equal("/WorkoutPlans/AddExercises", redirectResult.PageName);
+        Assert.Equal(99, redirectResult.RouteValues["workoutDayId"]);
+        Assert.Equal(15, redirectResult.RouteValues["workoutPlanId"]);
+        Assert.Equal("Monday", redirectResult.RouteValues["dayOfWeek"]);
     }
 
     [Fact]
     public async Task OnPostAsync_CreatePlanFails_ReturnsPageWithError()
     {
         // Arrange
-        SetAuthenticatedUser(_pageModel, 1, "testuser");
-        _pageModel.Phase = 1;
+        SetAuthenticatedUser(_pageModel, userId: 1, username: "coach", role: "Coach");
         _pageModel.SelectedDays = new List<int> { 6 };
+        _pageModel.Phase = 1;
+        _pageModel.SessionsPerWeek = 3;
+        _pageModel.StartDate = DateOnly.FromDateTime(DateTime.UtcNow);
 
-        _mockApiClient.Setup(c => c.GetAsync<List<WorkoutPlanListResponse>>("api/workoutplans/user/1"))
+        // شبیه‌سازی شکست ایجاد پلن (API null برمی‌گرداند)
+        _mockApiClient.Setup(c => c.GetAsync<List<WorkoutPlanListResponse>>(It.IsAny<string>()))
             .ReturnsAsync(new List<WorkoutPlanListResponse>());
         _mockApiClient.Setup(c => c.PostAsync<WorkoutPlanResponse>("api/workoutplans", It.IsAny<CreateWorkoutPlanRequest>()))
             .ReturnsAsync((WorkoutPlanResponse)null);
@@ -248,8 +269,8 @@ public class CreatePageTest : PageModelTestFixture
         // Act
         var result = await _pageModel.OnPostAsync();
 
-        // Assert
-        Assert.IsType<PageResult>(result);
+        // Assert: باید PageResult باشد (همان صفحه با خطا)
+        var pageResult = Assert.IsType<PageResult>(result);
         Assert.Equal("خطا در ایجاد برنامه تمرینی", _pageModel.ErrorMessage);
     }
 

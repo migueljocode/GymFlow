@@ -330,15 +330,14 @@ public class DataGeneratorTest
         var persons = DataGenerator.GeneratePersons(5);
         var users = DataGenerator.GenerateUsers(persons);
 
-        // Act
+        // به جای اولین، آخرین پلن باید فعال باشد
         var plans = DataGenerator.GenerateWorkoutPlans(users);
         var userPlans = plans.GroupBy(p => p.UserId);
 
-        // Assert
         foreach (var userPlanGroup in userPlans)
         {
-            var firstPlan = userPlanGroup.OrderBy(p => p.Phase).First();
-            Assert.True(firstPlan.IsActive);
+            var lastPlan = userPlanGroup.OrderBy(p => p.Phase).Last();
+            Assert.True(lastPlan.IsActive);
         }
     }
 

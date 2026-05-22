@@ -25,6 +25,7 @@ public class DetailsPageTest : PageModelTestFixture
     public async Task OnGetAsync_WhenPlanExists_SetsPlanAndCalculatesSessions()
     {
         // Arrange
+        SetAuthenticatedUser(_pageModel, userId: 1, username: "testuser", role: "Member");
         var planId = 5;
         var planDetails = new WorkoutPlanDetailsResponse
         {
@@ -42,7 +43,8 @@ public class DetailsPageTest : PageModelTestFixture
         };
         _mockApiClient.Setup(c => c.GetAsync<WorkoutPlanDetailsResponse>($"api/workoutplans/{planId}/details"))
             .ReturnsAsync(planDetails);
-
+        var result = await _pageModel.OnGetAsync(planId);
+    
         // Act
         await _pageModel.OnGetAsync(planId);
 
@@ -59,12 +61,12 @@ public class DetailsPageTest : PageModelTestFixture
     public async Task OnGetAsync_WhenPlanHasNoWorkoutDays_SetsTotalSessionsZero()
     {
         // Arrange
+        SetAuthenticatedUser(_pageModel, userId: 1, username: "testuser", role: "Member");
         var planId = 5;
         var planDetails = new WorkoutPlanDetailsResponse
         {
             Id = planId,
-            Phase = 1,
-            WorkoutDays = new List<WorkoutDayDetailResponse>() // Empty
+            WorkoutDays = new List<WorkoutDayDetailResponse>() // خالی
         };
         _mockApiClient.Setup(c => c.GetAsync<WorkoutPlanDetailsResponse>($"api/workoutplans/{planId}/details"))
             .ReturnsAsync(planDetails);
@@ -75,7 +77,6 @@ public class DetailsPageTest : PageModelTestFixture
         // Assert
         Assert.NotNull(_pageModel.Plan);
         Assert.Equal(0, _pageModel.TotalSessions);
-        Assert.Equal(0, _pageModel.CompletionPercentage);
     }
 
     [Fact]

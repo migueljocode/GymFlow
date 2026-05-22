@@ -3,29 +3,32 @@ namespace GymFlow.Tests.Api.Controllers;
 public class AuthControllerTest : ControllerTestFixture
 {
     private readonly Mock<IAuthService> _mockAuthService;
+    private readonly Mock<ICoachRepository> _mockCoachRepository;
+    private readonly Mock<IPersonRepository> _mockPersonRepository;
+    private readonly Mock<IUserRepository> _mockUserRepository;
     private readonly AuthController _controller;
-
-    // کلاس کمکی برای دیسریالایز پاسخ استاندارد
-    private class ApiResponse
-    {
-        public bool Success { get; set; }
-        public string? Message { get; set; }
-        public JsonElement? Data { get; set; }
-        public string? Error { get; set; }
-        public DateTime Timestamp { get; set; }
-    }
 
     public AuthControllerTest()
     {
         _mockAuthService = new Mock<IAuthService>();
-        _controller = CreateController<AuthController>(_mockAuthService.Object);
+        _mockCoachRepository = new Mock<ICoachRepository>();
+        _mockPersonRepository = new Mock<IPersonRepository>();
+        _mockUserRepository = new Mock<IUserRepository>();
+        
+        _controller = CreateController<AuthController>(
+            _mockAuthService.Object,
+            _mockCoachRepository.Object,
+            _mockPersonRepository.Object,
+            _mockUserRepository.Object);
     }
 
     // ========== Helper ==========
-    private ApiResponse DeserializeApiResponse(IActionResult result)
+    private ApiResponse<T> DeserializeApiResponse<T>(IActionResult result)
     {
-        var json = JsonSerializer.Serialize(((ObjectResult)result).Value);
-        return Deserialize<ApiResponse>(json);
+        // به جای Assert.IsType<ObjectResult>، از IsAssignableFrom استفاده کنید
+        var objectResult = Assert.IsAssignableFrom<ObjectResult>(result);
+        var json = JsonSerializer.Serialize(objectResult.Value, JsonOptions);
+        return Deserialize<ApiResponse<T>>(json);
     }
 
     // ========== LoginAsync Tests ==========
@@ -50,15 +53,15 @@ public class AuthControllerTest : ControllerTestFixture
 
         var result = await _controller.LoginAsync(request);
         var okResult = Assert.IsType<OkObjectResult>(result);
-        var response = DeserializeApiResponse(okResult);
+        var response = DeserializeApiResponse<JsonElement>(okResult);
 
         Assert.True(response.Success);
         Assert.Equal("Login successful", response.Message);
-        Assert.NotNull(response.Data);
-        // توجه: نام خواص در JSON با حرف بزرگ (PascalCase) هستند
-        Assert.Equal(1, response.Data.Value.GetProperty("Id").GetInt32());
-        Assert.Equal("coach", response.Data.Value.GetProperty("Username").GetString());
-        Assert.Equal("Coach", response.Data.Value.GetProperty("Role").GetString());
+        
+        var data = response.Data;
+        Assert.Equal(1, data.GetProperty("Id").GetInt32());
+        Assert.Equal("coach", data.GetProperty("Username").GetString());
+        Assert.Equal("Coach", data.GetProperty("Role").GetString());
     }
 
     [Fact]
@@ -81,14 +84,15 @@ public class AuthControllerTest : ControllerTestFixture
 
         var result = await _controller.LoginAsync(request);
         var okResult = Assert.IsType<OkObjectResult>(result);
-        var response = DeserializeApiResponse(okResult);
+        var response = DeserializeApiResponse<JsonElement>(okResult);
 
         Assert.True(response.Success);
         Assert.Equal("Login successful", response.Message);
-        Assert.NotNull(response.Data);
-        Assert.Equal(2, response.Data.Value.GetProperty("Id").GetInt32());
-        Assert.Equal("member", response.Data.Value.GetProperty("Username").GetString());
-        Assert.Equal("Member", response.Data.Value.GetProperty("Role").GetString());
+        
+        var data = response.Data;
+        Assert.Equal(2, data.GetProperty("Id").GetInt32());
+        Assert.Equal("member", data.GetProperty("Username").GetString());
+        Assert.Equal("Member", data.GetProperty("Role").GetString());
     }
 
     [Fact]
@@ -99,7 +103,7 @@ public class AuthControllerTest : ControllerTestFixture
         var result = await _controller.LoginAsync(request);
         var badRequestResult = Assert.IsType<ObjectResult>(result);
         Assert.Equal(400, badRequestResult.StatusCode);
-        var response = DeserializeApiResponse(badRequestResult);
+        var response = DeserializeApiResponse<JsonElement>(badRequestResult);
 
         Assert.False(response.Success);
         Assert.Equal("Username and password are required", response.Error);
@@ -113,7 +117,7 @@ public class AuthControllerTest : ControllerTestFixture
         var result = await _controller.LoginAsync(request);
         var badRequestResult = Assert.IsType<ObjectResult>(result);
         Assert.Equal(400, badRequestResult.StatusCode);
-        var response = DeserializeApiResponse(badRequestResult);
+        var response = DeserializeApiResponse<JsonElement>(badRequestResult);
 
         Assert.False(response.Success);
         Assert.Equal("Username and password are required", response.Error);
@@ -129,7 +133,7 @@ public class AuthControllerTest : ControllerTestFixture
         var result = await _controller.LoginAsync(request);
         var badRequestResult = Assert.IsType<ObjectResult>(result);
         Assert.Equal(400, badRequestResult.StatusCode);
-        var response = DeserializeApiResponse(badRequestResult);
+        var response = DeserializeApiResponse<JsonElement>(badRequestResult);
 
         Assert.False(response.Success);
         Assert.Equal("Invalid username or password", response.Error);
@@ -147,12 +151,13 @@ public class AuthControllerTest : ControllerTestFixture
 
         var result = _controller.GetCurrentUser();
         var okResult = Assert.IsType<OkObjectResult>(result);
-        var response = DeserializeApiResponse(okResult);
+        var response = DeserializeApiResponse<JsonElement>(okResult);
 
         Assert.True(response.Success);
-        Assert.NotNull(response.Data);
-        Assert.Equal(5, response.Data.Value.GetProperty("Id").GetInt32());
-        Assert.Equal("testuser", response.Data.Value.GetProperty("Username").GetString());
+        
+        var data = response.Data;
+        Assert.Equal(5, data.GetProperty("Id").GetInt32());
+        Assert.Equal("testuser", data.GetProperty("Username").GetString());
     }
 
     [Fact]
@@ -175,4 +180,15 @@ public class AuthControllerTest : ControllerTestFixture
         var result = _controller.GetCurrentUser();
         Assert.IsType<UnauthorizedResult>(result);
     }
+}
+
+// کلاس ApiResponse باید خارج از کلاس AuthControllerTest باشد
+public class ApiResponse<T>
+{
+    public bool Success { get; set; }
+    public string? Message { get; set; }
+    public T? Data { get; set; }
+    public DateTime Timestamp { get; set; }
+    public string? Error { get; set; }
+    public List<string>? Errors { get; set; }
 }

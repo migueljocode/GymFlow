@@ -84,11 +84,8 @@ public class LogPageTest : PageModelTestFixture
         _pageModel.HttpContext.Session.Clear();
 
         var result = await _pageModel.OnPostAsync();
-
         var redirectResult = Assert.IsType<RedirectToPageResult>(result);
         Assert.Equal("/Login", redirectResult.PageName);
-        // مطابق رفتار کد اصلی، ErrorMessage مقداردهی نمی‌شود
-        // Assert.Null(_pageModel.ErrorMessage);
     }
 
     [Fact]
@@ -98,9 +95,8 @@ public class LogPageTest : PageModelTestFixture
 
         var result = await _pageModel.OnPostAsync();
 
-        Assert.IsType<PageResult>(result);
-        // Assert.Equal("❌ برنامه تمرینی فعالی ندارید! لطفاً ابتدا یک برنامه تمرینی ایجاد کنید.", _pageModel.ErrorMessage);
-        // Assert.Null(_pageModel.Message);
+        var redirectResult = Assert.IsType<RedirectToPageResult>(result);
+        Assert.Null(redirectResult.PageName);   // چون RedirectToPage() بدون آرگومان، همان صفحه را رفرش می‌کند
     }
 
     [Fact]
@@ -122,8 +118,8 @@ public class LogPageTest : PageModelTestFixture
 
         var result = await _pageModel.OnPostAsync();
 
-        Assert.IsType<PageResult>(result);
-        // Assert.Equal($"❌ برای روز Tuesday برنامه تمرینی ندارید!", _pageModel.ErrorMessage);
+        var redirectResult = Assert.IsType<RedirectToPageResult>(result);
+        Assert.Null(redirectResult.PageName);   // چون RedirectToPage() بدون آرگومان، همان صفحه را رفرش می‌کند
     }
 
     [Fact]
@@ -148,9 +144,8 @@ public class LogPageTest : PageModelTestFixture
 
         var result = await _pageModel.OnPostAsync();
 
-        Assert.IsType<PageResult>(result);
-        // Assert.Equal($"✅ تمرین برای تاریخ {_pageModel.ActualDate} با موفقیت ثبت شد! ", _pageModel.Message);
-        // Assert.Null(_pageModel.ErrorMessage);
+        var redirectResult = Assert.IsType<RedirectToPageResult>(result);
+        Assert.Null(redirectResult.PageName);   // چون RedirectToPage() بدون آرگومان، همان صفحه را رفرش می‌کند
     }
 
     [Fact]
@@ -174,9 +169,8 @@ public class LogPageTest : PageModelTestFixture
 
         var result = await _pageModel.OnPostAsync();
 
-        Assert.IsType<PageResult>(result);
-        // Assert.Equal($"⚠️ تمرین برای تاریخ {_pageModel.ActualDate} قبلاً ثبت شده است! نمی‌توانید دوباره ثبت کنید.", _pageModel.ErrorMessage);
-        // Assert.Null(_pageModel.Message);
+        var redirectResult = Assert.IsType<RedirectToPageResult>(result);
+        Assert.Null(redirectResult.PageName);   // چون RedirectToPage() بدون آرگومان، همان صفحه را رفرش می‌کند    
     }
 
     [Fact]
@@ -200,9 +194,8 @@ public class LogPageTest : PageModelTestFixture
 
         var result = await _pageModel.OnPostAsync();
 
-        Assert.IsType<PageResult>(result);
-        // Assert.Equal("❌ خطا در ثبت تمرین: Internal server error", _pageModel.ErrorMessage);
-        // Assert.Null(_pageModel.Message);
+        var redirectResult = Assert.IsType<RedirectToPageResult>(result);
+        Assert.Null(redirectResult.PageName);   // چون RedirectToPage() بدون آرگومان، همان صفحه را رفرش می‌کند
     }
 
     #endregion

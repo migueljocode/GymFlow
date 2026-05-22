@@ -7,6 +7,7 @@ public class StatisticsControllerTest : ControllerTestFixture
     private readonly Mock<IWorkoutSessionRepository> _mockSessionRepo;
     private readonly Mock<IExerciseRepository> _mockExerciseRepo;
     private readonly Mock<IProgressLogRepository> _mockProgressRepo;
+    private readonly Mock<ICoachRepository> _mockCoachRepo;
     private readonly StatisticsController _controller;
 
     public StatisticsControllerTest()
@@ -16,13 +17,18 @@ public class StatisticsControllerTest : ControllerTestFixture
         _mockSessionRepo = new Mock<IWorkoutSessionRepository>();
         _mockExerciseRepo = new Mock<IExerciseRepository>();
         _mockProgressRepo = new Mock<IProgressLogRepository>();
+        _mockCoachRepo = new Mock<ICoachRepository>();  // ← اضافه شد
+        
         _controller = CreateController<StatisticsController>(
             _mockUserRepo.Object,
             _mockPlanRepo.Object,
             _mockSessionRepo.Object,
             _mockExerciseRepo.Object,
-            _mockProgressRepo.Object);
+            _mockProgressRepo.Object,
+            _mockCoachRepo.Object);
     }
+
+    // بقیه تست‌ها بدون تغییر می‌مانند...
 
     #region Helper Methods
 
