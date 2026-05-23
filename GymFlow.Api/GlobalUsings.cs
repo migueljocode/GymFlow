@@ -1,8 +1,10 @@
 global using GymFlow.Api.Helpers;
 global using GymFlow.Api.Controllers.Base;
 global using GymFlow.Api.Middleware;
+global using GymFlow.Api.Extensions;
 
 global using GymFlow.Dal.Seed.Extensions;
+global using GymFlow.Dal.Seed.Data;
 global using GymFlow.Dal.Extensions;
 global using GymFlow.Dal.Repositories.Interfaces;
 global using GymFlow.Dal.Context;

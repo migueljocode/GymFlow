@@ -5,32 +5,33 @@ builder.Services.AddControllers();
 
 // Register GymFlow DAL (DbContext + Repositories + Seed Configuration)
 builder.Services.AddGymFlowDal(builder.Configuration, builder.Environment);
-
 builder.Services.AddGymFlowServices(); 
 
 // Register OpenAPI
 builder.Services.AddOpenApi();
 
-builder.Services.AddScoped<IAuthService>(provider =>
-{
-    var factory = provider.GetRequiredService<IDbContextFactory<AppDbContext>>();
-    return new AuthService(factory);
-});
+// Register services via extension methods
+builder.Services.AddAuthService();
+builder.Services.AddBasicSeeder();
 
 var app = builder.Build();
 
-// Development Pipeline
+// Ensure basic users (coach & member) exist in all environments
+await app.EnsureBasicUsersAsync();
+
+// Development-specific seeding (rich test data)
+await app.SeedDevelopmentDataAsync();
+
+// Development pipeline (OpenAPI, Scalar)
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
     app.MapScalarApiReference();
-    await app.Services.EnsureDatabaseSeededAsync();
 }
 
-// *** اضافه کردن Middleware سفارشی احراز هویت ***
+// Custom Authentication Middleware
 app.UseMiddleware<BasicAuthMiddleware>();
 
-// app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
 
