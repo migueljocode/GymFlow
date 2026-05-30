@@ -6,8 +6,7 @@
 > **Field:** Professional Computer Engineering (B.Sc. Continuous)  
 > **University:** National University of Skill - Gorgan–Boys' Campus  
 > **Supervisor:** Professor Milad Yanpi  
-> **Term:** 8th (Final Semester)  
-> **Student ID:** `01131123907502`  
+> **Term:** 8th (Final Semester)
 > **Email:** mikaeeiljorjany@gmail.com
 
 ---
@@ -694,7 +693,6 @@ As a final‑year Bachelor’s project, GymFlow is a testament to the ability to
 **Mikaeeil Jorjany (میکائیل جرجانی)**
 
 - 📍 Gorgan, Iran
-- 🆔 Student ID: `01131123907502`
 - 📚 Field: Computer Engineering (B.Sc.), Term 8
 - 📧 Email: mikaeeiljorjany@gmail.com
 
